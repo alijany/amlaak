@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    volumes:
+      - ../..:/workspaces:cached
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    network_mode: service:db
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+
+
+  redis:
+    image: redis:7.4.1
+    restart: always
+    env_file:
+      - ./.env
+    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  minio:
+    image: quay.io/minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    env_file:
+      - ./.env
+
+volumes:
+  postgres-data:
+  metabase-data:
+  browser-data:
+  minio-data:

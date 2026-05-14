@@ -1,0 +1,129 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  # - name: send telegram notification
+  #   image: appleboy/drone-telegram
+  #   settings:
+  #     token:
+  #       from_secret: token
+  #     to:
+  #       from_secret: user
+  #     message: |
+  #       🚀 *شروع فرآیند بروزرسانی*
+
+  #       📂 مخزن: `${DRONE_REPO}`
+  #       🌿 برنچ: `${DRONE_BRANCH}`
+  #       📌 پیام کامیت: "${DRONE_COMMIT_MESSAGE}"
+  #       ✍️ توسعه دهنده: `${DRONE_COMMIT_AUTHOR}`
+  #       🔢 شماره ساخت: `${DRONE_BUILD_NUMBER}`
+
+  #       *لطفاً منتظر پایان بروزرسانی باشید...*
+  #     parse_mode: Markdown
+  #   when:
+  #     branch:
+  #       - prd
+
+  - name: build base
+    image: docker:dind
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+      - name: docker-cache
+        path: /var/lib/docker
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+      PROJECT_NAME:
+        from_secret: project_name
+    commands:
+      - docker build --network=host --build-arg HTTP_PROXY=http://127.0.0.1:2080 --build-arg HTTPS_PROXY=http://127.0.0.1:2080 --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg PROJECT_NAME=${PROJECT_NAME} --target dependencies -t ${PROJECT_NAME}-base:dependencies -f docker/base.Dockerfile .
+      - docker tag ${PROJECT_NAME}-base:dependencies ${PROJECT_NAME}-base
+    when:
+      branch:
+        - prd
+
+
+  - name: build and deploy
+    image: docker:dind
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+      - name: environments
+        path: /environments
+      - name: docker-cache
+        path: /var/lib/docker
+    environment:
+      DOCKER_BUILDKIT: 1
+      COMPOSE_DOCKER_CLI_BUILD: 1
+      PROJECT_NAME:
+        from_secret: project_name
+    commands:
+      - cp -r /environments/. ./
+      # - docker compose build --parallel ${PROJECT_NAME}-pwa ${PROJECT_NAME}-api
+      - docker compose up -d --no-build
+      - docker image prune -f
+    depends_on:
+      - build base
+
+  # - name: notify-success
+  #   image: appleboy/drone-telegram
+  #   when:
+  #     status:
+  #       - success
+  #   settings:
+  #     token:
+  #       from_secret: token
+  #     to:
+  #       from_secret: user
+  #     message: |
+  #       ✅ *بروزرسانی با موفقیت انجام شد*
+
+  #       📂 مخزن: `${DRONE_REPO}`
+  #       🌿 برنچ: `${DRONE_BRANCH}`
+  #       📌 پیام کامیت: "${DRONE_COMMIT_MESSAGE}"
+  #       ✍️ توسعه دهنده: `${DRONE_COMMIT_AUTHOR}`
+  #       🔢 شماره ساخت: `${DRONE_BUILD_NUMBER}`
+  #     parse_mode: Markdown
+  #   depends_on:
+  #     - build and deploy
+
+  # - name: notify-failure
+  #   image: appleboy/drone-telegram
+  #   when:
+  #     status:
+  #       - failure
+  #   settings:
+  #     token:
+  #       from_secret: token
+  #     to:
+  #       from_secret: user
+  #     message: |
+  #       ❌ *بروز رسانی با خطا مواجه شد*
+
+  #       📂 مخزن: `${DRONE_REPO}`
+  #       🌿 برنچ: `${DRONE_BRANCH}`
+  #       📌 پیام کامیت: "${DRONE_COMMIT_MESSAGE}"
+  #       ✍️ توسعه دهنده: `${DRONE_COMMIT_AUTHOR}`
+  #       🔢 شماره ساخت: `${DRONE_BUILD_NUMBER}`
+  #     parse_mode: Markdown
+  #   depends_on:
+  #     - build and deploy
+
+trigger:
+  branch:
+    - prd
+  event:
+    - push
+
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
+  - name: environments
+    host:
+      path: /root/${PROJECT_NAME}-env
+  - name: docker-cache
+    host:
+      path: /var/lib/docker/cache

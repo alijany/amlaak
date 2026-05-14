@@ -1,0 +1,3 @@
+- rename project name at package json
+- update .env.example
+- update repo links at CONTRIBUTING.md 
