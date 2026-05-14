@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
@@ -34,6 +35,7 @@ import { S3StorageModule } from './storage/s3-storage.module';
       migrationsPath: './migrations',
     })),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
 
     NotificationModule,
     AuthModule,
