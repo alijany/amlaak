@@ -151,8 +151,8 @@ export class AuthService {
       throw new BadRequestException('فرمت شماره تلفن نامعتبر است.');
     }
     const cacheKey = `otp:${validatedPhone.number}`;
-    const otp = this.generateOtp(4);
-    const ttl = 300; // 5 minutes
+    const otp = this.generateOtp(+this.configService.get('OTP_LENGTH', 4));
+    const ttl = +this.configService.get('OTP_EXPIRATION', 300); // 5 minutes
 
     try {
       await this.cacheManager.set(cacheKey, otp, ttl * 1000);

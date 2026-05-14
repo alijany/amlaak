@@ -29,9 +29,9 @@ export const postgresModuleFactory = (options: OptionsFunction) =>
       const config: PostgreSqlOptions = {
         user: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
-        dbName: configService.get<string>('DB_NAME'),
+        dbName: configService.get<string>('POSTGRES_DB'),
+        port: configService.get<number>('POSTGRES_PORT', { infer: true }),
         host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT', { infer: true }),
         namingStrategy: prefix ? PrefixedNamingStrategy : undefined,
         extensions: [Migrator],
         entities: [],
