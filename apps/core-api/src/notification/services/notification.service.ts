@@ -2,22 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EventTypes } from '../../events/types';
 import { NotificationGetDto } from '../dtos/notification.get.dto';
-import { NotificationStatus } from '../notification.constants';
+import { NotificationStatus, NotificationType } from '../notification.constants';
 import { NotificationEntity } from '../notification.entity';
 import { NotificationRepository } from '../repositories/notification.repository';
 import {
   AdminNotificationRequest,
   DirectNotificationRequest,
   LogNotificationRequest,
+  NotificationChannelRequest,
   NotificationRequest,
   UserNotificationRequest,
 } from '../types/notification-request.types';
 import { NotificationDispatcherService } from './notification-dispatcher.service';
 
-/**
- * Main notification service - provides high-level interface for notification management
- * This service acts as a facade, delegating complex operations to specialized services
- */
 @Injectable()
 export class NotificationService {
   constructor(
@@ -25,10 +22,6 @@ export class NotificationService {
     private notificationDispatcher: NotificationDispatcherService,
   ) {}
 
-  /**
-   * Event listener for legacy NotificationRequest
-   * Converts legacy events to new request format for backward compatibility
-   */
   @OnEvent(EventTypes.SEND_NOTIFICATION, { async: true })
   async handleSendNotification(
     eventData: NotificationRequest | NotificationRequest[],
@@ -48,18 +41,12 @@ export class NotificationService {
     return allNotifications;
   }
 
-  /**
-   * Send notification using new request format
-   */
   async sendNotification(
     request: NotificationRequest,
   ): Promise<NotificationEntity[]> {
     return this.notificationDispatcher.dispatch(request);
   }
 
-  /**
-   * Send notification to a specific user with auto-channel detection
-   */
   async sendToUser(
     userId: number,
     message: string,
@@ -67,7 +54,7 @@ export class NotificationService {
       priority?: 'low' | 'normal' | 'high';
       metadata?: Record<string, any>;
       smsMessage?: string;
-      preferredChannels?: string[];
+      preferredChannels?: NotificationType[];
     },
   ): Promise<NotificationEntity[]> {
     const request: UserNotificationRequest = {
@@ -82,9 +69,6 @@ export class NotificationService {
     return this.notificationDispatcher.dispatch(request);
   }
 
-  /**
-   * Send notification to all admin users
-   */
   async sendToAdmins(
     message: string,
     options?: {
@@ -102,9 +86,6 @@ export class NotificationService {
     return this.notificationDispatcher.dispatch(request);
   }
 
-  /**
-   * Send notification to log monitoring system
-   */
   async sendToLog(
     message: string,
     logLevel: 'info' | 'warn' | 'error',
@@ -121,17 +102,9 @@ export class NotificationService {
     return this.notificationDispatcher.dispatch(request);
   }
 
-  /**
-   * Send notification to specific channels
-   */
   async sendToChannels(
     message: string,
-    channels: Array<{
-      type: string;
-      recipientPhone?: string;
-      recipientChatId?: number;
-      message?: string;
-    }>,
+    channels: NotificationChannelRequest[],
     options?: {
       priority?: 'low' | 'normal' | 'high';
       metadata?: Record<string, any>;
@@ -139,7 +112,7 @@ export class NotificationService {
   ): Promise<NotificationEntity[]> {
     const request: DirectNotificationRequest = {
       message,
-      channels: channels as any, // Type assertion for compatibility
+      channels,
       priority: options?.priority,
       metadata: options?.metadata,
     };
@@ -147,9 +120,6 @@ export class NotificationService {
     return this.notificationDispatcher.dispatch(request);
   }
 
-  /**
-   * Get paginated notifications for a user
-   */
   async getPaginatedNotifications(
     filterDto: NotificationGetDto,
     userId: number,
@@ -165,16 +135,10 @@ export class NotificationService {
     return this.notificationRepository.findPaginated(filterDto, userId);
   }
 
-  /**
-   * Get notification by ID
-   */
   async getNotificationById(id: number): Promise<NotificationEntity | null> {
     return this.notificationRepository.findById(id);
   }
 
-  /**
-   * Get count of unread notifications for a user
-   */
   async getUnreadCount(userId: number): Promise<{ count: number }> {
     const count = await this.notificationRepository.count({
       user: userId,
@@ -183,9 +147,6 @@ export class NotificationService {
     return { count };
   }
 
-  /**
-   * Mark a notification as read
-   */
   async markAsRead(
     notificationId: number,
     userId: number,
@@ -208,9 +169,6 @@ export class NotificationService {
     return notification;
   }
 
-  /**
-   * Mark a notification as unread
-   */
   async markAsUnread(
     notificationId: number,
     userId: number,
@@ -233,9 +191,6 @@ export class NotificationService {
     return notification;
   }
 
-  /**
-   * Mark all notifications as read for a user
-   */
   async markAllAsRead(userId: number): Promise<{ updated: number }> {
     const [notifications] = await this.notificationRepository.findAll(
       { user: userId, isRead: false },
@@ -253,9 +208,6 @@ export class NotificationService {
     return { updated: notifications.length };
   }
 
-  /**
-   * Update notification status (for internal use)
-   */
   async updateStatus(
     id: number,
     status: NotificationStatus,

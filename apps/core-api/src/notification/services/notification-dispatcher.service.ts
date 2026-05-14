@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventTypes } from '../../events/types';
 import { NotificationType } from '../notification.constants';
 import { NotificationEntity } from '../notification.entity';
 import { NotificationRepository } from '../repositories/notification.repository';
@@ -272,6 +273,6 @@ export class NotificationDispatcherService {
   private async emitForDelivery(
     notification: NotificationEntity,
   ): Promise<void> {
-    await this.eventEmitter.emitAsync('notification.created', notification);
+    await this.eventEmitter.emitAsync(EventTypes.NOTIFICATION_CREATED, notification);
   }
 }

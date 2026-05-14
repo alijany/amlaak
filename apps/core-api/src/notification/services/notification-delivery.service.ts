@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { EventTypes } from '../../events/types';
 import { NotificationEntity } from '../notification.entity';
 import { INotificationChannel } from '../types/notification-channel.interface';
 import { SmsNotificationChannel } from '../channels/sms-notification.channel';
@@ -49,7 +50,7 @@ export class NotificationDeliveryService {
   /**
    * Handle notification created event and deliver through appropriate channel
    */
-  @OnEvent('notification.created')
+  @OnEvent(EventTypes.NOTIFICATION_CREATED)
   async handleNotificationCreated(
     notification: NotificationEntity,
   ): Promise<void> {
