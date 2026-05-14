@@ -58,7 +58,7 @@ The wizard installs: Docker, Traefik (reverse proxy + SSL), Redis, MinIO (S3-com
 
 ## 6. Deploy to Production
 
-1. Ensure the server is provisioned (step 5)
+1. On your Drone server, add a secret named `project_name` with the same value
 2. Place your production `.env` in `/root/${PROJECT_NAME}-env/` on the server (Drone mounts this volume)
 3. Push to the `prd` branch — Drone CI will build and deploy automatically
 
