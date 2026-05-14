@@ -1,18 +1,15 @@
 # Setup Checklist
 
-## 1. Rename the Project
-
-1. Set `COMPOSE_PROJECT_NAME=yourproject` in `.env.example` (and your local `.env`)
-2. Update `"name"` in root `package.json` to match
-3. On your Drone server, add a secret named `project_name` with the same value
-
-## 2. Clone & Install
+## 1. Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
-pnpm install
+git clone https://github.com/Zive-ir/mija-supper-app
+cd mija-supper-app
 ```
+
+## 2. Rename the Project
+
+Update `"name"` in root `package.json` to match
 
 ## 3. Copy Environment Files
 
@@ -44,6 +41,7 @@ pnpm --filter pwa dev              # frontend on :8000
 Start PostgreSQL and Redis first (locally or via `docker compose up db`), then:
 
 ```bash
+pnpm install
 pnpm --filter core-api start:dev   # backend on :4000
 pnpm --filter pwa dev              # frontend on :8000
 ```
