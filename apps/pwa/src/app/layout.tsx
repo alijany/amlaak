@@ -1,5 +1,6 @@
 import { AuthProvider } from "@/components/auth/auth.context.provider";
 import { ClarityAnalytics } from "@/components/clarity/clarity.component.analytics";
+import { brand } from "@/config/brand.config";
 import type { Metadata } from "next";
 import localFont from 'next/font/local';
 import { ToastContainer } from "react-toastify";
@@ -47,7 +48,8 @@ const yekan = localFont({
 });
 
 export const metadata: Metadata = {
-
+  title: brand.meta.title,
+  description: brand.meta.description,
 };
 
 export default function RootLayout({
@@ -59,7 +61,6 @@ export default function RootLayout({
     <html lang="fa" dir="rtl" className="scroll-smooth">
       <head>
         <meta name="color-scheme" content="light" />
-        <meta name="enamad" content="73651331" />
       </head>
       <body
         className={`${yekan.variable} font-yekan text-xs lg:text-base antialiased bg-slate-50`}

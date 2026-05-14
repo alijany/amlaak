@@ -1,5 +1,6 @@
 "use client";
 
+import { brand } from "@/config/brand.config";
 import { Button } from "@/ui/atoms";
 import { Dialog, DialogPanel, Transition, TransitionChild } from "@headlessui/react";
 import { IconMenu4, IconX } from "@tabler/icons-react";
@@ -34,7 +35,7 @@ export const Navbar = () => {
 
             <Link href='/' className="flex items-center gap-1.5">
                 <img src="/images/logo.svg" alt="Logo" className="h-7 lg:h-8" />
-                <h1 className="text-base font-bold text-slate-900">مونو</h1>
+                <h1 className="text-base font-bold text-slate-900">{brand.name}</h1>
             </Link>
 
             <div className="flex items-center gap-3">
@@ -74,7 +75,7 @@ export const Navbar = () => {
                             <div className="flex justify-between items-center mb-8">
                                 <div className="flex items-center space-x-reverse space-x-2">
                                     <img src="/images/logo.svg" alt="Logo" className="h-5" />
-                                    <h1 className="text-xl font-bold text-rose-500">مونو</h1>
+                                    <h1 className="text-xl font-bold text-rose-500">{brand.name}</h1>
                                 </div>
                                 <Button
                                     variant="outline"

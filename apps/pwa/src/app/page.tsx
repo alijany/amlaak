@@ -1,70 +1,19 @@
 "use client";
 
+import { brand, type FeatureIconKey } from "@/config/brand.config";
 import { RootLayout } from "@/components/layout/layout.component.root";
 import { Button, Card, CardContent, CardHeader, Label } from "@/ui/atoms";
 import Image from "next/image";
 import { IconAnalyzeFilled, IconChartHistogram, IconMessageChatbotFilled, IconCheck, IconArrowLeft, IconChevronDown } from "@tabler/icons-react";
 import { useState } from "react";
 
-const featureBlocks = [
-  {
-    icon: <IconMessageChatbotFilled size={32} className="text-blue-500" />,
-    title: "جمع‌آوری مکالمه‌ای",
-    desc: "به جای فرم‌های خشک، گفتگوی طبیعی پویا که نرخ مشارکت بالاتری ایجاد می‌کند.",
-  },
-  {
-    icon: <IconAnalyzeFilled size={32} className="text-indigo-500" />,
-    title: "تحلیل هوش مصنوعی",
-    desc: "استخراج احساس، نیاز، مشکل و اولویت اثرگذاری با مدل‌های NLP.",
-  },
-  {
-    icon: <IconChartHistogram size={32} className="text-rose-500" />,
-    title: "داشبورد Actionable",
-    desc: "به جای داده خام، بینش قابل اقدام دریافت کنید و سریع تصمیم بگیرید.",
-  },
-];
+const iconMap: Record<FeatureIconKey, React.ReactNode> = {
+  chatbot: <IconMessageChatbotFilled size={32} className="text-blue-500" />,
+  analyze: <IconAnalyzeFilled size={32} className="text-indigo-500" />,
+  chart: <IconChartHistogram size={32} className="text-rose-500" />,
+};
 
-const workflow = [
-  { step: "۱", title: "لینک گفتگو بساز", desc: "پس از ثبت‌نام، هدف و پرسونا را تعیین کن و لینک اختصاصی دریافت کن." },
-  { step: "۲", title: "اشتراک با کاربران", desc: "لینک را به کاربران ارسال کنید تا وارد یک مکالمه هدفمند با هوش مصنوعی شوند." },
-  { step: "۳", title: "تحلیل خودکار", desc: "مدل مکالمه را پردازش و خروجی ساخت‌یافته JSON + داشبورد را تولید می‌کند." },
-  { step: "۴", title: "تصمیم سریع", desc: "اقدامات پیشنهادی و اولویت مشکلات را بلافاصله ببین و اجرا کن." },
-];
-
-const faqItems = [
-  {
-    q: "چرا مکالمه هوشمند بهتر از فرم‌های معمولی است؟",
-    a: "فرم‌های طولانی خسته‌کننده‌اند و اغلب کاربران آن‌ها را رها می‌کنند. مونو با کاربر شما گفتگو می‌کند، سوالات را بر اساس پاسخ‌های قبلی تغییر می‌دهد و اگر پاسخی مبهم باشد، مودبانه جزئیات بیشتری می‌پرسد. این یعنی پاسخ‌های بیشتر و دقیق‌تر برای شما.",
-  },
-  {
-    q: "داشبورد مونو چه چیزی به من نشان می‌دهد؟",
-    a: "به جای خواندن صدها متن طولانی، مونو به شما خلاصه می‌دهد: مهم‌ترین مشکلات کاربران، احساس کلی آن‌ها نسبت به محصول، و از همه مهم‌تر، پیشنهادهای عملی برای حل مشکلات. ما داده‌ها را به تصمیم تبدیل می‌کنیم.",
-  },
-  {
-    q: "آیا برای استفاده از مونو باید برنامه‌نویسی بلد باشم؟",
-    a: "خیر، اصلا! شما فقط هدف نظرسنجی خود را می‌نویسید و مونو یک لینک به شما می‌دهد. این لینک را می‌توانید در ایمیل، شبکه‌های اجتماعی یا داخل محصول خود قرار دهید. هیچ نیازی به نصب کد یا تنظیمات فنی نیست.",
-  },
-  {
-    q: "ساختن یک نظرسنجی چقدر طول می‌کشد؟",
-    a: "کمتر از ۵ دقیقه. کافیست بگویید دنبال چه اطلاعاتی هستید (مثلاً «علت ریزش کاربران») و مخاطب شما کیست. هوش مصنوعی مونو بقیه کارها را انجام می‌دهد و سوالات را طراحی می‌کند.",
-  },
-  {
-    q: "هزینه استفاده از مونو چقدر است؟",
-    a: "ما طرح‌های مختلفی داریم، از رایگان برای شروع تا طرح‌های حرفه‌ای برای تیم‌های بزرگ. سیستم ما ترکیبی از اشتراک و پرداخت به ازای مصرف است، یعنی فقط بابت تحلیل‌هایی که واقعاً انجام می‌دهید هزینه می‌پردازید.",
-  },
-  {
-    q: "آیا اطلاعات کاربران من امن است؟",
-    a: "بله، امنیت و حریم خصوصی اولویت ماست. ما فقط اطلاعاتی که برای تحلیل نیاز دارید را جمع‌آوری می‌کنیم. شما مالک تمام داده‌ها هستید و می‌توانید هر زمان که بخواهید آن‌ها را حذف کنید یا خروجی بگیرید.",
-  },
-  {
-    q: "کیفیت تحلیل‌های هوش مصنوعی چقدر قابل اعتماد است؟",
-    a: "مونو از پیشرفته‌ترین مدل‌های زبانی دنیا استفاده می‌کند تا منظور دقیق کاربران را بفهمد. علاوه بر این، ما برای هر نتیجه‌گیری یک «امتیاز اطمینان» و تعداد نظراتی که آن را تایید می‌کنند نمایش می‌دهیم تا با خیال راحت تصمیم بگیرید.",
-  },
-  {
-    q: "اگر بخواهم پلن خود را تغییر دهم چه می‌شود؟",
-    a: "شما هر زمان می‌توانید پلن خود را ارتقا یا کاهش دهید. سیستم ما به صورت خودکار هزینه‌ها را بر اساس روزهای باقیمانده محاسبه می‌کند تا هیچ مبلغی را از دست ندهید.",
-  },
-];
+const { hero, problem, features, workflow, cta, faq } = brand.landing;
 
 export default function Landing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -76,35 +25,29 @@ export default function Landing() {
         <Image src="/images/hero-bg.svg" alt="pattern" width={1200} height={600} className="absolute inset-0 h-screen w-full md:w-full md:h-auto object-cover pointer-events-none" />
         <div className="relative container max-w-6xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col items-center text-center space-y-6 sm:space-y-8 md:space-y-10">
           <Label>
-            <span>تحلیل احساس و نیاز بدون فرم</span>
+            <span>{hero.label}</span>
           </Label>
           <h1 className="font-black text-3xl md:text-5xl lg:text-6xl !leading-snug">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-              خداحافظی با فرم‌های خشک
+              {hero.heading1}
             </span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-500 to-orange-400">
-              سلام به مکالمه هوشمند.
+              {hero.heading2}
             </span>
           </h1>
           <p className="text-slate-600 text-md md:text-xl max-w-3xl">
-            هوش مصنوعی <span className="font-bold">مونو</span> به صورت خودکار با کاربر گفتگو می‌کند، نیاز اصلی او را می‌فهمد و داده‌های کیفی را به اقدامات عملیاتی برای تیم محصول تبدیل می‌کند.
+            {hero.body}
           </p>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-1">
             <a className="block" href="/login" rel="noreferrer">
-              <Button size="lg" variant="primary" className="shadow-xl shadow-blue-500/20 text-white">شروع رایگان</Button>
+              <Button size="lg" variant="primary" className="shadow-xl shadow-blue-500/20 text-white">{hero.cta1}</Button>
             </a>
             <a href="#sample-output">
-              <Button size="lg" variant="secondary" className="">مشاهده نمونه خروجی</Button>
+              <Button size="lg" variant="secondary" className="">{hero.cta2}</Button>
             </a>
           </div>
           <div className="hidden sm:grid grid-cols-3 gap-6 mt-10 w-full max-w-3xl">
-            {/* {heroStats.map((s) => (
-              <Card key={s.label} className="bg-white/70 backdrop-blur border border-white shadow-lg shadow-black/5 p-4 flex flex-col rounded-2xl">
-                <span className="text-xl font-bold text-slate-800">{s.value}</span>
-                <span className="text-xs text-slate-500 mt-1">{s.label}</span>
-              </Card>
-            ))} */}
           </div>
         </div>
         <a href="#why" className="mt-16 relative z-1000 mb-12 flex justify-center" aria-label="Scroll to next section">
@@ -122,12 +65,14 @@ export default function Landing() {
       <section id="why" className="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8 grid lg:grid-cols-2 gap-16 items-start">
           <div className="space-y-6">
-            <h2 className="text-3xl lg:text-5xl font-black text-slate-800 !leading-snug">فرم‌ها سطحی‌اند؛<br /> تصمیم نمی‌سازند.</h2>
-            <p className="text-slate-600 text-lg">
-              پلتفرم ما بازخورد را از طریق گفت‌وگوی طبیعی می‌گیرد، احساس ، نیاز و مشکل و نگرش یا ذهنیت  را از دل یک مکالمه با هوش مصنوعی استخراج میکند. بدون فرم طولانی، بدون تفسیر دستی پراکنده.
-            </p>
+            <h2 className="text-3xl lg:text-5xl font-black text-slate-800 !leading-snug">
+              {problem.heading.split('\n').map((line, i) => (
+                <span key={i}>{line}{i === 0 && <br />}</span>
+              ))}
+            </h2>
+            <p className="text-slate-600 text-lg">{problem.body}</p>
             <a className="block" href="/login" rel="noreferrer">
-              <Button size="lg" variant="primary" className="mt-4">ثبت‌نام و ساخت اولین لینک</Button>
+              <Button size="lg" variant="primary" className="mt-4">{problem.cta}</Button>
             </a>
           </div>
           <div
@@ -144,46 +89,34 @@ export default function Landing() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-slate-800">
-                      نمونه خروجی داشبورد
+                      {problem.sampleCard.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-500">
-                      چکیده بینش‌ها پس از پردازش مکالمات کاربران.
+                      {problem.sampleCard.subtitle}
                     </p>
                   </div>
                   <div className="hidden sm:flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/70 px-2.5 py-1 text-[10px] text-slate-500 shadow-sm">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>تحلیل هوش مصنوعی فعال</span>
+                    <span>{problem.sampleCard.badge}</span>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 bg-white relative z-10 px-4 pb-4 mb-2 mx-2 rounded-b-2xl pt-0">
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div className="p-3.5 sm:p-4 bg-slate-50/80 rounded-2xl border border-slate-100 flex flex-col gap-1.5">
-                    <span className="text-[11px] text-slate-500">احساس غالب</span>
-                    <div className="text-sm font-semibold text-slate-800">
-                      سردرگمی ۴۲٪
-                    </div>
-                    <span className="text-[10px] text-slate-400">
-                      کاربران در اولین ورود مطمئن نیستند از کجا شروع کنند.
-                    </span>
+                    <span className="text-[11px] text-slate-500">{problem.sampleCard.sentiment.label}</span>
+                    <div className="text-sm font-semibold text-slate-800">{problem.sampleCard.sentiment.value}</div>
+                    <span className="text-[10px] text-slate-400">{problem.sampleCard.sentiment.note}</span>
                   </div>
                   <div className="p-3.5 sm:p-4 bg-slate-50/80 rounded-2xl border border-slate-100 flex flex-col gap-1.5">
-                    <span className="text-[11px] text-slate-500">نیاز پرتکرار</span>
-                    <div className="text-sm font-semibold text-slate-800">
-                      راهنمای شروع سریع
-                    </div>
-                    <span className="text-[10px] text-slate-400">
-                      درخواست برای مثال واقعی و مسیر قدم‌به‌قدم.
-                    </span>
+                    <span className="text-[11px] text-slate-500">{problem.sampleCard.need.label}</span>
+                    <div className="text-sm font-semibold text-slate-800">{problem.sampleCard.need.value}</div>
+                    <span className="text-[10px] text-slate-400">{problem.sampleCard.need.note}</span>
                   </div>
                   <div className="p-3.5 sm:p-4 bg-slate-900 text-slate-50 rounded-2xl col-span-2 border border-slate-800/70 flex flex-col gap-1.5 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.9)]">
-                    <span className="text-[11px] text-slate-400">اقدام پیشنهادی</span>
-                    <div className="text-sm font-semibold">
-                      افزودن onboarding مرحله‌ای ساده
-                    </div>
-                    <span className="text-[10px] text-slate-400">
-                      سناریوی راه‌اندازی ۴ مرحله‌ای با چک‌لیست کوتاه و پیشنهاد قدم بعد.
-                    </span>
+                    <span className="text-[11px] text-slate-400">{problem.sampleCard.action.label}</span>
+                    <div className="text-sm font-semibold">{problem.sampleCard.action.value}</div>
+                    <span className="text-[10px] text-slate-400">{problem.sampleCard.action.note}</span>
                   </div>
                 </div>
               </CardContent>
@@ -195,8 +128,8 @@ export default function Landing() {
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-white to-slate-50">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8 text-center space-y-4">
-          <h2 className="text-3xl md:text-5xl font-black text-slate-800">چطور کار می‌کند؟</h2>
-          <p className="text-slate-600 text-lg">چهار گام تا بینش اجرایی</p>
+          <h2 className="text-3xl md:text-5xl font-black text-slate-800">{brand.landing.workflowHeading}</h2>
+          <p className="text-slate-600 text-lg">{brand.landing.workflowSubheading}</p>
         </div>
         <div className="mt-6 md:mt-16 container max-w-5xl mx-auto px-4 sm:px-6 md:px-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {workflow.map((w) => (
@@ -214,13 +147,13 @@ export default function Landing() {
       {/* FEATURES GRID */}
       <section id="features" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-slate-50">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8 text-center space-y-4">
-          <h2 className="text-3xl md:text-5xl font-black text-slate-800">سه بخش اصلی مونو</h2>
-          <p className="text-slate-600 text-lg">Collect → Analyze → Insights</p>
+          <h2 className="text-3xl md:text-5xl font-black text-slate-800">{brand.landing.featuresHeading}</h2>
+          <p className="text-slate-600 text-lg">{brand.landing.featuresSubheading}</p>
         </div>
         <div className="mt-8 md:mt-16 container max-w-5xl mx-auto grid md:grid-cols-3 gap-8 px-4 sm:px-6 md:px-8">
-          {featureBlocks.map(f => (
+          {features.map((f) => (
             <Card key={f.title} className="bg-white border-b-4 border-slate-100 shadow-[0px_24px_40px_-16px_rgba(119,168,226,0.30)] p-6 flex flex-col text-right">
-              <div className="mb-4">{f.icon}</div>
+              <div className="mb-4">{iconMap[f.icon]}</div>
               <h3 className="font-semibold text-lg text-slate-700 mb-2">{f.title}</h3>
               <p className="text-sm text-slate-500 !leading-relaxed">{f.desc}</p>
             </Card>
@@ -228,21 +161,15 @@ export default function Landing() {
         </div>
       </section>
 
-
-      {/* CTA STRONG */}
       {/* CTA STRONG */}
       <section
         id="cta"
         className="relative py-16 sm:py-20 md:py-24 lg:py-32 bg-slate-950 overflow-hidden"
       >
-        {/* Background gradient + pattern */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(56,189,248,0.22),transparent_55%),radial-gradient(circle_at_100%_0%,rgba(248,113,113,0.2),transparent_55%),linear-gradient(to_bottom,rgba(15,23,42,1),rgba(15,23,42,1))]" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.09]"
-          style={{
-            backgroundImage: "url(/images/plus-pattern.svg)",
-            backgroundRepeat: "repeat",
-          }}
+          style={{ backgroundImage: "url(/images/plus-pattern.svg)", backgroundRepeat: "repeat" }}
         />
 
         <div className="relative container max-w-6xl mx-auto px-4 sm:px-6 md:px-8 grid lg:grid-cols-[1.1fr_minmax(0,0.9fr)] gap-12 lg:gap-16 items-center">
@@ -250,29 +177,23 @@ export default function Landing() {
           <div className="space-y-8 text-center lg:text-right">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] md:text-xs text-white/70 backdrop-blur">
               <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>نسخه آزمایشی فعال • بدون نیاز به کارت بانکی</span>
+              <span>{cta.badge}</span>
             </div>
 
             <div className="space-y-3">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black !leading-snug text-white">
-                موج بعدی فهم کاربر را
+                {cta.heading1}
                 <span className="block text-transparent bg-clip-text bg-gradient-to-l from-sky-400 via-indigo-300 to-rose-300">
-                  از همین امروز راه بینداز
+                  {cta.heading2}
                 </span>
               </h2>
               <p className="text-sm md:text-base text-white/70 max-w-xl mx-auto lg:mx-0">
-                لینک گفتگو بساز، مکالمه را با کاربر شروع کن و چند دقیقه بعد
-                خلاصه‌ای شفاف از نیاز، احساس و اقدام پیشنهادی در داشبورد ببین.
+                {cta.body}
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3 text-xs md:text-sm max-w-xl mx-auto lg:mx-0">
-              {[
-                "مناسب تیم‌های Product و Research",
-                "بدون نیاز به پیاده‌سازی بات خارجی",
-                "JSON استاندارد + داشبورد دیداری",
-                "پشتیبانی و همراهی در طراحی مکالمه",
-              ].map((item) => (
+              {cta.bullets.map((item) => (
                 <div
                   key={item}
                   className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm text-white/80"
@@ -292,7 +213,7 @@ export default function Landing() {
                   variant="white"
                   className="rounded-2xl bg-white text-slate-950 hover:bg-slate-100 shadow-[0_18px_45px_-22px_rgba(15,23,42,0.9)] transition-transform duration-150 hover:-translate-y-0.5"
                 >
-                  شروع رایگان
+                  {cta.cta1}
                 </Button>
               </a>
               <a className="block" href="#early-access" rel="noreferrer">
@@ -301,19 +222,16 @@ export default function Landing() {
                   variant="ghost"
                   className="rounded-2xl border border-white/20 text-white/80 hover:text-white hover:bg-white/5 flex items-center gap-2"
                 >
-                  <span>موج بعدی قابلیت‌ها</span>
+                  <span>{cta.cta2}</span>
                   <IconArrowLeft size={18} />
                 </Button>
               </a>
             </div>
 
-            <p className="text-[11px] text-white/50 font-light">
-              نسخه آزمایشی محدود • مناسب تا ۵۰۰ مکالمه اول • امکان ارتقا به
-              پلن‌های بالاتر بعد از اعتبارسنجی.
-            </p>
+            <p className="text-[11px] text-white/50 font-light">{cta.footnote}</p>
           </div>
 
-          {/* Right: Glass card with subtle motion */}
+          {/* Right: Glass card */}
           <div className="relative">
             <div className="pointer-events-none absolute -inset-8 bg-gradient-to-tr from-sky-400/30 via-transparent to-rose-400/20 opacity-40 blur-3xl" />
 
@@ -321,54 +239,45 @@ export default function Landing() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">
-                    نمونه بینش جمع‌بندی‌شده
+                    {cta.sampleCard.eyebrow}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-white">
-                    موج۱ – مکالمات Onboarding
+                    {cta.sampleCard.title}
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-3 py-1 text-[10px] text-emerald-200 border border-emerald-400/20">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                  <span>تحلیل کامل شد</span>
+                  <span>{cta.sampleCard.badge}</span>
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-[11px] md:text-xs text-white/85">
                 <div className="rounded-2xl bg-white/8 border border-white/10 p-3 flex flex-col">
-                  <span className="text-white/50">احساس غالب</span>
-                  <span className="mt-1 font-semibold">سردرگمی (۴۲٪)</span>
-                  <span className="mt-1 text-[10px] text-white/45">
-                    کاربران در اولین ورود نمی‌دانند از کجا شروع کنند.
-                  </span>
+                  <span className="text-white/50">{cta.sampleCard.sentiment.label}</span>
+                  <span className="mt-1 font-semibold">{cta.sampleCard.sentiment.value}</span>
+                  <span className="mt-1 text-[10px] text-white/45">{cta.sampleCard.sentiment.note}</span>
                 </div>
                 <div className="rounded-2xl bg-white/8 border border-white/10 p-3 flex flex-col">
-                  <span className="text-white/50">نیاز پرتکرار</span>
-                  <span className="mt-1 font-semibold">راهنمای شروع سریع</span>
-                  <span className="mt-1 text-[10px] text-white/45">
-                    درخواست برای مثال واقعی و قدم‌به‌قدم.
-                  </span>
+                  <span className="text-white/50">{cta.sampleCard.need.label}</span>
+                  <span className="mt-1 font-semibold">{cta.sampleCard.need.value}</span>
+                  <span className="mt-1 text-[10px] text-white/45">{cta.sampleCard.need.note}</span>
                 </div>
                 <div className="rounded-2xl bg-white/8 border border-white/10 p-3 flex flex-col col-span-2">
-                  <span className="text-white/50">اقدام پیشنهادی</span>
-                  <span className="mt-1 font-semibold">
-                    طراحی فلو onboarding ۴ مرحله‌ای
-                  </span>
-                  <span className="mt-1 text-[10px] text-white/45">
-                    سناریوی راه‌اندازی با چک‌لیست کوتاه، ویدیو ۳۰ ثانیه‌ای و
-                    پیشنهاد قدم بعد.
-                  </span>
+                  <span className="text-white/50">{cta.sampleCard.action.label}</span>
+                  <span className="mt-1 font-semibold">{cta.sampleCard.action.value}</span>
+                  <span className="mt-1 text-[10px] text-white/45">{cta.sampleCard.action.note}</span>
                 </div>
               </div>
 
               <div className="rounded-2xl bg-black/40 border border-white/15 p-3.5 md:p-4 font-mono text-[10px] !leading-relaxed text-white/85 overflow-x-auto">
-                {`{\n  "sentiment": "confusion",\n  "dominant_topics": ["onboarding", "first_time_use"],\n  "main_need_or_problem": "quick_start_guide",\n  "priority_score": 0.82,\n  "recommended_product_action": "add_step_by_step_onboarding",\n  "suggested_kpis": ["time_to_first_value", "onboarding_completion_rate"]\n}`}
+                {cta.sampleCard.json}
               </div>
 
               <div className="flex items-center justify-between gap-3 text-[10px] text-white/45">
-                <span>* قابل اتصال به ابزارهای داخلی Product / Analytics.</span>
+                <span>{cta.sampleCard.apiNote}</span>
                 <span className="hidden sm:inline-flex items-center gap-1">
                   <span className="h-1 w-1 rounded-full bg-sky-300" />
-                  <span>Sync با ابزارهای تیم شما</span>
+                  <span>{cta.sampleCard.syncNote}</span>
                 </span>
               </div>
             </Card>
@@ -381,11 +290,11 @@ export default function Landing() {
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 30% 20%,rgba(59,130,246,0.08),transparent 60%)' }} />
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <h2 className="text-3xl md:text-5xl font-black text-slate-800">سوالات متداول</h2>
-            <p className="text-slate-600 mt-4 text-sm md:text-base">اگر پاسخ خود را پیدا نکردی، ایمیل بزن یا به پشتیبانی پیام بده.</p>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-800">{faq.heading}</h2>
+            <p className="text-slate-600 mt-4 text-sm md:text-base">{faq.subheading}</p>
           </div>
           <div className="grid md:grid-cols-2 items-start gap-6">
-            {faqItems.map((item, idx) => {
+            {faq.items.map((item, idx) => {
               const open = openFaq === idx;
               return (
                 <div key={idx} className={`group rounded-2xl border backdrop-blur bg-white/60 transition ${open ? 'bg-white/80 border-slate-300' : 'border-slate-200 hover:border-slate-300'}`}>
@@ -416,5 +325,3 @@ export default function Landing() {
     </RootLayout>
   );
 }
-
-

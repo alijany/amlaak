@@ -1,5 +1,6 @@
 "use client";
 
+import { brand } from '@/config/brand.config';
 import { Button } from '@/ui/atoms';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import { IconCancel, IconMenu, IconPhone, IconRocket, IconUser } from '@tabler/icons-react';
@@ -32,7 +33,7 @@ export function Navbar({ transparent }: { transparent?: boolean }) {
             </Button>
             <Link href='/' className="flex items-center space-x-reverse space-x-2">
               <img src="/images/logo.svg" alt="Logo" className="h-6 lg:h-8" />
-              <h1 className="text-base lg:text-lg font-bold text-slate-800">مونو</h1>
+              <h1 className="text-base lg:text-lg font-bold text-slate-800">{brand.name}</h1>
             </Link>
           </div>
 
@@ -88,7 +89,7 @@ export function Navbar({ transparent }: { transparent?: boolean }) {
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-reverse space-x-2">
                   <img src="/images/logo.svg" alt="Logo" className="h-5" />
-                  <h1 className="text-xl font-bold text-slate-900">مونو</h1>
+                  <h1 className="text-xl font-bold text-slate-900">{brand.name}</h1>
                 </div>
                 <Button
                   variant="outline"
@@ -108,9 +109,9 @@ export function Navbar({ transparent }: { transparent?: boolean }) {
 
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="flex space-x-2 space-x-reverse">
-                  <a href="tel:+989104007068" className='flex-1' rel="noreferrer">
+                  <a href={`tel:${brand.contact.phone.primary}`} className='flex-1' rel="noreferrer">
                     <Button variant="outline" size="lg" className="w-full border-orange-500 p-2 flex justify-center items-center space-x-2 space-x-reverse">
-                      <div dir='ltr' className="font-semibold text-sm text-orange-600">0910 400 7068</div>
+                      <div dir='ltr' className="font-semibold text-sm text-orange-600">{brand.contact.phone.display}</div>
                       <IconPhone color="#FC4258" className="size-4" />
                     </Button>
                   </a>

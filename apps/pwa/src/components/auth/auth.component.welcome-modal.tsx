@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { brand } from '@/config/brand.config';
 import { Button } from '@/ui/atoms/ui.button';
 import { Modal } from '@/ui/atoms/ui.modal';
 import { IconSparkles, IconX, IconGift } from '@tabler/icons-react';
@@ -11,6 +12,8 @@ export interface WelcomeModalProps {
     onClose: () => void;
     className?: string;
 }
+
+const { welcomeModal } = brand;
 
 export function WelcomeModal({
     isOpen,
@@ -29,7 +32,7 @@ export function WelcomeModal({
                         <IconSparkles className='size-6' />
                     </div>
                     <div className='font-bold text-xl lg:text-2xl text-slate-800'>
-                        به مونو خوش آمدید!
+                        {welcomeModal.title}
                     </div>
                 </div>
 
@@ -47,10 +50,10 @@ export function WelcomeModal({
                         </div>
                         <div className="flex-1 space-y-2">
                             <h3 className="text-xl font-bold text-slate-800">
-                                هدیه ویژه برای شما!
+                                {welcomeModal.giftHeading}
                             </h3>
                             <p className="text-slate-600 leading-relaxed">
-                                به مناسبت عضویت شما در پلتفرم مونو <strong className="text-purple-600">اشتراک PRO</strong> را به مدت <strong className="text-purple-600">۳۰ روز رایگان</strong> برای شما فعال کردیم.
+                                {welcomeModal.giftBody}
                             </p>
                         </div>
                     </div>
@@ -58,46 +61,21 @@ export function WelcomeModal({
 
                 {/* Features list */}
                 <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
-                    <h4 className="font-bold text-lg text-slate-800">
-                        امکانات اشتراک PRO:
-                    </h4>
                     <ul className="space-y-3">
-                        <li className="flex items-start gap-3">
-                            <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5">
-                                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <span className="text-slate-700">دسترسی به مدل‌های پیشرفته هوش مصنوعی</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5">
-                                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <span className="text-slate-700">امکان ایجاد پروژه‌ها و مکالمات بیشتر</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5">
-                                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <span className="text-slate-700">تحلیل‌های پیشرفته و گزارش‌های تخصصی</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5">
-                                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <span className="text-slate-700">ورودی صوتی و امکانات تعاملی</span>
-                        </li>
+                        {welcomeModal.features.map((feature) => (
+                            <li key={feature} className="flex items-start gap-3">
+                                <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5">
+                                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <span className="text-slate-700">{feature}</span>
+                            </li>
+                        ))}
                     </ul>
                 </div>
 
-                {/* Important notice */}
+                {/* Notice */}
                 <div className="bg-amber-50 border-r-4 border-amber-400 rounded-lg p-4">
                     <div className="flex gap-3">
                         <div className="text-amber-600 flex-shrink-0">
@@ -106,7 +84,7 @@ export function WelcomeModal({
                             </svg>
                         </div>
                         <div className="text-sm text-amber-800 leading-relaxed">
-                            <strong>نکته مهم:</strong> پس از پایان دوره آزمایشی، در صورت داشتن موجودی کافی در کیف پول، اشتراک شما به صورت خودکار تمدید می‌شود. می‌توانید از بخش اشتراک، تمدید خودکار را غیرفعال کنید.
+                            {welcomeModal.notice}
                         </div>
                     </div>
                 </div>
@@ -117,11 +95,8 @@ export function WelcomeModal({
                         onClick={onClose}
                         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 rounded-xl shadow-lg"
                     >
-                        شروع استفاده از مونو
+                        {welcomeModal.ctaLabel}
                     </Button>
-                    <p className="text-center text-sm text-slate-500">
-                        برای مشاهده جزئیات اشتراک به بخش «اشتراک من» مراجعه کنید
-                    </p>
                 </div>
             </div>
         </Modal>
