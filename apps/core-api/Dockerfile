@@ -2,7 +2,7 @@
 # Builder stage
 ###################
 # set defaul value
-ARG PROJECT_NAME = app
+ARG PROJECT_NAME=app
 FROM ${PROJECT_NAME}-base:dependencies AS builder
 WORKDIR /app
 
