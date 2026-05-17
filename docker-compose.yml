@@ -1,5 +1,5 @@
 version: "3.8"
-name: ${COMPOSE_PROJECT_NAME}
+name: ${PROJECT_NAME}
 
 # Networks:
 # - traefik-public: External network managed by standalone Traefik container
@@ -11,16 +11,16 @@ networks:
     name: traefik-public
   app:
     external: true
-    name: ${COMPOSE_PROJECT_NAME}
+    name: ${PROJECT_NAME}
 
 services:
   api:
-    container_name: ${COMPOSE_PROJECT_NAME}-api
+    container_name: ${PROJECT_NAME}-api
     build:
       context: .
       dockerfile: apps/core-api/Dockerfile
       args:
-        PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+        PROJECT_NAME: ${PROJECT_NAME}
       # For using proxy on containers setup
       # network: host
       # args:
@@ -44,11 +44,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/v1`)
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-api.priority=10
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-api.entrypoints=websecure
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-api.tls.certresolver=letsencrypt
-      - traefik.http.services.${COMPOSE_PROJECT_NAME}-api.loadbalancer.server.port=4000
+      - traefik.http.routers.${PROJECT_NAME}-api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/v1`)
+      - traefik.http.routers.${PROJECT_NAME}-api.priority=10
+      - traefik.http.routers.${PROJECT_NAME}-api.entrypoints=websecure
+      - traefik.http.routers.${PROJECT_NAME}-api.tls.certresolver=letsencrypt
+      - traefik.http.services.${PROJECT_NAME}-api.loadbalancer.server.port=4000
 
   db:
     image: postgres:15
@@ -68,14 +68,14 @@ services:
       retries: 5
 
   pwa:
-    container_name: ${COMPOSE_PROJECT_NAME}-pwa
+    container_name: ${PROJECT_NAME}-pwa
     build:
       context: .
       dockerfile: apps/pwa/Dockerfile
       target: runner
       network: host
       args:
-        PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+        PROJECT_NAME: ${PROJECT_NAME}
         # For using proxy on containers setup
         # HTTP_PROXY: http://127.0.0.1:2080
         # HTTPS_PROXY: http://127.0.0.1:2080
@@ -85,7 +85,6 @@ services:
         # no_proxy: 127.0.0.1,localhost,::1
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_CLARITY_PROJECT_ID: ${NEXT_PUBLIC_CLARITY_PROJECT_ID}
-        NEXT_PUBLIC_ENABLE_MOCK_PAYMENTS: ${NEXT_PUBLIC_ENABLE_MOCK_PAYMENTS}
     restart: always
     env_file:
       - .env
@@ -101,11 +100,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-pwa.rule=Host(`${DOMAIN}`) || Header(`User-Agent`, `Clarity-Bot`)
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-pwa.priority=1
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-pwa.entrypoints=websecure
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-pwa.tls.certresolver=letsencrypt
-      - traefik.http.services.${COMPOSE_PROJECT_NAME}-pwa.loadbalancer.server.port=4000
+      - traefik.http.routers.${PROJECT_NAME}-pwa.rule=Host(`${DOMAIN}`) || Header(`User-Agent`, `Clarity-Bot`)
+      - traefik.http.routers.${PROJECT_NAME}-pwa.priority=1
+      - traefik.http.routers.${PROJECT_NAME}-pwa.entrypoints=websecure
+      - traefik.http.routers.${PROJECT_NAME}-pwa.tls.certresolver=letsencrypt
+      - traefik.http.services.${PROJECT_NAME}-pwa.loadbalancer.server.port=4000
 
 
 volumes:

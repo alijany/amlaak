@@ -63,7 +63,7 @@ The pipeline in `.drone.yml` runs on every push to `prd`:
 2. Copies production env files from a host-mounted volume
 3. Runs `docker compose up -d --no-build` to deploy
 
-Required Drone secrets: `project_name` (must match `COMPOSE_PROJECT_NAME` in production `.env`).
+Required Drone secrets: `project_name` (must match `PROJECT_NAME` in production `.env`).
 
 Telegram notification steps are included in `.drone.yml` but commented out — add `token` and `user` secrets to enable them.
 

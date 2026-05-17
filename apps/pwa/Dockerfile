@@ -15,7 +15,6 @@ COPY apps/pwa ./apps/pwa
 # These must be set at build time to be embedded in the client bundle
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_CLARITY_PROJECT_ID
-ARG NEXT_PUBLIC_ENABLE_MOCK_PAYMENTS
 
 # Build with Next.js standalone output and cache mount
 ENV NEXT_TELEMETRY_DISABLED=1

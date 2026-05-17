@@ -53,16 +53,16 @@ Three env files are required — none should be committed:
 
 | File | Source | Purpose |
 |---|---|---|
-| `.env` | `.env.example` | Root: `COMPOSE_PROJECT_NAME`, DB, Redis, JWT, S3, payment, PWA |
+| `.env` | `.env.example` | Root: `PROJECT_NAME`, DB, Redis, JWT, S3, payment, PWA |
 | `apps/core-api/.env` | `apps/core-api/.env.example` | Backend-only overrides |
 | `apps/pwa/.env.local` | `apps/pwa/.env.example` | Frontend-only public vars |
 
 ## Project Naming
 
-`COMPOSE_PROJECT_NAME` in `.env` controls all Docker container/network/volume names. To rename the project:
-1. Set `COMPOSE_PROJECT_NAME=yourproject` in `.env` (and `.env.example` for new clones)
+`PROJECT_NAME` in `.env` controls all Docker container/network/volume names. To rename the project:
+1. Set `PROJECT_NAME=yourproject` in `.env` (and `.env.example` for new clones)
 2. Update `"name"` in root `package.json`
-3. Add `project_name` Drone secret on your Drone server (must match `COMPOSE_PROJECT_NAME`)
+3. Add `project_name` Drone secret on your Drone server (must match `PROJECT_NAME`)
 
 ## Architecture
 
@@ -137,4 +137,4 @@ See `apps/core-api/AGENTS.md` and `apps/pwa/AGENTS.md` for detailed patterns and
 - Do not add code to the monorepo root — shared code belongs in `apps/*/src/libs/`
 - Do not skip MikroORM migrations for entity schema changes
 - Do not rely on test results — tests are currently unstable; use `build` + `lint` instead
-- Do not hardcode the project name in Dockerfiles or compose files — always use `${PROJECT_NAME}` / `${COMPOSE_PROJECT_NAME}`
+- Do not hardcode the project name in Dockerfiles or compose files — always use `${PROJECT_NAME}` / `${PROJECT_NAME}`
