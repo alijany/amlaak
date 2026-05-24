@@ -9,7 +9,7 @@ import {
 } from '@/components/auth/auth.api.client';
 import ProtectedRoute from '@/components/auth/auth.component.protected-route';
 import { useAuth } from '@/components/auth/auth.context.provider';
-import { RootLayout } from '@/components/dashboard/dashboard.layout';
+import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { cn } from '@/libs/style/style.util.helpers';
 import { Button, Input } from '@/ui/atoms';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -130,7 +130,7 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <RootLayout>
+      <DashbaordLayout>
         <div className="space-y-6 grow flex flex-col overflow-auto">
           {/* Main Card */}
           <form onSubmit={handleSubmit(onSubmit)} className="p-4 lg:p-6 rounded-3xl bg-white shadow-sm border border-slate-100 grow flex flex-col">
@@ -368,7 +368,7 @@ export default function ProfilePage() {
             await requestOtp({ phoneNumber });
           }}
         />
-      </RootLayout>
+      </DashbaordLayout>
     </ProtectedRoute>
   );
 }

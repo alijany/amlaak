@@ -3,7 +3,7 @@
 import { cn } from "@/libs/style/style.util.helpers";
 import { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ArrowLeft01Icon, ArrowRight01Icon } from "hugeicons-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import React, { useCallback, useEffect, useState } from "react";
 
 const useDotButton = (
@@ -120,14 +120,14 @@ export const Carousel: React.FC<CarouselProps> = ({
                             disabled={prevBtnDisabled}
                             className="p-2 lg:p-3 cursor-pointer rounded-full bg-white/30"
                         >
-                            <ArrowRight01Icon className="size-4 lg:size-6" />
+                            <IconChevronRight className="size-4 lg:size-6" />
                         </button>
                         <button
                             onClick={onNextButtonClick}
                             disabled={nextBtnDisabled}
                             className="p-2 lg:p-3 cursor-pointer rounded-full bg-white/30"
                         >
-                            <ArrowLeft01Icon className="size-4 lg:size-6" />
+                            <IconChevronLeft className="size-4 lg:size-6" />
                         </button>
                     </div>
                 )}

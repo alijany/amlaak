@@ -22,7 +22,6 @@
     "duration-fns": "^3.0.2",
     "embla-carousel": "^8.5.2",
     "embla-carousel-react": "^8.5.2",
-    "hugeicons-react": "^0.3.0",
     "lodash": "^4.17.21",
     "next": "15.1.7",
     "react": "^19.0.0",

@@ -1,7 +1,7 @@
 'use client';
 
 import ProtectedRoute from '@/components/auth/auth.component.protected-route';
-import { RootLayout } from '@/components/dashboard/dashboard.layout';
+import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { DataView } from '@/ui/molecules/dataView/ui.data-view';
 import { useNotificationPreferences, updateNotificationPreference } from '../notifications.api';
 import { NotificationCategory } from '../notifications.types';
@@ -69,7 +69,7 @@ export default function NotificationPreferencesPage() {
 
     return (
         <ProtectedRoute>
-            <RootLayout>
+            <DashbaordLayout>
                 <div className='space-y-3 grow flex flex-col overflow-hidden'>
                     <div className='p-4 rounded-2xl bg-white flex items-center gap-4 justify-between'>
                         <div>
@@ -160,7 +160,7 @@ export default function NotificationPreferencesPage() {
                         </div>
                     </DataView>
                 </div>
-            </RootLayout>
+            </DashbaordLayout>
         </ProtectedRoute>
     );
 }

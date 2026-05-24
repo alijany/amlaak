@@ -1,5 +1,5 @@
 import { cn } from "@/libs/style/style.util.helpers";
-import { DangerIcon } from "hugeicons-react";
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { HTMLAttributes } from "react";
 import { Button } from "../../atoms/ui.button";
 import { Card, CardContent } from "../../atoms/ui.card";
@@ -27,7 +27,7 @@ export function Error({
 
     const content = (
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <DangerIcon className="text-destructive" size={36} />
+            <IconAlertTriangle className="text-destructive" size={36} />
 
             <div className="space-y-2">
                 <h3 className="text-lg font-medium text-foreground">

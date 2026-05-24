@@ -2,7 +2,7 @@ import { cn } from "@/libs/style/style.util.helpers";
 import { HTMLAttributes } from "react";
 import { Button } from "../../atoms/ui.button";
 import { Card, CardContent } from "../../atoms/ui.card";
-import { Sad01Icon } from "hugeicons-react";
+import { IconMoodSad } from "@tabler/icons-react";
 
 interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -28,7 +28,7 @@ export function EmptyState({
   // const router = useRouter();
 
   const defaultIcon = (
-    <Sad01Icon />
+    <IconMoodSad />
   );
 
   const content = (

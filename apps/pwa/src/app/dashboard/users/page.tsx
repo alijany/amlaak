@@ -2,7 +2,7 @@
 
 import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
-import { RootLayout } from '@/components/dashboard/dashboard.layout';
+import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { DataView, Pagination } from '@/ui/molecules';
 import { useState } from 'react';
 import { useUsers } from './users.api';
@@ -20,7 +20,7 @@ export default function UsersPage() {
 
     return (
         <RoleProtectedRoute allowedRoles={RouteItems.users.roles}>
-            <RootLayout>
+            <DashbaordLayout>
                 <div className='space-y-3 grow flex flex-col overflow-hidden'>
                     <div className='p-4 rounded-2xl bg-white flex items-center gap-4 justify-between'>
                         <div className='font-bold grow'>مدیریت کاربران</div>
@@ -77,7 +77,7 @@ export default function UsersPage() {
                         </DataView>
                     </div>
                 </div>
-            </RootLayout>
+            </DashbaordLayout>
         </RoleProtectedRoute>
     );
 }

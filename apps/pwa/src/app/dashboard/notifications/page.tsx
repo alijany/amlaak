@@ -1,7 +1,7 @@
 'use client';
 
 import ProtectedRoute from '@/components/auth/auth.component.protected-route';
-import { RootLayout } from '@/components/dashboard/dashboard.layout';
+import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { Dropdown, Input } from '@/ui/atoms';
 import { Pagination } from '@/ui/molecules';
 import { DataView } from '@/ui/molecules/dataView/ui.data-view';
@@ -129,7 +129,7 @@ export default function NotificationsPage() {
 
     return (
         <ProtectedRoute>
-            <RootLayout>
+            <DashbaordLayout>
                 <div className='flex flex-col gap-4 grow overflow-hidden'>
                     {/* Header */}
                     <div className='rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50 to-white px-4 py-3 lg:px-6 lg:py-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between shadow-[0_18px_45px_rgba(15,23,42,0.06)]'>
@@ -354,7 +354,7 @@ export default function NotificationsPage() {
                         </DataView>
                     </div>
                 </div>
-            </RootLayout>
+            </DashbaordLayout>
         </ProtectedRoute>
     );
 }
