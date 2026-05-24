@@ -21,15 +21,6 @@ services:
       dockerfile: apps/core-api/Dockerfile
       args:
         PROJECT_NAME: ${PROJECT_NAME}
-      # For using proxy on containers setup
-      # network: host
-      # args:
-      #   HTTP_PROXY: http://127.0.0.1:2080
-      #   HTTPS_PROXY: http://127.0.0.1:2080
-      #   NO_PROXY: 127.0.0.1,localhost,::1
-      #   http_proxy: http://127.0.0.1:2080
-      #   https_proxy: http://127.0.0.1:2080
-      #   no_proxy: 127.0.0.1,localhost,::1
     restart: always
     env_file:
       - .env
@@ -76,13 +67,6 @@ services:
       network: host
       args:
         PROJECT_NAME: ${PROJECT_NAME}
-        # For using proxy on containers setup
-        # HTTP_PROXY: http://127.0.0.1:2080
-        # HTTPS_PROXY: http://127.0.0.1:2080
-        # NO_PROXY: 127.0.0.1,localhost,::1
-        # http_proxy: http://127.0.0.1:2080
-        # https_proxy: http://127.0.0.1:2080
-        # no_proxy: 127.0.0.1,localhost,::1
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_CLARITY_PROJECT_ID: ${NEXT_PUBLIC_CLARITY_PROJECT_ID}
     restart: always

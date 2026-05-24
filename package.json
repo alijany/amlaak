@@ -4,7 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:front": "pnpm -F pwa dev",
+    "dev:back": "pnpm -F core-api start:dev",
+    "build:front": "pnpm -F pwa build",
+    "build:back": "pnpm -F core-api pwa build",
+    "lint:front": "pnpm -F pwa lint",
+    "lint:back": "pnpm -F core-api lint"
   },
   "workspaces": [
     "apps/*",

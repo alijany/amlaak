@@ -7,7 +7,6 @@ Update `"name"` in root `package.json` to match
 ## 2. Copy Environment Files
 
 ```bash
-cp .env.example .env
 cp apps/core-api/.env.example apps/core-api/.env
 cp apps/pwa/.env.example apps/pwa/.env.local
 ```

@@ -38,7 +38,7 @@ steps:
       PROJECT_NAME:
         from_secret: project_name
     commands:
-      - docker build --network=host --build-arg HTTP_PROXY=http://127.0.0.1:2080 --build-arg HTTPS_PROXY=http://127.0.0.1:2080 --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg PROJECT_NAME=${PROJECT_NAME} --target dependencies -t ${PROJECT_NAME}-base:dependencies -f docker/base.Dockerfile .
+      - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg PROJECT_NAME=${PROJECT_NAME} --target dependencies -t ${PROJECT_NAME}-base:dependencies -f docker/base.Dockerfile .
       - docker tag ${PROJECT_NAME}-base:dependencies ${PROJECT_NAME}-base
     when:
       branch:

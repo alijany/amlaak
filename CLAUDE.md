@@ -52,7 +52,6 @@ Three env files are required — none should be committed:
 
 | File | Source | Purpose |
 |---|---|---|
-| `.env` | `.env.example` | Root: `PROJECT_NAME`, DB, Redis, JWT, S3, payment, PWA |
 | `apps/core-api/.env` | `apps/core-api/.env.example` | Backend-only overrides |
 | `apps/pwa/.env.local` | `apps/pwa/.env.example` | Frontend-only public vars |
 
