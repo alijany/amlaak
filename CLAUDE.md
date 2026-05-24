@@ -87,24 +87,24 @@ Domain-driven: each business domain is self-contained under `src/app/<domain>/`.
 
 ```
 src/app/<domain>/
-  page.tsx                          route entry (Server Component)
-  <domain>.types.*.ts               domain types
-  <domain>.service.*.ts             API calls using shared fetcher
-  <domain>.hook.use-*.ts            SWR hooks
-  <domain>.component.*.tsx          domain components
+  page.tsx                    route entry
+  <domain>.types.ts           domain types
+  <domain>.api.ts             SWR hooks + fetcher calls for this domain
+  <domain>.component.*.tsx    domain components
 ```
 
 File naming convention: `domain.type.purpose.ext`
-- `auth.component.login-form.tsx`
-- `items.service.list.ts`
-- `items.hook.use-list.ts`
-- `items.types.item.ts`
+- `items.types.ts`, `items.api.ts`, `items.component.list.tsx`
 
 Move code to `src/libs/` or `src/components/` **only** when used across 2+ domains. Auth is global by design.
 
-Shared fetcher: `src/libs/api/` — use it for all HTTP calls.
+**API layer** (`src/libs/api/`):
+- `api.util.fetcher.ts` — `fetcher`, `postFetcher`, `patchFetcher`, `putFetcher`, `deleteFetcher`, `formDataFetcher`
+- `api.hook.use-swr-helper.ts` — `useSwrHelper`, `useSwrMutationHelper`
 
-SSR pattern: Server Component fetches initial data → passes as `initialData` to Client Component → SWR hydrates with `fallbackData`.
+Always wrap `useSWR`/`useSWRMutation` with the SWR helpers. Always render async data with `DataView` from `@/ui/molecules`.
+
+See `apps/pwa/AGENTS.md` for the full API integration pattern with code examples.
 
 ## CI/CD (Drone)
 
@@ -119,13 +119,14 @@ SSR pattern: Server Component fetches initial data → passes as `initialData` t
 **Backend:**
 1. Create `apps/core-api/src/<feature>/` with the standard module files
 2. Register the module in `apps/core-api/src/app.module.ts`
-3. Generate a MikroORM migration: `pnpm --filter core-api migration:create`
+3. Restart the dev server — `MigrationService` auto-generates and runs any pending migrations on startup
 
 **Frontend:**
 1. Create `apps/pwa/src/app/<feature>/` as a self-contained domain
-2. Add types, service (uses shared fetcher), SWR hook, server + client components
-3. Add a route in `src/app/<feature>/page.tsx`
-4. If the route needs auth protection, wrap with `ProtectedRoute` or `RoleProtectedRoute`
+2. Add `<feature>.types.ts` (domain types) and `<feature>.api.ts` (SWR hooks using shared fetcher + SWR helpers)
+3. Add components using `DataView` from `@/ui/molecules` for async data rendering
+4. Add a route in `src/app/<feature>/page.tsx`
+5. If the route needs auth protection, wrap with `ProtectedRoute` or `RoleProtectedRoute`
 
 See `apps/core-api/AGENTS.md` and `apps/pwa/AGENTS.md` for detailed patterns and examples.
 
@@ -133,6 +134,5 @@ See `apps/core-api/AGENTS.md` and `apps/pwa/AGENTS.md` for detailed patterns and
 
 - Do not commit `.env` files — only `.env.example` files are committed
 - Do not add code to the monorepo root — shared code belongs in `apps/*/src/libs/`
-- Do not skip MikroORM migrations for entity schema changes
 - Do not rely on test results — tests are currently unstable; use `build` + `lint` instead
 - Do not hardcode the project name in Dockerfiles or compose files — always use `${PROJECT_NAME}` / `${PROJECT_NAME}`

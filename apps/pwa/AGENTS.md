@@ -5,22 +5,22 @@ Next.js 15 progressive web application with domain-driven architecture, SSR/RSC 
 ## Architecture Overview
 
 - **Domain-based organization**: Each business domain is self-contained under `src/app/<domain>/`
-- **Server/Client component separation**: Optimized for Next.js App Router
-- **Type-safe API layer**: All HTTP via the shared fetcher in `src/libs/api/`
-- **SSR-first**: Server Components fetch initial data; SWR handles client-side hydration
+- **Type-safe API layer**: All HTTP via `src/libs/api/api.util.fetcher.ts` + SWR helpers
 - **Role-based auth**: JWT + OTP with multi-role support and route protection
 
 ## Project Structure
 
 ```
 src/
-  app/            Next.js App Router — domain containers and pages
-  components/     Shared components reused across 2+ domains
+  app/            Next.js App Router — domain pages and co-located domain code
+  components/     Shared components used across 2+ domains
     auth/         Authentication system (global by design)
-    dashboard/    Dashboard shell (navbar, sidebar)
-  ui/             Design system (atoms, molecules, organisms)
+    dashboard/    Dashboard shell (navbar, sidebar, layout)
+  ui/             Design system
+    atoms/        Primitive components (Button, Input, Modal…)
+    molecules/    Composite components (DataView, Pagination, Tabs…)
   libs/           Shared utilities
-    api/          Fetcher, SWR helpers, response types
+    api/          fetcher, SWR helpers, error types
     format/       Formatting utilities
     style/        Style helpers
   assets/         Static assets
@@ -33,102 +33,172 @@ Domain-local code stays inside `src/app/<domain>/`. Only move code to `src/libs/
 Pattern: `domain.type.purpose.ext`
 
 ```
-# Components
-auth.component.login-form.tsx
-dashboard.component.stats-card.tsx
-items.component.list.tsx
-
-# Services (API calls)
-items.service.list.ts
-items.service.detail.ts
-
-# Hooks
-items.hook.use-list.ts
-items.hook.use-detail.ts
-
-# Types
 items.types.item.ts
-api.types.response.ts
-
-# Utilities
-date.util.format.ts
-validation.util.form.ts
-
-# Constants
-auth.constants.roles.ts
-api.constants.endpoints.ts
+items.api.ts                   # SWR hooks + fetcher calls for this domain
+items.component.list.tsx
+items.component.add-form.tsx
 ```
 
-## Development Workflow
+## API Integration Pattern
 
-### Adding a New Domain
+All domains follow this exact pattern — no exceptions.
+
+### 1. Fetcher utilities (`src/libs/api/api.util.fetcher.ts`)
+
+Use the pre-built fetcher helpers. They handle auth tokens, 401 refresh, and error throwing automatically.
+
+```typescript
+import {
+  fetcher,         // GET
+  postFetcher,     // POST  — signature: (url, { arg }) => Promise<R>
+  patchFetcher,    // PATCH — signature: (url, { arg }) => Promise<R>
+  putFetcher,      // PUT   — signature: (url, { arg }) => Promise<R>
+  deleteFetcher,   // DELETE
+  formDataFetcher, // multipart POST
+} from '@/libs/api/api.util.fetcher';
+```
+
+### 2. SWR helpers (`src/libs/api/api.hook.use-swr-helper.ts`)
+
+Always wrap `useSWR` / `useSWRMutation` with these helpers instead of destructuring raw SWR.
+
+```typescript
+import { useSwrHelper, useSwrMutationHelper } from '@/libs/api/api.hook.use-swr-helper';
+
+// useSwrHelper returns: { data, error, isLoading, refresh, reset, mutate }
+// useSwrMutationHelper returns: { data, error, isLoading, submit, reset }
+```
+
+### 3. Domain API file (`<domain>.api.ts`)
+
+Co-locate all hooks and fetcher calls for a domain in a single `<domain>.api.ts` file.
+
+```typescript
+// src/app/items/items.api.ts
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+import { fetcher, postFetcher, patchFetcher, deleteFetcher } from '@/libs/api/api.util.fetcher';
+import { useSwrHelper, useSwrMutationHelper } from '@/libs/api/api.hook.use-swr-helper';
+import { Item, CreateItemDto, ItemsResponse } from './items.types';
+
+// GET list
+export function useItems() {
+  return useSwrHelper(useSWR<ItemsResponse>('/items', fetcher));
+}
+
+// GET single
+export function useItem(id: string) {
+  return useSwrHelper(useSWR<Item>(`/items/${id}`, fetcher));
+}
+
+// POST
+export function useCreateItem() {
+  return useSwrMutationHelper(useSWRMutation('/items', postFetcher<CreateItemDto, Item>));
+}
+
+// PATCH
+export function useUpdateItem(id: string) {
+  return useSwrMutationHelper(useSWRMutation(`/items/${id}`, patchFetcher<Partial<CreateItemDto>, Item>));
+}
+```
+
+### 4. DataView component (`src/ui/molecules/dataView/ui.data-view.tsx`)
+
+Always use `DataView` to render async data — it handles loading, error, and empty states automatically. Import it from `@/ui/molecules`.
+
+```typescript
+import { DataView } from '@/ui/molecules';
+
+// Props: data, error, isLoading, isEmpty?, onRetry?, errorTitle?, errorMessage?,
+//        emptyMessage?, emptyIcon?, variant? ("card" | "inline"), className, ...divProps
+```
+
+```tsx
+'use client';
+import { DataView } from '@/ui/molecules';
+import { useItems } from './items.api';
+
+export function ItemsPage() {
+  const { data, error, isLoading, refresh } = useItems();
+
+  return (
+    <DataView
+      data={data}
+      error={error}
+      isLoading={isLoading}
+      isEmpty={(d) => !d?.items.length}
+      emptyMessage="No items found"
+      onRetry={refresh}
+    >
+      {data?.items.map((item) => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </DataView>
+  );
+}
+```
+
+### 5. Mutations with refresh
+
+```tsx
+export function AddItemForm({ onSuccess }: { onSuccess: () => void }) {
+  const { submit, isLoading, error } = useCreateItem();
+
+  const handleSubmit = async (dto: CreateItemDto) => {
+    await submit(dto);
+    onSuccess(); // call refresh() from the parent's useSwrHelper
+  };
+  // ...
+}
+
+// In the parent page:
+const { data, error, isLoading, refresh } = useItems();
+<AddItemForm onSuccess={refresh} />
+```
+
+## Adding a New Domain
 
 ```bash
 mkdir -p src/app/items
-touch src/app/items/page.tsx                           # route entry (Server Component)
-touch src/app/items/items.types.item.ts                # domain types
-touch src/app/items/items.service.list.ts              # API service
-touch src/app/items/items.hook.use-list.ts             # SWR hook
-touch src/app/items/items.component.list-server.tsx    # Server Component
-touch src/app/items/items.component.list-client.tsx    # Client Component
+touch src/app/items/page.tsx
+touch src/app/items/items.types.ts
+touch src/app/items/items.api.ts
+touch src/app/items/items.component.list.tsx
 ```
 
-### API Integration Pattern
-
-```typescript
-// 1. Define domain types
-// src/app/items/items.types.item.ts
-export interface Item {
-  id: string;
-  name: string;
-}
-
-// 2. Create service using shared fetcher
-// src/app/items/items.service.list.ts
-import { fetcher } from '@/libs/api/fetcher';
-export const itemsService = {
-  getAll: () => fetcher<Item[]>('/items'),
-  getById: (id: string) => fetcher<Item>(`/items/${id}`),
-};
-
-// 3. Create SWR hook
-// src/app/items/items.hook.use-list.ts
-import useSWR from 'swr';
-export function useItems(initialData?: Item[]) {
-  return useSWR('/items', itemsService.getAll, {
-    fallbackData: initialData,
-    revalidateOnMount: !initialData,
-  });
-}
-
-// 4. Server Component (SSR)
-// src/app/items/items.component.list-server.tsx
-export async function ItemsListServer() {
-  const items = await itemsService.getAll();
-  return <ItemsListClient initialData={items} />;
-}
-
-// 5. Client Component (interactivity)
-// src/app/items/items.component.list-client.tsx
-'use client';
-export function ItemsListClient({ initialData }: { initialData: Item[] }) {
-  const { data, isLoading } = useItems(initialData);
-  // ...
-}
-```
+Checklist:
+1. Define types in `items.types.ts`
+2. Write SWR hooks in `items.api.ts` using fetcher + SWR helpers
+3. Use `DataView` in components — never write manual loading/error/empty branches
+4. Protect routes with `ProtectedRoute` or `RoleProtectedRoute` (see Auth below)
 
 ## Authentication
 
-The auth system (`src/components/auth/`) is global and included in every project.
+The auth system (`src/components/auth/`) is global and already wired into the root layout.
 
-### Auth Context
+### Route Protection
 
 ```tsx
-// Already in root layout — no setup needed
-import { AuthProvider } from '@/components/auth/auth.context.provider';
+import ProtectedRoute from '@/components/auth/auth.component.protected-route';
+import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
+import { Role } from '@/components/auth/auth.constants.roles';
+
+// Any authenticated user
+export default function Page() {
+  return <ProtectedRoute><Content /></ProtectedRoute>;
+}
+
+// Specific roles only
+export default function AdminPage() {
+  return (
+    <RoleProtectedRoute allowedRoles={[Role.ADMIN]}>
+      <AdminContent />
+    </RoleProtectedRoute>
+  );
+}
 ```
 
-### Using Auth in Components
+### Using Auth in Client Components
 
 ```tsx
 'use client';
@@ -136,30 +206,6 @@ import { useAuth } from '@/components/auth/auth.context.provider';
 
 export function MyComponent() {
   const { user, isAuthenticated, isLoading, logout, hasRole } = useAuth();
-  // ...
-}
-```
-
-### Route Protection
-
-```tsx
-// Any authenticated user
-import ProtectedRoute from '@/components/auth/auth.component.protected-route';
-
-export default function DashboardPage() {
-  return <ProtectedRoute><DashboardContent /></ProtectedRoute>;
-}
-
-// Specific roles only
-import RoleProtectedRoute from '@/components/auth/auth.component.role-protected-route';
-import { Role } from '@/components/auth/auth.constants.roles';
-
-export default function AdminPage() {
-  return (
-    <RoleProtectedRoute allowedRoles={[Role.ADMIN]}>
-      <AdminContent />
-    </RoleProtectedRoute>
-  );
 }
 ```
 
@@ -174,34 +220,6 @@ export enum Role {
 }
 ```
 
-### Auth API Methods
-
-```typescript
-const { sendOtp, verifyOtpAndLogin, logout, refreshProfile } = useAuth();
-
-await sendOtp('09123456789');
-await verifyOtpAndLogin('09123456789', '123456');
-logout();
-```
-
-## SSR / RSC Strategy
-
-- **Server Components**: initial data fetching, SEO, no client JS overhead
-- **Client Components**: user interactions, real-time updates, hooks
-- **SWR**: client-side caching with server-side `fallbackData` for instant first render
-- Mark Client Components with `'use client'` at the top; default to Server Components
-
-## Key Technologies
-
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Data Fetching**: SWR + custom fetcher
-- **Forms**: React Hook Form + Zod
-- **Auth**: Custom JWT/OTP with RBAC
-- **Icons**: Tabler Icons, Hugeicons
-- **Carousel**: Embla Carousel
-
 ## Commands
 
 ```bash
@@ -213,9 +231,7 @@ pnpm --filter pwa type-check   # TypeScript check
 
 ## Troubleshooting
 
-- **Hydration errors**: check Server/Client component boundaries — data must be serializable
-- **SWR cache issues**: verify SWR key consistency between server and client
-- **Type errors**: ensure domain types are imported from the correct domain — avoid cross-domain type imports
-- **Build errors**: check for circular dependencies between domains
+- **Hydration errors**: ensure data passed from Server → Client Components is serializable
+- **SWR cache stale**: call `refresh()` from `useSwrHelper` after mutations; pass `onSuccess={refresh}` to forms
+- **Type errors**: import types only from the owning domain — avoid cross-domain type imports
 - **Auth token issues**: clear localStorage and re-login; check JWT expiration settings
-- **Role errors**: verify the user's invitation status is `accepted` and the role is assigned
