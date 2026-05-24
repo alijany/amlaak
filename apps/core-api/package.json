@@ -42,7 +42,6 @@
     "@nestjs/platform-express": "^11.1.6",
     "@nestjs/schedule": "^4.1.2",
     "@nestjs/throttler": "^6.5.0",
-    "@playwright/test": "^1.50.1",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "bull": "^4.16.5",
@@ -60,12 +59,13 @@
     "nanoid": "^5.1.5",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "playwright": "^1.52.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.1",
+    "playwright": "^1.52.0",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/devtools-integration": "^0.1.6",
     "@nestjs/schematics": "^11.0.7",
