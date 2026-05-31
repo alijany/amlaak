@@ -16,12 +16,12 @@ export class S3StorageService implements OnModuleInit {
   private readonly logger = new Logger(S3StorageService.name);
   private readonly bucketName: string;
   private readonly region: BucketLocationConstraint;
-  private readonly cdnDomain: string;
+  private readonly domain: string;
 
   constructor(private configService: ConfigService) {
     this.bucketName = this.configService.get<string>('S3_BUCKET_NAME');
     this.region = this.configService.get<BucketLocationConstraint>('S3_REGION');
-    this.cdnDomain = this.configService.get<string>('S3_CDN_DOMAIN');
+    this.domain = this.configService.get<string>('S3_DOMAIN');
 
     // Initialize S3 client with Arvan cloud credentials
     this.s3Client = new S3Client({
@@ -135,8 +135,8 @@ export class S3StorageService implements OnModuleInit {
       await this.s3Client.send(putObjectCommand);
 
       // Return URL using custom domain if configured, otherwise use S3 URL
-      if (this.cdnDomain) {
-        return `${this.cdnDomain}/${this.bucketName}/${key}`;
+      if (this.domain) {
+        return `${this.domain}/${this.bucketName}/${key}`;
       }
 
       return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`;
