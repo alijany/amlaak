@@ -39,7 +39,7 @@
 	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pnpm install"
+	"postCreateCommand": "[ -f apps/core-api/.env ] || cp apps/core-api/.env.example apps/core-api/.env && [ -f apps/pwa/.env.local ] || cp apps/pwa/.env.example apps/pwa/.env.local && pnpm install"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
