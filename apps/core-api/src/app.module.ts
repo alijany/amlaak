@@ -5,6 +5,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { CrawlerModule } from './crawler/crawler.module';
 import { postgresModuleFactory } from './libs/orm/orm.provider.base';
 import { NotificationModule } from './notification/notification.module';
 import { RolesModule } from './roles/roles.module';
@@ -41,6 +42,7 @@ import { S3StorageModule } from './storage/s3-storage.module';
     AuthModule,
     RolesModule,
     S3StorageModule,
+    CrawlerModule,
   ],
 })
 export class AppModule {}

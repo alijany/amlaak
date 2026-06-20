@@ -47,6 +47,17 @@ services:
     depends_on:
       - app
 
+  # Optional Camoufox stealth-browser sidecar for the crawler. The Mock target
+  # works without it; uncomment + set CAMOFOX_BASE_URL=http://camofox:9377 to do
+  # real browser automation. See docs/developer/browser-gateway-camofox.md
+  camofox:
+    image: ghcr.io/jo-inc/camofox-browser:latest
+    env_file:
+      - ./.env.example
+    volumes:
+      - browser-data:/root/.camofox
+
 volumes:
   postgres-data:
   minio-data:
+  browser-data:
