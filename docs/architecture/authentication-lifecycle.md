@@ -7,15 +7,15 @@ machine.
 
 ## State machine
 
-```
-            startLogin(phone)              submitOtp(code) [valid]
-  LOGIN_REQUIRED ───────────────► OTP_PENDING ───────────────────► LOGGED_IN
-        ▲                              │                               │
-        │ logout                       │ submitOtp [invalid] / error   │ session expired /
-        └──────────────────────────────┴───────────────────────────────┘  checkSession fails
-                                       │
-                                       ▼
-                                     ERROR
+```mermaid
+stateDiagram-v2
+    [*] --> LOGIN_REQUIRED
+    LOGIN_REQUIRED --> OTP_PENDING : startLogin(phone)
+    OTP_PENDING --> LOGGED_IN : submitOtp(code) [valid]
+    OTP_PENDING --> ERROR : submitOtp [invalid] / error
+    OTP_PENDING --> LOGIN_REQUIRED : logout
+    LOGGED_IN --> LOGIN_REQUIRED : logout
+    LOGGED_IN --> LOGIN_REQUIRED : session expired / checkSession fails
 ```
 
 `CrawlerAuthStatus`: `LOGIN_REQUIRED · OTP_PENDING · LOGGED_IN · ERROR`

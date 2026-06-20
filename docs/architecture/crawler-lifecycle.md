@@ -35,15 +35,18 @@ Job types (`CrawlJobType`): `FULL_SCAN · INCREMENTAL · SINGLE_AD`
 `CrawlJobProcessor` (a Bull `@Processor`) picks up the job. It runs inside a MikroORM
 `@CreateRequestContext()` because Bull executes outside the HTTP request lifecycle.
 
-```
-RUNNING
-  ├─ resolve provider via CrawlerProviderRegistry.get(target.siteKey)
-  ├─ load stored session (if any)
-  ├─ provider.crawl(ctx)            → RawAdvertisement[]
-  ├─ for each raw ad:
-  │     NormalizationService.extract(raw)        → NormalizedAdvertisement
-  │     AdvertisementService.upsert(target, job) → created? update stats
-  └─ COMPLETED (stats persisted)  |  FAILED (error persisted)
+```mermaid
+flowchart TD
+    A([RUNNING]) --> B[Resolve provider\nCrawlerProviderRegistry.get\(target.siteKey\)]
+    B --> C[Load stored session]
+    C --> D[provider.crawl\(ctx\)]
+    D --> E{For each raw ad}
+    E --> F[NormalizationService.extract\(raw\)\n→ NormalizedAdvertisement]
+    F --> G[AdvertisementService.upsert\(target, job\)\n→ update stats]
+    G --> E
+    E -->|done| H{Result}
+    H -->|success| I([COMPLETED\nstats persisted])
+    H -->|error| J([FAILED\nerror persisted])
 ```
 
 On success the target is set back to `READY` and `lastCrawledAt` is stamped. On failure the
@@ -57,14 +60,25 @@ dashboard at `/dashboard/crawler/ads` via `GET /crawler/advertisements` (filter/
 
 ## Sequence (mock, happy path)
 
-```
-Dashboard         API/Service        Bull          Processor        Provider      DB
-   │  POST jobs ──►│ create+enqueue ──►│             │                │           │
-   │◄── QUEUED ────│                   │── job ─────►│                │           │
-   │               │                   │             │ crawl(ctx) ───►│           │
-   │               │                   │             │◄── raw[] ──────│           │
-   │               │                   │             │ normalize+upsert ─────────►│
-   │               │                   │             │ COMPLETED ────────────────►│
-   │  GET ads ─────────────────────────────────────────────────────────────────►│
-   │◄── items ───────────────────────────────────────────────────────────────────│
+```mermaid
+sequenceDiagram
+    participant D as Dashboard
+    participant A as API/Service
+    participant B as Bull
+    participant P as Processor
+    participant Pr as Provider
+    participant DB as DB
+
+    D->>A: POST /targets/:id/jobs
+    A->>B: create + enqueue
+    A-->>D: QUEUED
+    B->>P: job
+    P->>Pr: crawl(ctx)
+    Pr-->>P: raw[]
+    P->>DB: normalize + upsert
+    P->>DB: COMPLETED
+    D->>A: GET /crawler/advertisements
+    A->>DB: query
+    DB-->>A: results
+    A-->>D: items
 ```

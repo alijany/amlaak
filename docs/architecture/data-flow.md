@@ -2,25 +2,12 @@
 
 How a listing on a target site becomes a typed, queryable record in the dashboard.
 
-```
- source site
-     │  provider.crawl(ctx)
-     ▼
- RawAdvertisement            ← loosely-typed, provider's best effort
-   { externalId, title, description, category?,
-     attributes: { price/area/rooms as raw strings, fa digits },
-     images, postedAt, raw }
-     │  NormalizationService.extract(raw)
-     ▼
- NormalizedAdvertisement     ← typed columns + kept-as-is extras
-   { totalPrice:number, area:number, rooms:number, city, district,
-     attributes, rawPayload, crawledAt }
-     │  AdvertisementService.upsert(target, job, normalized)
-     ▼
- RealEstateAdvertisementEntity   (Postgres; UNIQUE(target, externalId))
-     │  GET /crawler/advertisements?filters
-     ▼
- Dashboard data view  /dashboard/crawler/ads
+```mermaid
+flowchart TD
+    A[Source Site] -->|"provider.crawl(ctx)"| B["RawAdvertisement\n───────────────────────\nexternalId · title · description · category\nattributes: price/area/rooms as raw strings\nimages · postedAt · raw"]
+    B -->|"NormalizationService.extract(raw)"| C["NormalizedAdvertisement\n───────────────────────\ntotalPrice · area · rooms · city · district\nattributes · rawPayload · crawledAt"]
+    C -->|"AdvertisementService.upsert(target, job, normalized)"| D["RealEstateAdvertisementEntity\n───────────────────────\nPostgres — UNIQUE(target, externalId)"]
+    D -->|"GET /crawler/advertisements?filters"| E["/dashboard/crawler/ads"]
 ```
 
 ## Stage 1 — Raw extraction (provider)

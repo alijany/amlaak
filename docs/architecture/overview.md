@@ -7,40 +7,46 @@ it stays decoupled from the rest of the application.
 
 ## High-level diagram
 
-```
-                    ┌────────────────────────── apps/pwa ──────────────────────────┐
-                    │  /dashboard/crawler        /dashboard/crawler/ads             │
-                    │  (targets, status,         (collected ads:                    │
-                    │   OTP login, run job)       filter / search / paginate)       │
-                    └───────────────┬───────────────────────────────────────────────┘
-                                    │ HTTP (admin-guarded REST)
-┌──────────────────────────── apps/core-api/src/crawler ───────────────────────────────┐
-│                                                                                       │
-│  Controllers ── targets / sessions(OTP) / jobs / advertisements                       │
-│        │                                                                              │
-│        ▼                                                                              │
-│  Services ──── CrawlTargetService   CrawlSessionService   CrawlJobService             │
-│        │              │                    │                    │ enqueue             │
-│        │              │                    │                    ▼                     │
-│        │              │                    │             Bull queue (Redis)           │
-│        │              │                    │                    │                     │
-│        │              │                    │                    ▼                     │
-│        │              │                    │            CrawlJobProcessor             │
-│        │              │                    │                    │                     │
-│        ▼              ▼                    ▼                    ▼                     │
-│   CrawlerProviderRegistry ── resolve(siteKey) ──► CrawlerProvider                     │
-│                                  ├─ MockCrawlerProvider   (works; example ads)        │
-│                                  └─ DivarCrawlerProvider  (scaffold) ──► BrowserGateway│
-│                                                                              │         │
-│                                          ┌───────────────────────────────────┘         │
-│                                          ▼                                              │
-│                                  CamofoxBrowserGateway ──HTTP──► Camoufox sidecar       │
-│                                                                                         │
-│   crawl() ──► RawAdvertisement[] ──► ExtractionPipeline (NormalizationService)          │
-│                                              │                                          │
-│                                              ▼                                          │
-│                                  AdvertisementService.upsert ──► Postgres               │
-└─────────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph PWA["apps/pwa"]
+        UI1["/dashboard/crawler\ntargets · status · OTP login · run job"]
+        UI2["/dashboard/crawler/ads\nfilter / search / paginate"]
+    end
+
+    subgraph CORE["apps/core-api/src/crawler"]
+        CTR["Controllers\ntargets · sessions(OTP) · jobs · advertisements"]
+        SVC["Services\nCrawlTargetService · CrawlSessionService · CrawlJobService"]
+        QUEUE[("Bull queue\n(Redis)")]
+        PROC["CrawlJobProcessor"]
+        REG["CrawlerProviderRegistry\nresolve(siteKey)"]
+
+        subgraph PROVS["CrawlerProvider"]
+            MOCK["MockCrawlerProvider\n(works; example ads)"]
+            DIVAR["DivarCrawlerProvider\n(scaffold)"]
+        end
+
+        GW["CamofoxBrowserGateway"]
+        PIPE["ExtractionPipeline\nNormalizationService"]
+        UPS["AdvertisementService.upsert"]
+        DB[(Postgres)]
+    end
+
+    CAM["Camoufox sidecar"]
+
+    PWA -->|"HTTP (admin-guarded REST)"| CTR
+    CTR --> SVC
+    SVC --> REG
+    SVC -->|enqueue| QUEUE
+    QUEUE --> PROC
+    PROC --> REG
+    REG --> MOCK
+    REG --> DIVAR
+    DIVAR -->|BrowserGateway| GW
+    GW -->|HTTP| CAM
+    PROC -->|"crawl() → RawAdvertisement[]"| PIPE
+    PIPE --> UPS
+    UPS --> DB
 ```
 
 ## Module map
