@@ -125,6 +125,12 @@ export class CrawlTargetController {
     return toAuthView(await this.sessionService.logout(id));
   }
 
+  /** Validate the stored session live; flips to LOGIN_REQUIRED if invalid/expired. */
+  @Post(':id/auth/reconcile')
+  async authReconcile(@Param('id', ParseIntPipe) id: number) {
+    return toAuthView(await this.sessionService.reconcile(id));
+  }
+
   // --- jobs ---
 
   @Post(':id/jobs')

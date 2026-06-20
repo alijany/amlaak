@@ -69,6 +69,7 @@ real-estate module's sink normalizes and persists them as advertisements.
 | Targets | `targets/` | Registered sites: entity, CRUD, status, browser-health endpoint |
 | Sessions | `sessions/` | Interactive OTP state machine, session storage |
 | Jobs | `jobs/` | Job entity, Bull producer (`CrawlJobService`) + worker (`CrawlJobProcessor`) |
+| Scheduling | `scheduling/` | `CrawlScheduleEntity` + service (cron via `SchedulerRegistry`) + admin API |
 | Providers | `providers/` | `CrawlerProvider`/`CrawlerAuthProvider` interfaces + registry (no concrete impls) |
 | Sink | `sink/` | `CrawlResultSink` interface + registry (the domain seam) |
 | Browser | `browser/` | `BrowserGateway` interface + `CamofoxBrowserGateway` HTTP client |

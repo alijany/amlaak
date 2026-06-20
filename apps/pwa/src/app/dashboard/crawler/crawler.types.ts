@@ -82,6 +82,29 @@ export interface BrowserHealth {
   error?: string;
 }
 
+export interface CrawlSchedule {
+  targetId: number;
+  target?: { id: number; name: string; siteKey: string };
+  enabled: boolean;
+  cron: string;
+  timezone: string;
+  jobType: CrawlJobType;
+  maxItems: number;
+  crawlDelayMs?: number;
+  lastRunAt?: string;
+  lastJobId?: number;
+  nextRunAt?: string;
+}
+
+export interface UpsertScheduleDto {
+  cron: string;
+  timezone?: string;
+  jobType?: CrawlJobType;
+  maxItems?: number;
+  crawlDelayMs?: number;
+  enabled?: boolean;
+}
+
 export interface CrawlJobStats {
   found?: number;
   created?: number;

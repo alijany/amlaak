@@ -1,11 +1,22 @@
 'use client';
 
 import { Button } from '@/ui/atoms';
-import { IconExternalLink, IconLogin2, IconPlayerPlay } from '@tabler/icons-react';
+import {
+  IconCalendarClock,
+  IconExternalLink,
+  IconLogin2,
+  IconPlayerPlay,
+  IconRefresh,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useEnqueueJob, useTargetAuth } from './crawler.api';
+import {
+  useEnqueueJob,
+  useReconcileSession,
+  useTargetAuth,
+} from './crawler.api';
 import { OtpLoginModal } from './crawler.component.otp-login-modal';
+import { ScheduleModal } from './crawler.component.schedule-modal';
 import {
   AccessibilityPill,
   AuthStatusPill,
@@ -20,14 +31,32 @@ interface TargetCardProps {
 
 export function TargetCard({ target, onRefresh }: TargetCardProps) {
   const [loginOpen, setLoginOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [message, setMessage] = useState<string | undefined>();
 
   const { data: auth, refresh: refreshAuth } = useTargetAuth(target.id);
   const enqueue = useEnqueueJob(target.id);
+  const reconcile = useReconcileSession(target.id);
 
   const authStatus = auth?.authStatus ?? CrawlerAuthStatus.LOGIN_REQUIRED;
   const needsLogin =
     target.requiresAuth && authStatus !== CrawlerAuthStatus.LOGGED_IN;
+  const loggedIn = authStatus === CrawlerAuthStatus.LOGGED_IN;
+
+  const handleReconcile = async () => {
+    setMessage(undefined);
+    try {
+      const res = await reconcile.submit(undefined);
+      setMessage(
+        res.authStatus === CrawlerAuthStatus.LOGGED_IN
+          ? 'نشست معتبر است.'
+          : 'نشست منقضی شده است؛ لطفاً دوباره وارد شوید.',
+      );
+      refreshAuth();
+    } catch {
+      setMessage('بررسی نشست ناموفق بود.');
+    }
+  };
 
   const handleRun = async () => {
     setMessage(undefined);
@@ -86,6 +115,28 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
           {enqueue.isLoading ? 'در حال صف‌بندی...' : 'اجرای کراول'}
         </Button>
 
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setScheduleOpen(true)}
+        >
+          <IconCalendarClock className="size-4 ml-1" />
+          زمان‌بندی
+        </Button>
+
+        {loggedIn && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReconcile}
+            disabled={reconcile.isLoading}
+            title="بررسی اعتبار نشست"
+          >
+            <IconRefresh className="size-4 ml-1" />
+            {reconcile.isLoading ? 'در حال بررسی...' : 'بررسی نشست'}
+          </Button>
+        )}
+
         <Link href={`/dashboard/crawler/ads?targetId=${target.id}`}>
           <Button variant="ghost" size="sm">
             <IconExternalLink className="size-4 ml-1" />
@@ -105,6 +156,13 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
           refreshAuth();
           onRefresh?.();
         }}
+      />
+
+      <ScheduleModal
+        target={target}
+        isOpen={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        onChanged={() => onRefresh?.()}
       />
     </div>
   );

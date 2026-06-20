@@ -204,6 +204,12 @@ export class CamofoxBrowserGateway implements BrowserGateway {
     );
   }
 
+  async destroySession(sessionId: string): Promise<void> {
+    await this.request('destroySession', 'delete', `/sessions/${sessionId}`, {
+      auth: true,
+    });
+  }
+
   async closeTab(tabId: string): Promise<void> {
     const userId = this.tabSessions.get(tabId);
     try {

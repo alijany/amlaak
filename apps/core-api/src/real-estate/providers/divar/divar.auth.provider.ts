@@ -33,7 +33,8 @@ const SESSION_TTL_DAYS = 30;
  *
  * The phone step is validated against the live site; the OTP step resolves its
  * input/button by role+name from the snapshot (Divar refs are per-snapshot).
- * Real session validation/teardown is Phase 4.
+ * `checkSession` re-probes the persisted profile live; `logout` clears it
+ * server-side via the gateway's `destroySession`.
  */
 @Injectable()
 export class DivarAuthProvider implements CrawlerAuthProvider {
@@ -140,16 +141,49 @@ export class DivarAuthProvider implements CrawlerAuthProvider {
   }
 
   async checkSession(session: AuthSessionData): Promise<CrawlerAuthStatus> {
-    // Lightweight check; cookies persist in the Camoufox profile. Real
-    // re-validation (navigate + detect logged-in state) is Phase 4.
-    return session?.userId
-      ? CrawlerAuthStatus.LOGGED_IN
-      : CrawlerAuthStatus.LOGIN_REQUIRED;
+    const userId = session?.userId as string | undefined;
+    if (!userId) return CrawlerAuthStatus.LOGIN_REQUIRED;
+
+    // Live probe: reuse the persisted Camoufox profile, open an authenticated
+    // page; if Divar still offers the login button, the session is gone.
+    let tabId: string | undefined;
+    try {
+      const tab = await this.browser.createTab({
+        sessionId: userId,
+        url: `${DIVAR_BASE_URL}${DIVAR_LOGIN_TRIGGER_PATH}`,
+      });
+      tabId = tab.id;
+      await this.sleep(3000);
+      const snapshot = await this.browser.snapshot(tab.id);
+      const guest = !!findRef(snapshot.text, {
+        role: 'button',
+        nameIncludes: DIVAR_ANCHORS.loginButton,
+      });
+      return guest
+        ? CrawlerAuthStatus.LOGIN_REQUIRED
+        : CrawlerAuthStatus.LOGGED_IN;
+    } catch (err) {
+      // Inconclusive (e.g. browser unavailable) — don't force a re-login.
+      this.logger.warn(
+        `Divar checkSession inconclusive: ${(err as Error)?.message ?? err}`,
+      );
+      return CrawlerAuthStatus.LOGGED_IN;
+    } finally {
+      if (tabId) await this.browser.closeTab(tabId).catch(() => undefined);
+    }
   }
 
   async logout(session: AuthSessionData): Promise<void> {
-    // Server-side profile teardown lands with session persistence (Phase 4).
-    this.logger.debug(`Divar logout for ${session?.userId ?? 'unknown'}.`);
+    const userId = session?.userId as string | undefined;
+    if (!userId) return;
+    // Clear the Camoufox profile (cookies) server-side.
+    await this.browser.destroySession(userId).catch((err) => {
+      this.logger.warn(
+        `Divar logout: destroySession failed: ${
+          (err as Error)?.message ?? err
+        }`,
+      );
+    });
   }
 
   private sleep(ms: number): Promise<void> {

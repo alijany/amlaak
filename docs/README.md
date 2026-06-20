@@ -4,11 +4,11 @@ This directory documents the **AI-friendly crawling infrastructure** introduced 
 foundation for a multi-site crawling platform. The first target is Divar real-estate
 (`https://divar.ir/s/gilan-province/real-estate`), but the architecture is site-agnostic.
 
-> **Status: Phase 3 — Divar implemented.** The crawler is split into a generic **engine**
+> **Status: Phases 1–5 done.** The crawler is split into a generic **engine**
 > (`core-api/src/crawler/`) and a **real-estate** domain module (`core-api/src/real-estate/`)
-> that uses it. The `CamofoxBrowserGateway` is validated against a live Camoufox sidecar, and
-> the **Divar** real-estate crawler works end-to-end against the live site (close map →
-> infinite scroll → per-ad detail enrichment → normalize → persist). See [roadmap.md](./roadmap.md).
+> that uses it. Live-validated end-to-end: the **Divar** crawler (close map → infinite scroll
+> → per-ad detail enrichment → normalize → persist), **session persistence/reconcile** (Phase
+> 4), and **cron scheduling** with full admin dashboard control (Phase 5). See [roadmap.md](./roadmap.md).
 
 ## How the docs are organized
 

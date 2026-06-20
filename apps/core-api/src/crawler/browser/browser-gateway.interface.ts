@@ -52,5 +52,8 @@ export interface BrowserGateway {
   /** Export the current cookies for session persistence. */
   exportCookies(sessionId: string): Promise<BrowserCookie[]>;
 
+  /** Destroy a session/profile server-side (cookies, tabs) — used by logout. */
+  destroySession(sessionId: string): Promise<void>;
+
   closeTab(tabId: string): Promise<void>;
 }

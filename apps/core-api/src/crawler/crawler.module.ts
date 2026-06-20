@@ -9,6 +9,9 @@ import { CrawlJobEntity } from './jobs/crawl-job.entity';
 import { CrawlJobProcessor } from './jobs/crawl-job.processor';
 import { CrawlJobService } from './jobs/crawl-job.service';
 import { CrawlerProviderRegistry } from './providers/crawler-provider.registry';
+import { CrawlScheduleController } from './scheduling/crawl-schedule.controller';
+import { CrawlScheduleEntity } from './scheduling/crawl-schedule.entity';
+import { CrawlScheduleService } from './scheduling/crawl-schedule.service';
 import { CrawlResultSinkRegistry } from './sink/crawl-sink.registry';
 import { CrawlSessionEntity } from './sessions/crawl-session.entity';
 import { CrawlSessionService } from './sessions/crawl-session.service';
@@ -32,19 +35,32 @@ import { CrawlTargetService } from './targets/crawl-target.service';
 @Module({
   imports: [
     HttpModule,
-    BullModule.registerQueue({ name: CRAWL_JOBS_QUEUE }),
+    BullModule.registerQueue({
+      name: CRAWL_JOBS_QUEUE,
+      // Politeness: cap how many crawl jobs run per window across all targets.
+      limiter: {
+        max: Number(process.env.CRAWL_QUEUE_MAX ?? 5),
+        duration: Number(process.env.CRAWL_QUEUE_DURATION_MS ?? 10_000),
+      },
+    }),
     MikroOrmModule.forFeature([
       CrawlTargetEntity,
       CrawlSessionEntity,
       CrawlJobEntity,
+      CrawlScheduleEntity,
     ]),
   ],
-  controllers: [CrawlTargetController, CrawlJobController],
+  controllers: [
+    CrawlTargetController,
+    CrawlJobController,
+    CrawlScheduleController,
+  ],
   providers: [
     // services
     CrawlTargetService,
     CrawlSessionService,
     CrawlJobService,
+    CrawlScheduleService,
     // browser gateway (swap useClass to change backend)
     { provide: BROWSER_GATEWAY, useClass: CamofoxBrowserGateway },
     // registries (domain modules register providers/sinks here)

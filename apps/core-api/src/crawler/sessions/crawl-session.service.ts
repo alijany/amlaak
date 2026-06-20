@@ -40,7 +40,62 @@ export class CrawlSessionService extends BaseRepositoryService<CrawlSessionEntit
   }
 
   async getStatus(targetId: number): Promise<CrawlSessionEntity> {
-    return this.getOrCreate(targetId);
+    const session = await this.getOrCreate(targetId);
+    // Cheap, side-effecting expiry check so the dashboard auto-prompts re-login.
+    if (await this.applyExpiry(session)) await this.persistAndFlush(session);
+    return session;
+  }
+
+  /**
+   * Reconcile a session against reality: expire it if past `expiresAt`, then
+   * (if still logged in) ask the provider to validate it live. On failure the
+   * session flips to LOGIN_REQUIRED so the dashboard prompts a re-login.
+   */
+  async reconcile(targetId: number): Promise<CrawlSessionEntity> {
+    const session = await this.getOrCreate(targetId);
+    let changed = await this.applyExpiry(session);
+
+    if (session.authStatus === CrawlerAuthStatus.LOGGED_IN) {
+      const target = await this.targetService.getByIdOrThrow(targetId);
+      const auth = this.registry.get(target.siteKey).getAuthProvider();
+      try {
+        const status = await auth.checkSession(session.sessionData ?? {});
+        if (status !== CrawlerAuthStatus.LOGGED_IN) {
+          this.expire(session, 'Session is no longer valid');
+          changed = true;
+        }
+      } catch (err: any) {
+        this.logger.warn(
+          `Session reconcile failed for target ${targetId}: ${
+            err?.message ?? err
+          }`,
+        );
+      }
+    }
+
+    if (changed) await this.persistAndFlush(session);
+    return session;
+  }
+
+  /** Flip an expired logged-in session to LOGIN_REQUIRED. Returns true if changed. */
+  private async applyExpiry(session: CrawlSessionEntity): Promise<boolean> {
+    if (
+      session.authStatus === CrawlerAuthStatus.LOGGED_IN &&
+      session.expiresAt &&
+      session.expiresAt.getTime() < Date.now()
+    ) {
+      this.expire(session, 'Session expired');
+      return true;
+    }
+    return false;
+  }
+
+  private expire(session: CrawlSessionEntity, reason: string): void {
+    session.authStatus = CrawlerAuthStatus.LOGIN_REQUIRED;
+    session.sessionData = undefined;
+    session.challengeRef = undefined;
+    session.expiresAt = undefined;
+    session.lastError = reason;
   }
 
   async startLogin(

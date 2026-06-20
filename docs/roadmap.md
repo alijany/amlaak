@@ -59,18 +59,31 @@ Before Phase 3, the crawler was split into a generic engine and a domain module:
 > keyword fallback; images and `postedAt` are not yet extracted (Phase 6 AI enrichment is the
 > natural home). `sourceUrl` was widened to `text` (Divar URLs are long percent-encoded Persian).
 
-## Phase 4 — Session persistence
+## Phase 4 — Session persistence ✅
 
-- Persist Camoufox profiles/cookies and reconcile with `CrawlSessionEntity`
-  (`sessionData`, `expiresAt`).
-- Implement `checkSession`/`logout` for real; auto-prompt re-login when a session expires
-  (set target → `LOGIN_REQUIRED`).
+- ✅ Camoufox persists profiles/cookies server-side per `userId` (the persistence plugin +
+  `browser-data` volume); the lightweight marker + `expiresAt` live in `CrawlSessionEntity`.
+- ✅ Real `checkSession` (live probe: open the profile, detect the login button) and `logout`
+  (new `BrowserGateway.destroySession` → Camoufox `DELETE /sessions/:userId`).
+- ✅ `CrawlSessionService.reconcile` (expiry + live validation) flips a stale session to
+  `LOGIN_REQUIRED`; `getStatus` also applies a cheap expiry check so the dashboard
+  auto-prompts re-login. Endpoint: `POST /crawler/targets/:id/auth/reconcile` (+ a "بررسی نشست"
+  button on the dashboard).
 
-## Phase 5 — Scheduling
+> Note: a full live `checkSession` round-trip needs a real logged-in Divar profile (SMS OTP);
+> the orchestration + expiry path are validated.
 
-- Add a `CrawlScheduleService` using `@nestjs/schedule` to enqueue `INCREMENTAL` jobs on a
-  per-target cron (config-driven), reusing `CrawlJobService.enqueue`.
-- Add per-target politeness (crawl-delay, concurrency) and queue `limiter`.
+## Phase 5 — Scheduling ✅
+
+- ✅ `CrawlScheduleEntity` (one per target) + `CrawlScheduleService` driving `@nestjs/schedule`'s
+  `SchedulerRegistry` with `cron` jobs; ticks reuse `CrawlJobService.enqueue` inside their own
+  EM context. Enabled schedules re-register on boot.
+- ✅ **Admin dashboard control**: full CRUD + enable/disable + run-now via
+  `/crawler/schedules/:targetId`, surfaced as a per-target schedule modal (cron presets,
+  timezone, job type, max items, politeness delay, next/last run).
+- ✅ Per-target politeness (`crawlDelayMs` passed through job params to the provider) + a Bull
+  queue `limiter` (`CRAWL_QUEUE_MAX` / `CRAWL_QUEUE_DURATION_MS`). Validated live: an enabled
+  cron fired every 20s and enqueued jobs; disable/delete stopped it.
 
 ## Phase 6 — AI extraction & enrichment
 

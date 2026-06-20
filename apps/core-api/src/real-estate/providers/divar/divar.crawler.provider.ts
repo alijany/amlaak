@@ -80,10 +80,13 @@ export class DivarCrawlerProvider implements CrawlerProvider {
         `Divar: collected ${cards.length} cards (cap ${maxItems}).`,
       );
 
+      const detailDelay = Number(
+        ctx.params?.crawlDelayMs ?? this.detailDelayMs,
+      );
       const ads: RawAdvertisement[] = [];
       for (const card of cards.slice(0, maxItems)) {
         ads.push(await this.buildAd(tab.id, card));
-        await this.sleep(this.detailDelayMs);
+        await this.sleep(detailDelay);
       }
       return ads;
     } finally {
