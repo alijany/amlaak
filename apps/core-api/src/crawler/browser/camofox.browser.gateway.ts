@@ -8,6 +8,7 @@ import { BrowserGatewayError } from './browser-gateway.error';
 import {
   BrowserCookie,
   BrowserHealth,
+  BrowserImage,
   BrowserTab,
   CreateTabOptions,
   PageSnapshot,
@@ -136,6 +137,16 @@ export class CamofoxBrowserGateway implements BrowserGateway {
       refsCount: data.refsCount,
       raw: data,
     };
+  }
+
+  async listImages(tabId: string): Promise<BrowserImage[]> {
+    const data = await this.request<{ images?: BrowserImage[] }>(
+      'listImages',
+      'get',
+      `/tabs/${tabId}/images`,
+      { query: { userId: this.userIdFor(tabId) } },
+    );
+    return data.images ?? [];
   }
 
   async click(tabId: string, ref: string): Promise<void> {

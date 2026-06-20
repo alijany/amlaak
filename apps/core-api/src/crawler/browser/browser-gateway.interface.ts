@@ -1,6 +1,7 @@
 import {
   BrowserCookie,
   BrowserHealth,
+  BrowserImage,
   BrowserTab,
   CreateTabOptions,
   PageSnapshot,
@@ -29,6 +30,9 @@ export interface BrowserGateway {
 
   /** Accessibility snapshot with stable element refs. */
   snapshot(tabId: string): Promise<PageSnapshot>;
+
+  /** Extract the images present on the current page. */
+  listImages(tabId: string): Promise<BrowserImage[]>;
 
   click(tabId: string, ref: string): Promise<void>;
 

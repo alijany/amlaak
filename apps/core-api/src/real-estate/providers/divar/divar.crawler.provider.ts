@@ -13,7 +13,13 @@ import {
 import { RealEstateCategory, SiteKey } from '../../real-estate.constants';
 import { RawAdvertisement, toRawAdvertisement } from '../../real-estate.raw';
 import { DivarAuthProvider } from './divar.auth.provider';
-import { DIVAR_ANCHORS, DIVAR_GILAN_PROVINCE } from './divar.constants';
+import {
+  DIVAR_ANCHORS,
+  DIVAR_GILAN_PROVINCE,
+  DIVAR_IMAGE_FULL_MARKER,
+  DIVAR_IMAGE_HOST,
+  DIVAR_MAX_IMAGES,
+} from './divar.constants';
 import {
   DivarListingCard,
   extractAreaFromText,
@@ -151,11 +157,13 @@ export class DivarCrawlerProvider implements CrawlerProvider {
     if (cardArea) attributes.area = cardArea;
     if (cardRooms) attributes.rooms = cardRooms;
 
+    let images: string[] = [];
     try {
       await this.browser.navigate(tabId, card.sourceUrl);
       await this.sleep(2500);
       const detail = await this.browser.snapshot(tabId);
       Object.assign(attributes, parseDetailSpecs(detail.text));
+      images = await this.extractImages(tabId);
     } catch (err) {
       this.logger.warn(
         `Divar: detail fetch failed for ${card.token}: ${
@@ -171,6 +179,7 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       fields: {
         title: card.title,
         category: this.categoryFor(combined, attributes),
+        images,
         attributes,
       },
     });
@@ -191,6 +200,16 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       return RealEstateCategory.SALE;
     }
     return inferCategory(text);
+  }
+
+  /** Collect the ad's full-size CDN photo URLs from the detail page. */
+  private async extractImages(tabId: string): Promise<string[]> {
+    const images = await this.browser.listImages(tabId);
+    const cdn = images.filter((img) => img.src?.includes(DIVAR_IMAGE_HOST));
+    // Prefer full-size photos; fall back to any CDN image (e.g. thumbnails).
+    const full = cdn.filter((img) => img.src.includes(DIVAR_IMAGE_FULL_MARKER));
+    const chosen = (full.length ? full : cdn).map((img) => img.src);
+    return [...new Set(chosen)].slice(0, DIVAR_MAX_IMAGES);
   }
 
   private sleep(ms: number): Promise<void> {

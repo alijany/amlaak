@@ -52,6 +52,14 @@ export interface CreateTabOptions {
   url?: string;
 }
 
+/** An image found on a page (from the browser's image extraction). */
+export interface BrowserImage {
+  src: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+}
+
 export interface BrowserCookie {
   name: string;
   value: string;

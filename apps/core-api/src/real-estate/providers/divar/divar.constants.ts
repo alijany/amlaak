@@ -18,6 +18,13 @@ export const DIVAR_GILAN_PROVINCE = 'گیلان';
 /** Ad-detail links look like `/v/<slug>/<token>` — the token is the externalId. */
 export const DIVAR_AD_PATH_PREFIX = '/v/';
 
+/** Divar serves listing photos from its CDN; thumbnails use a separate path. */
+export const DIVAR_IMAGE_HOST = 'divarcdn';
+/** Full-size photo path segment (vs `webp_thumbnail` for small previews). */
+export const DIVAR_IMAGE_FULL_MARKER = '/webp_post/';
+/** Max images to keep per ad. */
+export const DIVAR_MAX_IMAGES = 8;
+
 /**
  * Accessible-name anchors used to find refs in a snapshot. These are UI strings
  * Divar shows to users; matched as substrings so minor wording changes survive.

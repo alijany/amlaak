@@ -1,12 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import { RawCrawlItem } from '../crawler/providers/crawler-provider.interface';
 import {
   CrawlResultSink,
   CrawlSinkContext,
   CrawlSinkResult,
 } from '../crawler/sink/crawl-sink.interface';
+import { AdvertisementImageService } from './advertisement-image.service';
 import { AdvertisementService } from './advertisement.service';
-import { NormalizationService } from './normalization.service';
+import {
+  NormalizationService,
+  NormalizedAdvertisement,
+} from './normalization.service';
 import { RawAdvertisement } from './real-estate.raw';
 
 /**
@@ -24,6 +29,7 @@ export class RealEstateSink implements CrawlResultSink {
   constructor(
     private readonly normalization: NormalizationService,
     private readonly advertisements: AdvertisementService,
+    private readonly images: AdvertisementImageService,
   ) {}
 
   async consume(
@@ -35,6 +41,7 @@ export class RealEstateSink implements CrawlResultSink {
     for (const item of items) {
       try {
         const normalized = this.normalization.extract(item as RawAdvertisement);
+        await this.applyImages(ctx.target, normalized);
         const { created } = await this.advertisements.upsert(
           ctx.target,
           ctx.job,
@@ -51,5 +58,38 @@ export class RealEstateSink implements CrawlResultSink {
     }
 
     return result;
+  }
+
+  /**
+   * Replace source image URLs with stored ones. Keeps the source URLs in
+   * `attributes.sourceImages`, and reuses already-stored images on re-crawl so
+   * we don't re-download every run.
+   */
+  private async applyImages(
+    target: CrawlTargetEntity,
+    normalized: NormalizedAdvertisement,
+  ): Promise<void> {
+    const source = normalized.images ?? [];
+    if (source.length === 0) return;
+
+    normalized.attributes = {
+      ...(normalized.attributes ?? {}),
+      sourceImages: source,
+    };
+
+    const existing = await this.advertisements.findOne({
+      target: target.id,
+      externalId: normalized.externalId,
+    });
+    if (existing?.images?.length) {
+      normalized.images = existing.images;
+      return;
+    }
+
+    normalized.images = await this.images.materialize(
+      target.siteKey,
+      normalized.externalId,
+      source,
+    );
   }
 }
