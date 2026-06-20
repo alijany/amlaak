@@ -2,14 +2,14 @@ import { EntityManager } from '@mikro-orm/core';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import {
   CrawlTargetStatus,
-  SiteKey,
   TargetAccessibility,
-} from './crawler.constants';
+} from '../crawler/crawler.constants';
+import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import {
   DIVAR_BASE_URL,
   DIVAR_GILAN_REAL_ESTATE_PATH,
 } from './providers/divar/divar.constants';
-import { CrawlTargetEntity } from './targets/crawl-target.entity';
+import { SiteKey } from './real-estate.constants';
 
 /**
  * Seeds the default crawl targets on startup so the dashboard is populated out
@@ -17,8 +17,8 @@ import { CrawlTargetEntity } from './targets/crawl-target.entity';
  * Idempotent — only inserts targets whose siteKey doesn't already exist.
  */
 @Injectable()
-export class CrawlerBootstrapService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(CrawlerBootstrapService.name);
+export class RealEstateBootstrapService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(RealEstateBootstrapService.name);
 
   constructor(private readonly em: EntityManager) {}
 

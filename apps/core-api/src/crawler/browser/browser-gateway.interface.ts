@@ -34,6 +34,18 @@ export interface BrowserGateway {
 
   type(tabId: string, ref: string, text: string): Promise<void>;
 
+  /** Scroll the page (e.g. to trigger infinite-scroll loading). */
+  scroll(
+    tabId: string,
+    opts?: { direction?: 'up' | 'down'; amount?: number },
+  ): Promise<void>;
+
+  /** Wait for a selector to appear, or just a timeout (ms) when omitted. */
+  wait(
+    tabId: string,
+    opts: { selector?: string; timeout?: number },
+  ): Promise<void>;
+
   /** Restore a previously persisted session. */
   importCookies(sessionId: string, cookies: BrowserCookie[]): Promise<void>;
 

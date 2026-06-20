@@ -61,27 +61,8 @@ export enum CrawlJobType {
   SINGLE_AD = 'single_ad',
 }
 
-/** Real-estate listing category (normalized across sites). */
-export enum RealEstateCategory {
-  SALE = 'sale',
-  RENT = 'rent',
-  MORTGAGE = 'mortgage',
-  UNKNOWN = 'unknown',
-}
-
 /** Bull queue name for crawl jobs. */
 export const CRAWL_JOBS_QUEUE = 'crawl-jobs';
 
-/** DI token for the provider registry. */
-export const CRAWLER_PROVIDER_REGISTRY = 'CRAWLER_PROVIDER_REGISTRY';
-
 /** DI token for the browser gateway implementation. */
 export const BROWSER_GATEWAY = 'BROWSER_GATEWAY';
-
-/** Stable site keys for the providers shipped in this phase. */
-export const SiteKey = {
-  MOCK: 'mock',
-  DIVAR: 'divar',
-} as const;
-
-export type SiteKeyType = (typeof SiteKey)[keyof typeof SiteKey];

@@ -1,23 +1,18 @@
-import { CrawlJobType, RealEstateCategory } from '../crawler.constants';
+import { CrawlJobType } from '../crawler.constants';
 import { AuthSessionData, CrawlerAuthProvider } from './crawler-auth.interface';
 
 /**
- * Raw advertisement as emitted by a provider's `crawl()`. This is the
- * provider's best-effort, lightly-structured view of a listing. The extraction
- * pipeline normalizes it into a {@link RealEstateAdvertisementEntity}.
- *
- * `externalId` + the target form the natural key used for upserts.
+ * A single raw record emitted by a provider's `crawl()`. The engine is
+ * domain-agnostic: it only knows that an item has a stable `externalId`
+ * (so `(target, externalId)` can be used as an upsert key) and an opaque
+ * `data` bag. The target's {@link CrawlResultSink} interprets `data` into a
+ * domain entity (e.g. a real-estate advertisement).
  */
-export interface RawAdvertisement {
+export interface RawCrawlItem {
   externalId: string;
   sourceUrl?: string;
-  title?: string;
-  description?: string;
-  category?: RealEstateCategory;
-  /** Free-form fields straight from the source (prices as strings, fa digits, etc.). */
-  attributes?: Record<string, unknown>;
-  images?: string[];
-  postedAt?: string | Date;
+  /** Domain fields, interpreted downstream by the sink. */
+  data?: Record<string, unknown>;
   /** Untouched source payload, kept for debugging and re-processing. */
   raw?: unknown;
 }
@@ -48,14 +43,14 @@ export interface ProviderMetadata {
  * A site-specific crawler implementation. Registered by `siteKey` in the
  * {@link CrawlerProviderRegistry} and resolved per target at job time.
  *
- * Keep providers free of NestJS/HTTP/DB concerns — they receive a context and
- * return raw ads. The pipeline and services handle persistence.
+ * Keep providers free of DB concerns — they receive a context and return raw
+ * items. The target's {@link CrawlResultSink} handles normalization/persistence.
  */
 export interface CrawlerProvider {
   readonly metadata: ProviderMetadata;
 
   getAuthProvider(): CrawlerAuthProvider;
 
-  /** Fetch advertisements for the given run. */
-  crawl(ctx: CrawlContext): Promise<RawAdvertisement[]>;
+  /** Fetch raw items for the given run. */
+  crawl(ctx: CrawlContext): Promise<RawCrawlItem[]>;
 }

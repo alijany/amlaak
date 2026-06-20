@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { RealEstateCategory } from '../../crawler.constants';
+import { RealEstateCategory } from '../real-estate.constants';
 
 export class AdvertisementFilterDto {
   @Type(() => Number)

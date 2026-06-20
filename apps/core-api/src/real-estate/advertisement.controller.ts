@@ -13,7 +13,7 @@ import { Role } from 'src/roles/roles.constants';
 import { AdvertisementService } from './advertisement.service';
 import { AdvertisementFilterDto } from './dtos/advertisement.filter.dto';
 
-@Controller('crawler/advertisements')
+@Controller('real-estate/advertisements')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdvertisementController {

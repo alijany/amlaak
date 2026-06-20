@@ -1,4 +1,4 @@
-import { RawAdvertisement } from '../providers/crawler-provider.interface';
+import { RawAdvertisement } from './real-estate.raw';
 
 /** Context available to a pipeline stage. */
 export interface ExtractionContext {

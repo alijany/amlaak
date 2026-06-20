@@ -30,14 +30,34 @@ dependency, not calendar.
 > Note: `exportCookies` intentionally throws — Camoufox persists profiles server-side and has no
 > export endpoint. Durable session export/reconciliation lands in Phase 4.
 
-## Phase 3 — Divar implementation
+## Rearchitecture — engine / domain split ✅
 
-- **Auth** (`DivarAuthProvider`): implement the documented OTP flow over the gateway
-  (navigate → type phone → submit → enter OTP → export cookies as session).
-- **Crawl** (`DivarCrawlerProvider`): navigate the Gilan real-estate listing, paginate /
-  infinite-scroll, snapshot ad cards, open details, map to `RawAdvertisement`.
-- Fill in `divar.constants.ts` selectors/refs **only after** observing the live site.
-- Tune `NormalizationService` for Divar's real attribute strings.
+Before Phase 3, the crawler was split into a generic engine and a domain module:
+
+- `core-api/src/crawler/` is now a **domain-agnostic engine** (targets, sessions, jobs/queue,
+  browser gateway, provider + **sink** registries). Providers return generic `RawCrawlItem`s.
+- `core-api/src/real-estate/` is a **domain module** that uses the engine: it owns the
+  advertisement entity/store/API (`/real-estate/advertisements`), the normalization pipeline,
+  a `RealEstateSink` (`CrawlResultSink`), and the Mock + Divar providers — registering them
+  with the engine at startup (`real-estate.registration.ts`). No engine code is domain-aware.
+
+## Phase 3 — Divar implementation ✅
+
+- ✅ **Crawl** (`DivarCrawlerProvider`): opens the Gilan listing, **closes the map overlay**
+  ("بستن نقشه"), infinite-scrolls to collect ad cards, then opens each ad's detail page and
+  reads the spec table (متراژ/قیمت/قیمت هر متر/ودیعه/اجاره) to enrich the record. Validated
+  live (4/4 ads normalized + persisted).
+- ✅ **Auth** (`DivarAuthProvider`): OTP flow over the gateway (open login → type phone →
+  "بعدی" → type OTP → confirm). Phone step validated live; the OTP step resolves its
+  input/button by role+name. Full OTP round-trip needs a real phone/SMS.
+- ✅ `divar.constants.ts` + `divar.parser.ts` filled from the **observed** live site (refs are
+  per-snapshot, so elements are matched by accessible name/role at runtime).
+- ✅ `NormalizationService` handles Divar's real attribute strings (Persian digits, "۱۲۰ متر",
+  price strings) via the shared `normalizeNumbers`.
+
+> Notes / follow-ups: category is inferred from detail spec keys (sale vs deposit/rent) with a
+> keyword fallback; images and `postedAt` are not yet extracted (Phase 6 AI enrichment is the
+> natural home). `sourceUrl` was widened to `text` (Divar URLs are long percent-encoded Persian).
 
 ## Phase 4 — Session persistence
 

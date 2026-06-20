@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CrawlerAuthStatus } from '../../crawler.constants';
+import { CrawlerAuthStatus } from '../../../crawler/crawler.constants';
 import {
   AuthChallenge,
   AuthResult,
@@ -7,7 +7,7 @@ import {
   CrawlerAuthProvider,
   StartLoginInput,
   SubmitOtpInput,
-} from '../crawler-auth.interface';
+} from '../../../crawler/providers/crawler-auth.interface';
 
 /**
  * Fully-working mock auth provider used to exercise the interactive OTP flow

@@ -7,9 +7,9 @@ import {
   Unique,
 } from '@mikro-orm/core';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
-import { RealEstateCategory } from '../crawler.constants';
-import { CrawlJobEntity } from '../jobs/crawl-job.entity';
-import { CrawlTargetEntity } from '../targets/crawl-target.entity';
+import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
+import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
+import { RealEstateCategory } from './real-estate.constants';
 
 /**
  * A normalized real-estate advertisement collected from a target.
@@ -33,7 +33,8 @@ export class RealEstateAdvertisementEntity extends BaseEntity {
   @Property()
   externalId: string;
 
-  @Property({ nullable: true })
+  /** Divar URLs are percent-encoded Persian and can exceed varchar(255). */
+  @Property({ type: 'text', nullable: true })
   sourceUrl?: string;
 
   @Property({ nullable: true })

@@ -150,6 +150,32 @@ export class CamofoxBrowserGateway implements BrowserGateway {
     });
   }
 
+  async scroll(
+    tabId: string,
+    opts: { direction?: 'up' | 'down'; amount?: number } = {},
+  ): Promise<void> {
+    await this.request('scroll', 'post', `/tabs/${tabId}/scroll`, {
+      body: {
+        userId: this.userIdFor(tabId),
+        direction: opts.direction ?? 'down',
+        amount: opts.amount,
+      },
+    });
+  }
+
+  async wait(
+    tabId: string,
+    opts: { selector?: string; timeout?: number },
+  ): Promise<void> {
+    await this.request('wait', 'post', `/tabs/${tabId}/wait`, {
+      body: {
+        userId: this.userIdFor(tabId),
+        selector: opts.selector,
+        timeout: opts.timeout,
+      },
+    });
+  }
+
   async importCookies(
     sessionId: string,
     cookies: BrowserCookie[],

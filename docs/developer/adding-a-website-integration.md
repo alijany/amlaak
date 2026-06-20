@@ -7,11 +7,13 @@ End-to-end checklist for onboarding a new target site. Builds on
 ## Backend
 
 1. **Provider + auth.** Implement `CrawlerProvider` (and `CrawlerAuthProvider` if the site
-   needs login). Pick a unique `siteKey`.
-2. **Register.** Add both to `crawler.module.ts` `providers` and wire them into
-   `CrawlerProviderRegistry`.
-3. **Seed a target.** Add a default in `CrawlerBootstrapService` (idempotent — keyed by
-   `siteKey`) so the dashboard shows it out of the box:
+   needs login) in the relevant domain module (e.g. `real-estate/providers/<site>/`). Pick a
+   unique `siteKey`. Providers return generic `RawCrawlItem[]`.
+2. **Register.** Add them to the domain module's `providers`, then register the provider (and
+   a sink for its `siteKey`) in the domain's `*.registration.ts` — the engine never imports
+   provider code.
+3. **Seed a target.** Add a default in the domain's `*.bootstrap.service.ts` (idempotent —
+   keyed by `siteKey`) so the dashboard shows it out of the box:
 
    ```ts
    {
@@ -24,10 +26,11 @@ End-to-end checklist for onboarding a new target site. Builds on
    }
    ```
 
-4. **Schema.** If the site is real-estate, reuse `RealEstateAdvertisementEntity`. For a
-   different vertical, add a sibling entity + a dedicated `ExtractionPipeline` (see
-   [extraction-pipelines.md](./extraction-pipelines.md)) rather than overloading the table.
-   New entities auto-migrate on startup (`MigrationService`).
+4. **Schema + sink.** If the site is real-estate, reuse `RealEstateAdvertisementEntity` and
+   the existing `RealEstateSink` (register it for your `siteKey`). For a different vertical,
+   create a **new domain module** with its own entity + `CrawlResultSink` (+ optional
+   `ExtractionPipeline`, see [extraction-pipelines.md](./extraction-pipelines.md)) rather than
+   overloading the table. New entities auto-migrate on startup (`MigrationService`).
 
 ## Frontend
 

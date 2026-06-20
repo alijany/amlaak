@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CrawlJobType,
-  RealEstateCategory,
-  SiteKey,
-} from '../../crawler.constants';
-import { CrawlerAuthProvider } from '../crawler-auth.interface';
+import { CrawlJobType } from '../../../crawler/crawler.constants';
+import { CrawlerAuthProvider } from '../../../crawler/providers/crawler-auth.interface';
 import {
   CrawlContext,
   CrawlerProvider,
   ProviderMetadata,
-  RawAdvertisement,
-} from '../crawler-provider.interface';
+} from '../../../crawler/providers/crawler-provider.interface';
+import { RealEstateCategory, SiteKey } from '../../real-estate.constants';
+import { RawAdvertisement, toRawAdvertisement } from '../../real-estate.raw';
 import { MockAuthProvider } from './mock.auth.provider';
 
 const CITIES = ['رشت', 'انزلی', 'لاهیجان', 'آستارا', 'لنگرود'];
@@ -64,37 +61,41 @@ export class MockCrawlerProvider implements CrawlerProvider {
           ? `mock-${ctx.jobId}-${i}`
           : `mock-listing-${i}`;
 
-      ads.push({
-        externalId,
-        sourceUrl: `https://example.com/mock/${externalId}`,
-        title: `${TITLES[i % TITLES.length]} (${city})`,
-        description: 'آگهی نمونه تولیدشده برای نمایش معماری خزنده.',
-        category,
-        images: [`https://picsum.photos/seed/${externalId}/640/480`],
-        postedAt: new Date(Date.now() - i * 3600_000),
-        attributes: {
-          city,
-          province: 'گیلان',
-          district: `منطقه ${1 + (i % 6)}`,
-          area: `${area} متر`,
-          rooms: `${rooms} خوابه`,
-          yearBuilt: `${1390 + (i % 14)}`,
-          floor: `${i % 6}`,
-          totalPrice:
-            category === RealEstateCategory.SALE
-              ? `${(area * 45_000_000).toLocaleString('fa-IR')} تومان`
-              : undefined,
-          deposit:
-            category === RealEstateCategory.RENT
-              ? `${(rooms * 200_000_000).toLocaleString('fa-IR')} تومان`
-              : undefined,
-          rent:
-            category === RealEstateCategory.RENT
-              ? `${(rooms * 12_000_000).toLocaleString('fa-IR')} تومان`
-              : undefined,
-        },
-        raw: { source: 'mock', index: i, jobId: ctx.jobId },
-      });
+      ads.push(
+        toRawAdvertisement({
+          externalId,
+          sourceUrl: `https://example.com/mock/${externalId}`,
+          raw: { source: 'mock', index: i, jobId: ctx.jobId },
+          fields: {
+            title: `${TITLES[i % TITLES.length]} (${city})`,
+            description: 'آگهی نمونه تولیدشده برای نمایش معماری خزنده.',
+            category,
+            images: [`https://picsum.photos/seed/${externalId}/640/480`],
+            postedAt: new Date(Date.now() - i * 3600_000),
+            attributes: {
+              city,
+              province: 'گیلان',
+              district: `منطقه ${1 + (i % 6)}`,
+              area: `${area} متر`,
+              rooms: `${rooms} خوابه`,
+              yearBuilt: `${1390 + (i % 14)}`,
+              floor: `${i % 6}`,
+              totalPrice:
+                category === RealEstateCategory.SALE
+                  ? `${(area * 45_000_000).toLocaleString('fa-IR')} تومان`
+                  : undefined,
+              deposit:
+                category === RealEstateCategory.RENT
+                  ? `${(rooms * 200_000_000).toLocaleString('fa-IR')} تومان`
+                  : undefined,
+              rent:
+                category === RealEstateCategory.RENT
+                  ? `${(rooms * 12_000_000).toLocaleString('fa-IR')} تومان`
+                  : undefined,
+            },
+          },
+        }),
+      );
     }
 
     return ads;

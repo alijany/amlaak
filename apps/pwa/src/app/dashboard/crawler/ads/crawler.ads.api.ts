@@ -14,7 +14,7 @@ export function useAdvertisements(filters?: AdvertisementFilters) {
   ).toString();
 
   const swr = useSWR<AdvertisementsResponse>(
-    `/crawler/advertisements?${query}`,
+    `/real-estate/advertisements?${query}`,
     fetcher,
   );
   return useSwrHelper(swr);

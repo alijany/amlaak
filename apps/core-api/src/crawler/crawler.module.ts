@@ -3,21 +3,13 @@ import { BullModule } from '@nestjs/bull';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { BROWSER_GATEWAY, CRAWL_JOBS_QUEUE } from './crawler.constants';
-import { CrawlerBootstrapService } from './crawler.bootstrap.service';
 import { CamofoxBrowserGateway } from './browser/camofox.browser.gateway';
 import { CrawlJobController } from './jobs/crawl-job.controller';
 import { CrawlJobEntity } from './jobs/crawl-job.entity';
 import { CrawlJobProcessor } from './jobs/crawl-job.processor';
 import { CrawlJobService } from './jobs/crawl-job.service';
-import { AdvertisementController } from './pipeline/advertisement.controller';
-import { RealEstateAdvertisementEntity } from './pipeline/advertisement.entity';
-import { AdvertisementService } from './pipeline/advertisement.service';
-import { NormalizationService } from './pipeline/normalization.service';
 import { CrawlerProviderRegistry } from './providers/crawler-provider.registry';
-import { DivarAuthProvider } from './providers/divar/divar.auth.provider';
-import { DivarCrawlerProvider } from './providers/divar/divar.crawler.provider';
-import { MockAuthProvider } from './providers/mock/mock.auth.provider';
-import { MockCrawlerProvider } from './providers/mock/mock.crawler.provider';
+import { CrawlResultSinkRegistry } from './sink/crawl-sink.registry';
 import { CrawlSessionEntity } from './sessions/crawl-session.entity';
 import { CrawlSessionService } from './sessions/crawl-session.service';
 import { CrawlTargetController } from './targets/crawl-target.controller';
@@ -25,14 +17,17 @@ import { CrawlTargetEntity } from './targets/crawl-target.entity';
 import { CrawlTargetService } from './targets/crawl-target.service';
 
 /**
- * Self-contained crawler subsystem. Decoupled from the rest of the app: it
- * depends only on shared infra (ORM base classes, Bull, the auth guards) and
- * exposes its functionality over HTTP.
+ * Generic, domain-agnostic crawling engine: targets, auth sessions, the Bull
+ * job queue + worker, the browser gateway, and the provider/sink registries.
+ *
+ * It knows nothing about any specific site or domain entity. Domain modules
+ * (e.g. {@link RealEstateModule}) import this module and register their
+ * providers + sinks against the exported registries.
  *
  * Extension points:
- *  - add a website   -> implement CrawlerProvider + register here & in the registry
+ *  - add a website   -> implement CrawlerProvider in a domain module + register
+ *  - persist a domain -> implement CrawlResultSink in a domain module + register
  *  - swap the browser -> change the BROWSER_GATEWAY useClass
- *  - extend pipeline  -> add stages behind ExtractionPipeline
  */
 @Module({
   imports: [
@@ -42,33 +37,27 @@ import { CrawlTargetService } from './targets/crawl-target.service';
       CrawlTargetEntity,
       CrawlSessionEntity,
       CrawlJobEntity,
-      RealEstateAdvertisementEntity,
     ]),
   ],
-  controllers: [
-    CrawlTargetController,
-    CrawlJobController,
-    AdvertisementController,
-  ],
+  controllers: [CrawlTargetController, CrawlJobController],
   providers: [
     // services
     CrawlTargetService,
     CrawlSessionService,
     CrawlJobService,
-    AdvertisementService,
-    NormalizationService,
     // browser gateway (swap useClass to change backend)
     { provide: BROWSER_GATEWAY, useClass: CamofoxBrowserGateway },
-    // providers + registry
+    // registries (domain modules register providers/sinks here)
     CrawlerProviderRegistry,
-    MockCrawlerProvider,
-    MockAuthProvider,
-    DivarCrawlerProvider,
-    DivarAuthProvider,
-    // queue worker + startup seeding
+    CrawlResultSinkRegistry,
+    // queue worker
     CrawlJobProcessor,
-    CrawlerBootstrapService,
   ],
-  exports: [CrawlTargetService, AdvertisementService],
+  exports: [
+    CrawlTargetService,
+    CrawlerProviderRegistry,
+    CrawlResultSinkRegistry,
+    BROWSER_GATEWAY,
+  ],
 })
 export class CrawlerModule {}

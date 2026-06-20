@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { normalizeNumbers } from 'src/libs/utils/pipe.normalizeNumbers';
-import { RealEstateCategory } from '../crawler.constants';
-import { RawAdvertisement } from '../providers/crawler-provider.interface';
+import { RealEstateCategory } from './real-estate.constants';
+import { RawAdvertisement } from './real-estate.raw';
 import { ExtractionPipeline } from './extraction-pipeline.interface';
 
 /** The normalized fields written to {@link RealEstateAdvertisementEntity}. */
@@ -44,14 +44,15 @@ export class NormalizationService
   implements ExtractionPipeline<NormalizedAdvertisement>
 {
   extract(raw: RawAdvertisement): NormalizedAdvertisement {
-    const attrs = raw.attributes ?? {};
+    const fields = raw.data ?? {};
+    const attrs = fields.attributes ?? {};
 
     return {
       externalId: raw.externalId,
       sourceUrl: raw.sourceUrl,
-      title: raw.title,
-      description: raw.description,
-      category: raw.category ?? RealEstateCategory.UNKNOWN,
+      title: fields.title,
+      description: fields.description,
+      category: fields.category ?? RealEstateCategory.UNKNOWN,
       totalPrice: this.parseNumber(attrs.totalPrice),
       deposit: this.parseNumber(attrs.deposit),
       rent: this.parseNumber(attrs.rent),
@@ -65,10 +66,10 @@ export class NormalizationService
       district: this.toStr(attrs.district),
       lat: this.parseFloatSafe(attrs.lat),
       lng: this.parseFloatSafe(attrs.lng),
-      images: raw.images,
+      images: fields.images,
       attributes: attrs,
       rawPayload: raw.raw as Record<string, any>,
-      postedAt: raw.postedAt ? new Date(raw.postedAt) : undefined,
+      postedAt: fields.postedAt ? new Date(fields.postedAt) : undefined,
       crawledAt: new Date(),
     };
   }

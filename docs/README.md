@@ -4,10 +4,11 @@ This directory documents the **AI-friendly crawling infrastructure** introduced 
 foundation for a multi-site crawling platform. The first target is Divar real-estate
 (`https://divar.ir/s/gilan-province/real-estate`), but the architecture is site-agnostic.
 
-> **Status: Phase 2 — Real browser integration.** Architecture, interfaces, workflows and
-> developer tooling are in place, and the `CamofoxBrowserGateway` is validated against a live
-> Camoufox sidecar (health wiring, retries/timeouts, dashboard availability). The real Divar
-> crawler is still *scaffolded* (mock-backed) — see Phase 3 in [roadmap.md](./roadmap.md).
+> **Status: Phase 3 — Divar implemented.** The crawler is split into a generic **engine**
+> (`core-api/src/crawler/`) and a **real-estate** domain module (`core-api/src/real-estate/`)
+> that uses it. The `CamofoxBrowserGateway` is validated against a live Camoufox sidecar, and
+> the **Divar** real-estate crawler works end-to-end against the live site (close map →
+> infinite scroll → per-ad detail enrichment → normalize → persist). See [roadmap.md](./roadmap.md).
 
 ## How the docs are organized
 
@@ -30,8 +31,8 @@ foundation for a multi-site crawling platform. The first target is Divar real-es
 
 ## TL;DR for the impatient
 
-- Backend module: [`apps/core-api/src/crawler/`](../apps/core-api/src/crawler)
+- Generic engine: [`apps/core-api/src/crawler/`](../apps/core-api/src/crawler)
+- Real-estate domain (entity, providers, Divar): [`apps/core-api/src/real-estate/`](../apps/core-api/src/real-estate)
 - Frontend dashboard: [`apps/pwa/src/app/dashboard/crawler/`](../apps/pwa/src/app/dashboard/crawler)
-- A **Mock** target works end-to-end today (enqueue a job → see ads in the dashboard).
-- A **Divar** target is registered but its provider/auth throw `NotImplemented` until a
-  real browser environment is wired up.
+- Both the **Mock** and **Divar** targets work end-to-end today (enqueue a job → see ads in
+  the dashboard). Divar drives a real Camoufox browser; Mock needs no browser.
