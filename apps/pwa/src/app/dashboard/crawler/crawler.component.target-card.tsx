@@ -10,12 +10,9 @@ import {
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import {
-  useEnqueueJob,
-  useReconcileSession,
-  useTargetAuth,
-} from './crawler.api';
+import { useReconcileSession, useTargetAuth } from './crawler.api';
 import { OtpLoginModal } from './crawler.component.otp-login-modal';
+import { RunCrawlModal } from './crawler.component.run-modal';
 import { ScheduleModal } from './crawler.component.schedule-modal';
 import {
   AccessibilityPill,
@@ -32,10 +29,10 @@ interface TargetCardProps {
 export function TargetCard({ target, onRefresh }: TargetCardProps) {
   const [loginOpen, setLoginOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [runOpen, setRunOpen] = useState(false);
   const [message, setMessage] = useState<string | undefined>();
 
   const { data: auth, refresh: refreshAuth } = useTargetAuth(target.id);
-  const enqueue = useEnqueueJob(target.id);
   const reconcile = useReconcileSession(target.id);
 
   const authStatus = auth?.authStatus ?? CrawlerAuthStatus.LOGIN_REQUIRED;
@@ -55,19 +52,6 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
       refreshAuth();
     } catch {
       setMessage('بررسی نشست ناموفق بود.');
-    }
-  };
-
-  const handleRun = async () => {
-    setMessage(undefined);
-    try {
-      await enqueue.submit({ maxItems: 12 });
-      setMessage('کراول در صف اجرا قرار گرفت.');
-      onRefresh?.();
-    } catch (err) {
-      setMessage(
-        (err as { message?: string })?.message ?? 'اجرای کراول ناموفق بود.',
-      );
     }
   };
 
@@ -107,12 +91,12 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={handleRun}
-          disabled={enqueue.isLoading || needsLogin}
+          onClick={() => setRunOpen(true)}
+          disabled={needsLogin}
           title={needsLogin ? 'ابتدا وارد شوید' : undefined}
         >
           <IconPlayerPlay className="size-4 ml-1" />
-          {enqueue.isLoading ? 'در حال صف‌بندی...' : 'اجرای کراول'}
+          اجرای کراول
         </Button>
 
         <Button
@@ -162,6 +146,13 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
         target={target}
         isOpen={scheduleOpen}
         onClose={() => setScheduleOpen(false)}
+        onChanged={() => onRefresh?.()}
+      />
+
+      <RunCrawlModal
+        target={target}
+        isOpen={runOpen}
+        onClose={() => setRunOpen(false)}
         onChanged={() => onRefresh?.()}
       />
     </div>

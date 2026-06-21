@@ -15,6 +15,7 @@ import { RawAdvertisement, toRawAdvertisement } from '../../real-estate.raw';
 import { DivarAuthProvider } from './divar.auth.provider';
 import {
   DIVAR_ANCHORS,
+  DIVAR_AMENITIES_MORE,
   DIVAR_GILAN_PROVINCE,
   DIVAR_IMAGE_FULL_MARKER,
   DIVAR_IMAGE_HOST,
@@ -26,6 +27,12 @@ import {
   extractRoomsFromText,
   findRef,
   inferCategory,
+  parseBreadcrumbCategory,
+  parseBreadcrumbLocation,
+  parseBreadcrumbSubtype,
+  parseContactPhone,
+  parseDetailAmenities,
+  parseDetailDescription,
   parseDetailSpecs,
   parseListingCards,
 } from './divar.parser';
@@ -34,14 +41,18 @@ import {
  * Divar real-estate crawler (Gilan province), driven over the browser gateway.
  *
  * Flow (validated against the live site):
- *   1. open a tab on the listing URL
- *   2. close the map overlay ("بستن نقشه") so the list takes the full width
- *   3. snapshot + scroll repeatedly to collect ad cards (infinite scroll)
- *   4. for each card up to `maxItems`, open its detail page and read the spec
- *      table (متراژ/قیمت/ودیعه/اجاره/…) to enrich the record
- *
- * Element refs are resolved from each snapshot at runtime (Divar's refs are not
- * stable across snapshots); see divar.parser.ts.
+ *   1. Open a tab on the listing URL.
+ *   2. Close the map overlay ("بستن نقشه") so the list takes the full width.
+ *   3. Snapshot + scroll repeatedly to collect ad cards (infinite scroll).
+ *      Promoted cards (پله شده / نردبان شده) are de-duplicated by token.
+ *   4. For each card, open its detail page and extract:
+ *      - Spec table (area/year/rooms via `columnheader/cell`) + paragraph pairs
+ *      - Description text (after "توضیحات" heading)
+ *      - Amenities table cells + "سایر ویژگی‌ها" expansion
+ *      - Category + subtype from breadcrumb URL/link name
+ *      - City/district from the time-location button ("دقایقی پیش در <city>")
+ *      - Seller phone (click "اطلاعات تماس", then "نمایش شماره" if needed)
+ *      - Images from the CDN
  */
 @Injectable()
 export class DivarCrawlerProvider implements CrawlerProvider {
@@ -77,13 +88,18 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       url: ctx.baseUrl,
     });
 
+    const maxScrolls = Math.max(
+      1,
+      Math.min(Number(ctx.params?.maxScrolls ?? this.maxScrolls), 50),
+    );
+
     try {
       await this.sleep(3500);
       await this.closeMapIfPresent(tab.id);
 
-      const cards = await this.collectCards(tab.id, maxItems);
+      const cards = await this.collectCards(tab.id, maxItems, maxScrolls);
       this.logger.log(
-        `Divar: collected ${cards.length} cards (cap ${maxItems}).`,
+        `Divar: collected ${cards.length} cards (cap ${maxItems}, scrolls ${maxScrolls}).`,
       );
 
       const detailDelay = Number(
@@ -118,11 +134,12 @@ export class DivarCrawlerProvider implements CrawlerProvider {
   private async collectCards(
     tabId: string,
     target: number,
+    maxScrolls: number,
   ): Promise<DivarListingCard[]> {
     const byToken = new Map<string, DivarListingCard>();
     let stalls = 0;
 
-    for (let i = 0; i < this.maxScrolls; i++) {
+    for (let i = 0; i < maxScrolls; i++) {
       const snapshot = await this.browser.snapshot(tabId);
       const before = byToken.size;
       for (const card of parseListingCards(snapshot.text)) {
@@ -130,7 +147,6 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       }
       if (byToken.size >= target) break;
 
-      // No new cards two scrolls in a row -> assume end of list.
       stalls = byToken.size === before ? stalls + 1 : 0;
       if (stalls >= 2) break;
 
@@ -140,7 +156,7 @@ export class DivarCrawlerProvider implements CrawlerProvider {
     return [...byToken.values()];
   }
 
-  /** Open a card's detail page and merge its spec table into a RawAdvertisement. */
+  /** Open a card's detail page and merge all extracted data into a RawAdvertisement. */
   private async buildAd(
     tabId: string,
     card: DivarListingCard,
@@ -151,18 +167,46 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       listingText: card.metaText,
     };
 
-    // Best-effort fields straight from the card (used if detail fetch fails).
     const cardArea = extractAreaFromText(combined);
     const cardRooms = extractRoomsFromText(combined);
     if (cardArea) attributes.area = cardArea;
     if (cardRooms) attributes.rooms = cardRooms;
 
+    let description: string | undefined;
+    let category: RealEstateCategory | undefined;
     let images: string[] = [];
+
     try {
       await this.browser.navigate(tabId, card.sourceUrl);
       await this.sleep(2500);
       const detail = await this.browser.snapshot(tabId);
+
+      // ── specs (table + paragraph pairs) ──────────────────────────────────
       Object.assign(attributes, parseDetailSpecs(detail.text));
+
+      // ── description ───────────────────────────────────────────────────────
+      description = parseDetailDescription(detail.text);
+
+      // ── breadcrumb: category, subtype, location ───────────────────────────
+      category = parseBreadcrumbCategory(detail.text);
+      const subtype = parseBreadcrumbSubtype(detail.text);
+      if (subtype) attributes.propertySubtype = subtype;
+
+      const { city, district } = parseBreadcrumbLocation(detail.text);
+      if (city) attributes.city = city;
+      if (district) attributes.district = district;
+
+      // ── amenities: visible table + expanded section ───────────────────────
+      await this.expandAmenities(tabId, detail.text);
+      const afterExpand = await this.browser.snapshot(tabId);
+      const amenities = parseDetailAmenities(afterExpand.text);
+      if (amenities.length > 0) attributes.amenities = amenities;
+
+      // ── contact phone ─────────────────────────────────────────────────────
+      const phone = await this.extractContactPhone(tabId);
+      if (phone) attributes.phone = phone;
+
+      // ── images ────────────────────────────────────────────────────────────
       images = await this.extractImages(tabId);
     } catch (err) {
       this.logger.warn(
@@ -178,7 +222,8 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       raw: { card, attributes },
       fields: {
         title: card.title,
-        category: this.categoryFor(combined, attributes),
+        description,
+        category: this.resolveCategory(combined, attributes, category),
         images,
         attributes,
       },
@@ -186,27 +231,96 @@ export class DivarCrawlerProvider implements CrawlerProvider {
   }
 
   /**
-   * Prefer the detail spec keys (a deposit/rent → rental; a sale price →
-   * sale), falling back to keyword inference on the card text.
+   * Click "سایر ویژگی‌ها و امکانات" if present to expand the full amenities
+   * list.  This is a best-effort step — failures are silently ignored.
    */
-  private categoryFor(
-    text: string,
+  private async expandAmenities(
+    tabId: string,
+    snapshotText: string,
+  ): Promise<void> {
+    const ref = findRef(snapshotText, {
+      role: 'button',
+      nameIncludes: DIVAR_AMENITIES_MORE,
+    });
+    if (!ref) return;
+    try {
+      await this.browser.click(tabId, ref);
+      await this.sleep(1000);
+    } catch {
+      // Non-fatal: amenities table cells were already captured.
+    }
+  }
+
+  /**
+   * Click "اطلاعات تماس" and, if a secondary "نمایش شماره" button appears,
+   * click that too.  Then parse the first phone number from the updated snapshot.
+   * Requires an authenticated browser session; silently returns undefined if the
+   * button is absent or the session is not logged in.
+   */
+  private async extractContactPhone(
+    tabId: string,
+  ): Promise<string | undefined> {
+    try {
+      const snap1 = await this.browser.snapshot(tabId);
+      const contactRef = findRef(snap1.text, {
+        role: 'button',
+        nameIncludes: DIVAR_ANCHORS.contactInfo,
+      });
+      if (!contactRef) return undefined;
+
+      await this.browser.click(tabId, contactRef);
+      await this.sleep(1500);
+
+      const snap2 = await this.browser.snapshot(tabId);
+
+      // Some ads show an intermediate "نمایش شماره" button after the first click.
+      const showRef = findRef(snap2.text, {
+        role: 'button',
+        nameIncludes: DIVAR_ANCHORS.showPhone,
+      });
+      if (showRef) {
+        await this.browser.click(tabId, showRef);
+        await this.sleep(1000);
+        const snap3 = await this.browser.snapshot(tabId);
+        return parseContactPhone(snap3.text);
+      }
+
+      return parseContactPhone(snap2.text);
+    } catch (err) {
+      this.logger.debug(
+        `Divar: contact phone extraction skipped for tab ${tabId}: ${
+          (err as Error)?.message ?? err
+        }`,
+      );
+      return undefined;
+    }
+  }
+
+  /**
+   * Resolve final category using a priority chain:
+   *   1. Breadcrumb URL segment (most reliable)
+   *   2. Spec table keys (deposit/rent → RENT; totalPrice → SALE)
+   *   3. Keyword inference on card text
+   */
+  private resolveCategory(
+    cardText: string,
     attributes: Record<string, unknown>,
+    breadcrumbCategory: RealEstateCategory | undefined,
   ): RealEstateCategory {
+    if (breadcrumbCategory) return breadcrumbCategory;
     if (attributes.deposit != null || attributes.rent != null) {
       return RealEstateCategory.RENT;
     }
     if (attributes.totalPrice != null || attributes.pricePerMeter != null) {
       return RealEstateCategory.SALE;
     }
-    return inferCategory(text);
+    return inferCategory(cardText);
   }
 
   /** Collect the ad's full-size CDN photo URLs from the detail page. */
   private async extractImages(tabId: string): Promise<string[]> {
     const images = await this.browser.listImages(tabId);
     const cdn = images.filter((img) => img.src?.includes(DIVAR_IMAGE_HOST));
-    // Prefer full-size photos; fall back to any CDN image (e.g. thumbnails).
     const full = cdn.filter((img) => img.src.includes(DIVAR_IMAGE_FULL_MARKER));
     const chosen = (full.length ? full : cdn).map((img) => img.src);
     return [...new Set(chosen)].slice(0, DIVAR_MAX_IMAGES);

@@ -42,17 +42,31 @@ export const DIVAR_ANCHORS = {
   confirmButton: 'تأیید',
   /** Placeholder of the phone-number field. */
   phonePlaceholder: 'موبایل',
+  /**
+   * Detail page: shows the seller's contact section (requires auth).
+   * When clicked while logged in, the page scrolls to / reveals phone numbers.
+   */
+  contactInfo: 'اطلاعات تماس',
+  /** Secondary reveal step inside the contact section (sometimes present). */
+  showPhone: 'نمایش شماره',
 } as const;
 
 /** A page that forces the login modal for guests (used by the auth provider). */
 export const DIVAR_LOGIN_TRIGGER_PATH = '/my-divar/my-posts';
 
 /**
- * Detail-page spec labels → normalized attribute keys. The detail page renders
- * each spec as a label paragraph immediately followed by a value paragraph.
+ * Detail-page spec labels → normalized attribute keys.
+ *
+ * The detail page renders specs in two ways:
+ *   a) A table with `columnheader` labels and `cell` values (top 3: area/year/rooms).
+ *   b) Label–value paragraph pairs for the remaining specs.
+ * Both formats map through the same label table here.
  */
 export const DIVAR_SPEC_LABELS: Record<string, string> = {
   متراژ: 'area',
+  زیربنا: 'area',
+  'متراژ زمین': 'landArea',
+  عرصه: 'landArea',
   'قیمت کل': 'totalPrice',
   'قیمت ملک': 'totalPrice',
   'قیمت هر متر': 'pricePerMeter',
@@ -63,11 +77,80 @@ export const DIVAR_SPEC_LABELS: Record<string, string> = {
   'اجاره ماهیانه': 'rent',
   اتاق: 'rooms',
   ساخت: 'yearBuilt',
+  'سال ساخت': 'yearBuilt',
+  'عمر بنا': 'buildingAge',
   طبقه: 'floor',
+  'نوع ملک': 'propertyType',
+  'وضعیت سند': 'documentType',
+  'وضعیت کابینت': 'cabinetCondition',
+  'وضعیت سرویس بهداشتی': 'bathroomCondition',
+  'وضعیت کف': 'floorCondition',
+  'وضعیت نما': 'facadeCondition',
+  وام: 'loan',
 };
 
 /** Keywords that classify a listing's category from its title/meta text. */
 export const DIVAR_CATEGORY_HINTS = {
-  rent: ['اجاره', 'رهن', 'روزانه', 'کوتاه‌مدت', 'کوتاه مدت'],
-  sale: ['فروش', 'قیمت ملک', 'قیمت کل'],
+  rent: [
+    'اجاره',
+    'رهن',
+    'روزانه',
+    'کوتاه‌مدت',
+    'کوتاه مدت',
+    'رهن کامل',
+    'رهن و اجاره',
+  ],
+  sale: ['فروش', 'قیمت ملک', 'قیمت کل', 'پیش‌فروش', 'فروشی'],
 } as const;
+
+/**
+ * Breadcrumb `/s/<province>/<segment>` path segments that indicate a rental.
+ * Observed live on gilan-province; other provinces use the same slugs.
+ */
+export const DIVAR_RENT_PATH_SEGMENTS = new Set([
+  'rent-residential',
+  'rent-commercial-property',
+  'rent-temporary',
+  // legacy / alternate slugs seen in the wild
+  'rent-apartment',
+  'rent-villa',
+  'rent-house',
+  'rent-office',
+  'rent-shop',
+  'short-rent',
+]);
+
+/**
+ * Breadcrumb path segments that indicate a for-sale listing.
+ * These appear as the second or third segment of `/s/<province>/…`.
+ */
+export const DIVAR_SALE_PATH_SEGMENTS = new Set([
+  'buy-residential',
+  'buy-villa',
+  'buy-commercial-property',
+  'buy-land',
+  'buy-store',
+  // legacy / alternate slugs
+  'apartment',
+  'villa',
+  'land',
+  'office',
+  'shop',
+  'pre-sell',
+]);
+
+/**
+ * Card-level promotion badge texts embedded in the meta line on listing cards.
+ * These are injected into the `text:` node alongside the price — the parser
+ * strips them so the cleaned price/meta line is stored.
+ */
+export const DIVAR_PROMOTED_LABELS = ['پله شده', 'نردبان شده'];
+
+/** Text node label that precedes the initial amenities table on a detail page. */
+export const DIVAR_AMENITIES_TEXT = 'ویژگی‌ها و امکانات';
+
+/** Text inside the button that expands additional amenities. */
+export const DIVAR_AMENITIES_MORE = 'سایر ویژگی‌ها و امکانات';
+
+/** Heading that introduces the description block on a detail page. */
+export const DIVAR_DESCRIPTION_HEADING = 'توضیحات';

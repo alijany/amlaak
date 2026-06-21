@@ -76,6 +76,7 @@ export class CrawlScheduleService
       jobType: dto.jobType ?? schedule?.jobType ?? CrawlJobType.INCREMENTAL,
       maxItems: dto.maxItems ?? schedule?.maxItems ?? 24,
       crawlDelayMs: dto.crawlDelayMs ?? schedule?.crawlDelayMs,
+      maxScrolls: dto.maxScrolls ?? schedule?.maxScrolls,
       enabled: dto.enabled ?? schedule?.enabled ?? false,
     };
 
@@ -116,10 +117,19 @@ export class CrawlScheduleService
     return this.jobService.enqueue(targetId, {
       type: schedule?.jobType ?? CrawlJobType.INCREMENTAL,
       maxItems: schedule?.maxItems,
-      params: schedule?.crawlDelayMs
-        ? { crawlDelayMs: schedule.crawlDelayMs }
-        : undefined,
+      params: schedule ? this.paramsFor(schedule) : undefined,
     });
+  }
+
+  /** Build the provider params (politeness/scroll depth) for a scheduled run. */
+  private paramsFor(
+    schedule: CrawlScheduleEntity,
+  ): Record<string, number> | undefined {
+    const params: Record<string, number> = {};
+    if (schedule.crawlDelayMs != null)
+      params.crawlDelayMs = schedule.crawlDelayMs;
+    if (schedule.maxScrolls != null) params.maxScrolls = schedule.maxScrolls;
+    return Object.keys(params).length ? params : undefined;
   }
 
   /** Next fire time for a schedule's cron (computed, for display). */
@@ -202,9 +212,7 @@ export class CrawlScheduleService
       const job = await this.jobService.enqueue(schedule.target.id, {
         type: schedule.jobType,
         maxItems: schedule.maxItems,
-        params: schedule.crawlDelayMs
-          ? { crawlDelayMs: schedule.crawlDelayMs }
-          : undefined,
+        params: this.paramsFor(schedule),
       });
       schedule.lastRunAt = new Date();
       schedule.lastJobId = job.id;

@@ -416,6 +416,15 @@
           "nullable": true,
           "mappedType": "integer"
         },
+        "max_scrolls": {
+          "name": "max_scrolls",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "integer"
+        },
         "last_run_at": {
           "name": "last_run_at",
           "type": "timestamptz",

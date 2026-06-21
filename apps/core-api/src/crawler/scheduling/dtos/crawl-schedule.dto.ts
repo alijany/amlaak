@@ -36,6 +36,12 @@ export class UpsertCrawlScheduleDto {
   crawlDelayMs?: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  maxScrolls?: number;
+
+  @IsOptional()
   @IsBoolean()
   enabled?: boolean;
 }

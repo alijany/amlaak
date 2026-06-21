@@ -47,6 +47,7 @@ export function ScheduleModal({
   const [timezone, setTimezone] = useState('Asia/Tehran');
   const [jobType, setJobType] = useState<CrawlJobType>(CrawlJobType.INCREMENTAL);
   const [maxItems, setMaxItems] = useState('24');
+  const [maxScrolls, setMaxScrolls] = useState('');
   const [crawlDelayMs, setCrawlDelayMs] = useState('');
   const [hint, setHint] = useState<string | undefined>();
 
@@ -60,6 +61,7 @@ export function ScheduleModal({
       setTimezone(data.timezone);
       setJobType(data.jobType);
       setMaxItems(String(data.maxItems));
+      setMaxScrolls(data.maxScrolls != null ? String(data.maxScrolls) : '');
       setCrawlDelayMs(data.crawlDelayMs != null ? String(data.crawlDelayMs) : '');
     }
   }, [isOpen, data]);
@@ -72,6 +74,7 @@ export function ScheduleModal({
         timezone: timezone.trim() || 'UTC',
         jobType,
         maxItems: Number(maxItems) || 24,
+        maxScrolls: maxScrolls ? Number(maxScrolls) : undefined,
         crawlDelayMs: crawlDelayMs ? Number(crawlDelayMs) : undefined,
         enabled,
       });
@@ -108,8 +111,8 @@ export function ScheduleModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="lg:min-w-[520px] bg-white">
-      <div className="p-6 flex flex-col gap-4">
+    <Modal isOpen={isOpen} onClose={onClose} className="lg:min-w-[520px] flex flex-col overflow-hidden bg-white">
+      <div className="p-6 flex flex-col gap-4 overflow-auto">
         <div className="flex justify-between items-center">
           <div className="font-bold text-lg text-slate-700">
             زمان‌بندی خودکار — {target.name}
@@ -178,6 +181,15 @@ export function ScheduleModal({
             value={maxItems}
             onChange={(e) => setMaxItems(e.target.value)}
             min={1}
+          />
+          <Input
+            label="عمق اسکرول"
+            type="number"
+            value={maxScrolls}
+            onChange={(e) => setMaxScrolls(e.target.value)}
+            placeholder="پیش‌فرض"
+            min={1}
+            max={50}
           />
           <Input
             label="تأخیر بین آگهی (ms)"

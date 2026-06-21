@@ -40,6 +40,7 @@ export class CrawlScheduleController {
       jobType: schedule.jobType,
       maxItems: schedule.maxItems,
       crawlDelayMs: schedule.crawlDelayMs,
+      maxScrolls: schedule.maxScrolls,
       lastRunAt: schedule.lastRunAt,
       lastJobId: schedule.lastJobId,
       nextRunAt: this.schedules.nextRunAt(schedule),

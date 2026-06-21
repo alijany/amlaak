@@ -37,6 +37,10 @@ export class CrawlScheduleEntity extends BaseEntity {
   @Property({ nullable: true })
   crawlDelayMs?: number;
 
+  /** Provider scroll depth (infinite-scroll iteration cap) for this run. */
+  @Property({ nullable: true })
+  maxScrolls?: number;
+
   @Property({ type: 'timestamp', nullable: true })
   lastRunAt?: Date;
 
