@@ -154,3 +154,9 @@ export const DIVAR_AMENITIES_MORE = 'سایر ویژگی‌ها و امکانا�
 
 /** Heading that introduces the description block on a detail page. */
 export const DIVAR_DESCRIPTION_HEADING = 'توضیحات';
+
+/**
+ * URL path prefix for agency/professional profile pages on Divar.
+ * Detail pages with a `link /url: /pro/<id>` block belong to a real-estate agency.
+ */
+export const DIVAR_AGENCY_PRO_PATH = '/pro/';

@@ -27,6 +27,7 @@ import {
   extractRoomsFromText,
   findRef,
   inferCategory,
+  parseAgencyInfo,
   parseBreadcrumbCategory,
   parseBreadcrumbLocation,
   parseBreadcrumbSubtype,
@@ -192,9 +193,18 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       const subtype = parseBreadcrumbSubtype(detail.text);
       if (subtype) attributes.propertySubtype = subtype;
 
-      const { city, district } = parseBreadcrumbLocation(detail.text);
+      const { city, district, street } = parseBreadcrumbLocation(detail.text);
       if (city) attributes.city = city;
       if (district) attributes.district = district;
+      if (street) attributes.street = street;
+
+      // ── agency info (real-estate agent listings) ──────────────────────────
+      const agency = parseAgencyInfo(detail.text);
+      if (agency) {
+        attributes.isAgency = true;
+        attributes.agencyName = agency.name;
+        attributes.agencyProfileUrl = agency.profileUrl;
+      }
 
       // ── amenities: visible table + expanded section ───────────────────────
       await this.expandAmenities(tabId, detail.text);
@@ -216,14 +226,15 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       );
     }
 
+    const resolvedCategory = this.resolveCategory(combined, attributes, category);
     return toRawAdvertisement({
       externalId: card.token,
       sourceUrl: card.sourceUrl,
-      raw: { card, attributes },
+      raw: { card, attributes, description, title: card.title, category: resolvedCategory, images },
       fields: {
         title: card.title,
         description,
-        category: this.resolveCategory(combined, attributes, category),
+        category: resolvedCategory,
         images,
         attributes,
       },

@@ -113,6 +113,14 @@ function StructuredView({ ad }: { ad: Advertisement }) {
     typeof attrs.buildingAge === 'string' ? attrs.buildingAge : undefined;
   const documentType =
     typeof attrs.documentType === 'string' ? attrs.documentType : undefined;
+  const street = typeof attrs.street === 'string' ? attrs.street : undefined;
+  const isAgency = attrs.isAgency === true;
+  const agencyName =
+    typeof attrs.agencyName === 'string' ? attrs.agencyName : undefined;
+  const agencyProfileUrl =
+    typeof attrs.agencyProfileUrl === 'string'
+      ? attrs.agencyProfileUrl
+      : undefined;
 
   const specs: { label: string; value: string | number }[] = [
     ...(ad.area != null
@@ -156,11 +164,37 @@ function StructuredView({ ad }: { ad: Advertisement }) {
       <ImageGallery images={ad.images ?? []} title={ad.title} />
 
       {/* Location */}
-      {(ad.province || ad.city || ad.district) && (
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <IconMapPin size={15} className="text-slate-400 flex-shrink-0" />
-          {[ad.province, ad.city, ad.district].filter(Boolean).join(' · ')}
+      {(ad.province || ad.city || ad.district || street) && (
+        <div className="flex items-start gap-2 text-sm text-slate-600">
+          <IconMapPin size={15} className="text-slate-400 flex-shrink-0 mt-0.5" />
+          <span>
+            {[ad.province, ad.city, ad.district].filter(Boolean).join(' · ')}
+            {street && (
+              <span className="text-slate-400"> · {street}</span>
+            )}
+          </span>
         </div>
+      )}
+
+      {/* Agency */}
+      {isAgency && agencyName && (
+        <a
+          href={agencyProfileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 hover:bg-amber-100 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 text-amber-800 font-bold text-sm">
+            {agencyName.slice(0, 1)}
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-slate-700 text-sm truncate">
+              {agencyName}
+            </div>
+            <div className="text-[11px] text-amber-700">آژانس املاک</div>
+          </div>
+          <IconExternalLink size={14} className="text-amber-400 mr-auto flex-shrink-0" />
+        </a>
       )}
 
       {/* Phone */}

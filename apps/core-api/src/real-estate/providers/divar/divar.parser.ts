@@ -415,37 +415,75 @@ export function parseBreadcrumbSubtype(snapshot: string): string | undefined {
 }
 
 /**
- * Extract city/district from the time+location button on a detail page.
+ * Extract city/district/street from the time+location button on a detail page.
  *
  * Divar renders a button like:
- *   `button "دقایقی پیش در چاف و چمخاله" [eN]:`
- *     `paragraph: دقایقی پیش در چاف و چمخاله`
+ *   `button "دقایقی پیش در رشت، سعدی (تختی)، خ سمیعی" [eN]:`
+ *     `paragraph: دقایقی پیش در رشت، سعدی (تختی)، خ سمیعی`
  *
- * The pattern `در <location>` at the end of this text gives the city/district.
+ * The pattern `در <location>` at the end of this text gives up to three
+ * comma-separated parts: city, district, street.
  */
 export function parseBreadcrumbLocation(snapshot: string): {
   city?: string;
   district?: string;
+  street?: string;
 } {
   for (const line of snapshot.split('\n')) {
-    // Match the paragraph inside the time button.
     const para = /^\s*-\s+paragraph:\s*(.+)$/.exec(line);
     if (!para) continue;
     const text = para[1];
-    // Pattern: "… در <location>" where location may contain spaces.
     const locMatch = /\bدر\s+(.+)$/.exec(text);
     if (!locMatch) continue;
     const location = locMatch[1].trim();
     // Reject very long strings (likely descriptions, not location names).
-    if (location.length > 40 || location.length < 2) continue;
-    // Split on " , " or "،" to separate city from district if present.
+    if (location.length > 80 || location.length < 2) continue;
     const parts = location
       .split(/[،,]/)
       .map((p) => p.trim())
       .filter(Boolean);
-    return { city: parts[0], district: parts[1] };
+    return { city: parts[0], district: parts[1], street: parts[2] };
   }
   return {};
+}
+
+/**
+ * Detect real-estate agency info from a detail page.
+ *
+ * Agency ads include a link card pointing to `/pro/<id>` with the agency name
+ * in the first paragraph child.  Observed live ARIA structure:
+ *   ```
+ *   - link "... همه آگهی‌ها ..." [eN]:
+ *     - /url: /pro/XDNCvQZQ
+ *     - img "املاک شمال"
+ *     - paragraph: املاک شمال
+ *     - paragraph: همه آگهی‌ها
+ *     - paragraph: ۴۹ آگهی فعال
+ *   ```
+ */
+export function parseAgencyInfo(
+  snapshot: string,
+): { name: string; profileUrl: string } | undefined {
+  const lines = snapshot.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const urlMatch = /^\s*-\s+\/url:\s*(\/pro\/\S+)/.exec(lines[i]);
+    if (!urlMatch) continue;
+
+    const profilePath = urlMatch[1].replace(/[?#].*/, '');
+
+    // Look forward for the first paragraph (the agency name), skip img lines.
+    for (let j = i + 1; j < Math.min(lines.length, i + 8); j++) {
+      const para = /^\s*-\s+paragraph:\s*(.+)$/.exec(lines[j]);
+      if (!para) continue;
+      const name = para[1].trim();
+      // Skip generic nav paragraphs.
+      if (!name || name === 'همه آگهی‌ها' || /^\d/.test(name)) continue;
+      return { name, profileUrl: `https://divar.ir${profilePath}` };
+    }
+  }
+
+  return undefined;
 }
 
 /**
