@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Advertisement, RealEstateCategory } from '../crawler.types';
 
 const CATEGORY_LABEL: Record<RealEstateCategory, string> = {
@@ -22,7 +23,10 @@ export function AdCard({ ad }: { ad: Advertisement }) {
       : undefined);
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden flex flex-col">
+    <Link
+      href={`/dashboard/crawler/ads/${ad.id}`}
+      className="rounded-2xl border border-slate-100 bg-white overflow-hidden flex flex-col hover:border-slate-300 hover:shadow-sm transition-all"
+    >
       {ad.images?.[0] && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -49,12 +53,18 @@ export function AdCard({ ad }: { ad: Advertisement }) {
         </div>
 
         <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-slate-500">
-          {ad.area != null && <span>{ad.area.toLocaleString('fa-IR')} متر</span>}
-          {ad.rooms != null && <span>{ad.rooms.toLocaleString('fa-IR')} خواب</span>}
+          {ad.area != null && (
+            <span>{ad.area.toLocaleString('fa-IR')} متر</span>
+          )}
+          {ad.rooms != null && (
+            <span>{ad.rooms.toLocaleString('fa-IR')} خواب</span>
+          )}
         </div>
 
-        {price && <div className="font-bold text-slate-800 text-sm">{price}</div>}
+        {price && (
+          <div className="font-bold text-slate-800 text-sm">{price}</div>
+        )}
       </div>
-    </div>
+    </Link>
   );
 }

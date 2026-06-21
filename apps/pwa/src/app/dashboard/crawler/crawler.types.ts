@@ -158,6 +158,7 @@ export interface Advertisement {
   district?: string;
   images?: string[];
   attributes?: Record<string, unknown>;
+  rawPayload?: Record<string, unknown>;
   postedAt?: string;
   crawledAt?: string;
 }
