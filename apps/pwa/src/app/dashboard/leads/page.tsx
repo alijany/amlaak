@@ -48,14 +48,17 @@ function LeadsContent() {
           data={data}
           error={error}
           isLoading={isLoading}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-3"
           isEmpty={(d) => !d?.items.length}
           emptyMessage="هنوز سرنخی ثبت نشده است. با دکمه «ثبت سرنخ» شروع کنید."
           onRetry={refresh}
         >
-          {data?.items?.map((lead) => (
-            <LeadRow key={lead.id} lead={lead} />
-          ))}
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-3"
+          >
+            {data?.items?.map((lead) => (
+              <LeadRow key={lead.id} lead={lead} />
+            ))}
+          </div>
         </DataView>
 
         {data?.meta && data.meta.total > (filters.limit || 20) && (

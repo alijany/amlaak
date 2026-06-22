@@ -46,14 +46,17 @@ function AdsContent() {
           data={data}
           error={error}
           isLoading={isLoading}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
           isEmpty={(d) => !d?.items.length}
           emptyMessage="آگهی‌ای یافت نشد. یک کراول اجرا کنید تا داده‌ها اینجا نمایش داده شوند."
           onRetry={refresh}
         >
-          {data?.items?.map((ad) => (
-            <AdCard key={ad.id} ad={ad} />
-          ))}
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+          >
+            {data?.items?.map((ad) => (
+              <AdCard key={ad.id} ad={ad} />
+            ))}
+          </div>
         </DataView>
 
         {data?.meta && data.meta.total > (filters.limit || 12) && (

@@ -161,11 +161,14 @@ function DashboardContent() {
             emptyMessage="هنوز آگهی‌ای گردآوری نشده است."
             onRetry={ads.refresh}
             variant="inline"
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
           >
-            {ads.data?.items?.map((ad) => (
-              <AdCard key={ad.id} ad={ad} />
-            ))}
+            <div
+              className={"grid grid-cols-1 sm:grid-cols-2 gap-3"}
+            >
+              {ads.data?.items?.map((ad) => (
+                <AdCard key={ad.id} ad={ad} />
+              ))}
+            </div>
           </DataView>
         </div>
       </div>
