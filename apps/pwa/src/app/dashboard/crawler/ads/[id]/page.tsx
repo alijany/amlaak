@@ -3,6 +3,7 @@
 import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
+import { trackingCode } from '@/libs/lead/lead.util.tracking';
 import { JsonViewer } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
 import {
@@ -289,6 +290,9 @@ function StructuredView({ ad }: { ad: Advertisement }) {
       {/* Footer meta */}
       <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3 text-[11px] text-slate-400">
         <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-slate-500">
+            کد رهگیری: {trackingCode(ad.id)}
+          </span>
           {ad.crawledAt && (
             <span>
               گردآوری:{' '}

@@ -25,7 +25,7 @@ export const BottomNavBar: React.FC = () => {
   // organization owner, show the `organization` route instead of `profile`.
   const bottomNavItems: RouteItem[] = [
     RouteItems.dashboard,
-    RouteItems.users,
+    RouteItems.leads,
     RouteItems.profile,
     RouteItems.notifications,
   ];

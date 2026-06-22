@@ -5,8 +5,9 @@
 
 ## Current focus
 
-Phase 1 → **M1 (Lead generation & tracking)**. The aggregation engine is live; the next unit
-of work is modeling leads/inquiries and filling the dashboard home. No M1 code has started yet.
+Phase 1 → **M1 (Lead generation & tracking)** is **built** (backend `lead` module + frontend
+`leads` domain + dashboard home; verified by lint + build). Next: live e2e against a DB, then
+**M2 (Distribution & promotion)**.
 
 ## Foundation (already built)
 
@@ -20,14 +21,20 @@ of work is modeling leads/inquiries and filling the dashboard home. No M1 code h
 
 ## M1 — Lead generation & tracking MVP
 
-- ⬜ `lead` backend module (`apps/core-api/src/lead/`): `Lead` entity ↔ advertisement,
-  tracking ID, status pipeline, agent assignment — register in `app.module.ts`
-- ⬜ Per-listing tracking mechanism (dedicated phone/code → listing attribution)
-- ⬜ Wire `LEAD_ASSIGNED` notification template to lead assignment
-- ⬜ Dashboard home page — implement empty
-  [`apps/pwa/src/app/dashboard/page.tsx`](../apps/pwa/src/app/dashboard/page.tsx) (overview
-  widgets, lead funnel)
-- ⬜ Frontend `leads` domain (`apps/pwa/src/app/dashboard/leads/`) — list + detail + assignment
+- ✅ `lead` backend module (`apps/core-api/src/lead/`): `LeadEntity` ↔ advertisement,
+  `LeadPoolEntity` (shared pools), status pipeline, source, agent assignment + self-claim,
+  role-scoped visibility — registered in `app.module.ts`
+- ✅ Per-listing tracking code (software-only): `lead.tracking.ts` (`NV-`+base36(adId)) +
+  `GET /leads/lookup?code=` resolver; mirrored on the frontend
+  (`apps/pwa/src/libs/lead/lead.util.tracking.ts`) and shown on the crawled-ad detail page
+- ✅ `LEAD_ASSIGNED` notification fired on assignment (`LeadService.notifyAssigned`)
+- ✅ Dashboard home (`apps/pwa/src/app/dashboard/page.tsx`): KPIs, lead funnel, recent listings
+- ✅ Frontend `leads` domain (`apps/pwa/src/app/dashboard/leads/`): list + filters + create
+  modal + detail (status/claim/assign/notes) + pools page; nav entry added (sidebar + mobile)
+- ✅ Extracted shared `StatusPill` atom (`apps/pwa/src/ui/atoms/ui.status-pill.tsx`) reused by
+  crawler + leads
+- ⬜ Live e2e against a DB (create/assign/claim/stats/lookup) — not run in this session (no DB)
+- ⬜ Agent-list source for managers without `/users` read access (assign uses `useUsers` today)
 
 ## M2 — Distribution & promotion
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { IconDashboard, IconList, IconNotification, IconSpider, IconUser, IconUsers } from "@tabler/icons-react";
+import { IconDashboard, IconList, IconNotification, IconPhoneCall, IconSpider, IconUser, IconUsers } from "@tabler/icons-react";
 import { Role } from "../auth/auth.constants.roles";
 
 export interface RouteItem {
@@ -40,6 +40,12 @@ export const RouteItems = {
     roles: false as const,
     icon: <IconDashboard className="size-5" />
   },
+  leads: {
+    href: "/dashboard/leads",
+    label: "سرنخ‌ها",
+    roles: [Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
+    icon: <IconPhoneCall className="size-5" />
+  },
   crawler: {
     href: "/dashboard/crawler",
     label: "مدیریت مرورگرها",
@@ -59,6 +65,7 @@ export const routeGroups: RouteGroup[] = [
   {
     label: "پیشخوان",
     routes: [
+      RouteItems.leads,
       RouteItems.crawler,
       RouteItems.crawlerAds,
       RouteItems.users,

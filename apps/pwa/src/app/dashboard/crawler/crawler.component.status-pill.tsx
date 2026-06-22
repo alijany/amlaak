@@ -1,5 +1,6 @@
 'use client';
 
+import { StatusPill, StatusTone, StatusTones } from '@/ui/atoms';
 import {
   CrawlJobStatus,
   CrawlTargetStatus,
@@ -7,25 +8,17 @@ import {
   TargetAccessibility,
 } from './crawler.types';
 
-type Tone = { bg: string; text: string; dot: string };
+// Re-exported so existing crawler imports keep working; the primitive now lives
+// in @/ui/atoms (shared with the leads domain).
+export { StatusPill };
 
-const EMERALD: Tone = { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' };
-const SKY: Tone = { bg: 'bg-sky-50', text: 'text-sky-700', dot: 'bg-sky-500' };
-const AMBER: Tone = { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' };
-const ROSE: Tone = { bg: 'bg-rose-50', text: 'text-rose-700', dot: 'bg-rose-500' };
-const SLATE: Tone = { bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-400' };
+type Tone = StatusTone;
 
-/** Small, reusable status badge. */
-export function StatusPill({ tone, label }: { tone: Tone; label: string }) {
-  return (
-    <span
-      className={`inline-flex items-center justify-end gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${tone.bg} ${tone.text}`}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${tone.dot}`} />
-      {label}
-    </span>
-  );
-}
+const EMERALD = StatusTones.emerald;
+const SKY = StatusTones.sky;
+const AMBER = StatusTones.amber;
+const ROSE = StatusTones.rose;
+const SLATE = StatusTones.slate;
 
 export function TargetStatusPill({ status }: { status: CrawlTargetStatus }) {
   const map: Record<CrawlTargetStatus, [Tone, string]> = {

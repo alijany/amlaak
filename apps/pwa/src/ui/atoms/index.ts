@@ -12,3 +12,4 @@ export * from './ui.dropdown';
 export * from './ui.radio';
 export * from "./ui.file-picker";
 export * from './ui.json-viewer';
+export * from './ui.status-pill';
