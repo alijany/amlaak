@@ -261,6 +261,12 @@ export function parseDetailDescription(snapshot: string): string | undefined {
     }
     if (!collecting) continue;
 
+    // Stop on structural elements that bound the description section:
+    // navigation (breadcrumb appears right after the paragraph), button,
+    // figure (image gallery), textbox (private-note input), progressbar.
+    if (/^\s*-\s+(?:navigation|button|figure|textbox|progressbar)\b/.test(line))
+      break;
+
     const para = /^\s*-\s+paragraph:\s*(.+)$/.exec(line);
     if (para) {
       parts.push(para[1].trim());
@@ -433,7 +439,9 @@ export function parseBreadcrumbLocation(snapshot: string): {
     const para = /^\s*-\s+paragraph:\s*(.+)$/.exec(line);
     if (!para) continue;
     const text = para[1];
-    const locMatch = /\bدر\s+(.+)$/.exec(text);
+    // \b does not fire on Persian chars (non-ASCII); match "در" at start of
+    // string or preceded by whitespace to avoid false positives mid-word.
+    const locMatch = /(?:^|\s)در\s+(.+)$/.exec(text);
     if (!locMatch) continue;
     const location = locMatch[1].trim();
     // Reject very long strings (likely descriptions, not location names).

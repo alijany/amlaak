@@ -226,11 +226,22 @@ export class DivarCrawlerProvider implements CrawlerProvider {
       );
     }
 
-    const resolvedCategory = this.resolveCategory(combined, attributes, category);
+    const resolvedCategory = this.resolveCategory(
+      combined,
+      attributes,
+      category,
+    );
     return toRawAdvertisement({
       externalId: card.token,
       sourceUrl: card.sourceUrl,
-      raw: { card, attributes, description, title: card.title, category: resolvedCategory, images },
+      raw: {
+        card,
+        attributes,
+        description,
+        title: card.title,
+        category: resolvedCategory,
+        images,
+      },
       fields: {
         title: card.title,
         description,
