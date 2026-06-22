@@ -996,6 +996,50 @@
           "nullable": true,
           "length": 6,
           "mappedType": "datetime"
+        },
+        "publish_status": {
+          "name": "publish_status",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'pending'",
+          "enumItems": [
+            "pending",
+            "published",
+            "rejected"
+          ],
+          "mappedType": "enum"
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "telegram_posted_at": {
+          "name": "telegram_posted_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "telegram_message_id": {
+          "name": "telegram_message_id",
+          "type": "bigint",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "bigint"
         }
       },
       "name": "real_estate_advertisement_entity",
@@ -1017,6 +1061,16 @@
           ],
           "composite": false,
           "keyName": "real_estate_advertisement_entity_city_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "publish_status"
+          ],
+          "composite": false,
+          "keyName": "real_estate_advertisement_entity_publish_status_index",
           "constraint": false,
           "primary": false,
           "unique": false
