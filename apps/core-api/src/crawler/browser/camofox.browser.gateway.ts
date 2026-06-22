@@ -210,7 +210,7 @@ export class CamofoxBrowserGateway implements BrowserGateway {
     void sessionId;
     throw new BrowserGatewayError(
       'Camoufox does not expose a cookie-export endpoint; sessions persist ' +
-        'server-side per profile. See docs/roadmap.md (Phase 4).',
+        'server-side per profile. See docs/crawler/roadmap.md (Phase 4).',
       { operation: 'exportCookies' },
     );
   }

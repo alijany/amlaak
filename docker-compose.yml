@@ -93,7 +93,7 @@ services:
   # Camoufox stealth-browser sidecar for the crawler (optional).
   # Uncomment to enable real browser automation. The Mock crawler target works
   # without it. The api reads CAMOFOX_BASE_URL=http://camofox:9377.
-  # See docs/developer/browser-gateway-camofox.md
+  # See docs/crawler/developer/browser-gateway-camofox.md
   # camofox:
   #   container_name: ${PROJECT_NAME}-camofox
   #   image: ghcr.io/jo-inc/camofox-browser:latest
