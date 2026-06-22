@@ -5,9 +5,9 @@
 
 ## Current focus
 
-Phase 1 → **M1 (Lead generation & tracking)** is **built** (backend `lead` module + frontend
-`leads` domain + dashboard home; verified by lint + build). Next: live e2e against a DB, then
-**M2 (Distribution & promotion)**.
+Phase 1 → **M1 (lead tracking)** and **M2 (distribution: approve-first publishing +
+Telegram + public site)** are **built** (verified by lint + build). Next: live e2e against a
+DB + a real Telegram bot/channel, then **M3 (public marketplace)**.
 
 ## Foundation (already built)
 
@@ -38,10 +38,18 @@ Phase 1 → **M1 (Lead generation & tracking)** is **built** (backend `lead` mod
 
 ## M2 — Distribution & promotion
 
-- ⬜ Distribution service: auto-publish listings to public website
-- ⬜ Telegram channel publisher (reuse notification Telegram channel)
-- ⬜ "Promote" workflow + inbound attribution
-- ⬜ Public listing pages
+- ✅ Approve-first publishing: `PublishStatus` (pending/published/rejected) on the
+  advertisement entity; `ListingModerationService.approve/reject`; dashboard
+  `PATCH /real-estate/advertisements/:id/publish|reject` (managers+) with Approve/Reject UI +
+  status pill + publish-status filter on the crawled-ads views
+- ✅ Telegram channel publisher (`real-estate/publishing/telegram-listing.publisher.ts`):
+  posts photo+caption on approval; config-driven (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHANNEL_ID`/
+  `PUBLIC_WEB_URL` in `.env.example`), no-ops when unset
+- ✅ Public website: `GET /public/listings` + `/public/listings/:id` (published-only, trimmed
+  public shape — source contact stripped); public `/listings` index + `/listings/[id]` detail
+  with contact CTA + tracking code; "آگهی‌ها" link in the public navbar
+- ⬜ Live e2e against a DB + real bot/channel (approve → published + Telegram post + public visibility)
+- ⬜ Promote/featured workflow (deferred — out of scope this milestone)
 
 ## M3 — Public marketplace
 

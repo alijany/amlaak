@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { PublishStatusPill } from '../crawler.component.status-pill';
 import { Advertisement, RealEstateCategory } from '../crawler.types';
 
 const CATEGORY_LABEL: Record<RealEstateCategory, string> = {
@@ -41,7 +42,7 @@ export function AdCard({ ad }: { ad: Advertisement }) {
           <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
             {CATEGORY_LABEL[ad.category]}
           </span>
-          <span className="text-[11px] text-slate-400">{ad.target?.name}</span>
+          <PublishStatusPill status={ad.publishStatus} />
         </div>
 
         <h3 className="font-semibold text-slate-700 text-sm leading-snug line-clamp-2">

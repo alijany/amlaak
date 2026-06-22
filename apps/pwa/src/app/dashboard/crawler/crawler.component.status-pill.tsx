@@ -5,6 +5,7 @@ import {
   CrawlJobStatus,
   CrawlTargetStatus,
   CrawlerAuthStatus,
+  PublishStatus,
   TargetAccessibility,
 } from './crawler.types';
 
@@ -49,6 +50,16 @@ export function AccessibilityPill({ status }: { status: TargetAccessibility }) {
     [TargetAccessibility.UNKNOWN]: [SLATE, 'نامشخص'],
   };
   const [tone, label] = map[status] ?? [SLATE, status];
+  return <StatusPill tone={tone} label={label} />;
+}
+
+export function PublishStatusPill({ status }: { status?: PublishStatus }) {
+  const map: Record<PublishStatus, [Tone, string]> = {
+    [PublishStatus.PUBLISHED]: [EMERALD, 'منتشرشده'],
+    [PublishStatus.PENDING]: [AMBER, 'در انتظار تأیید'],
+    [PublishStatus.REJECTED]: [SLATE, 'رد شده'],
+  };
+  const [tone, label] = (status && map[status]) || [AMBER, 'در انتظار تأیید'];
   return <StatusPill tone={tone} label={label} />;
 }
 

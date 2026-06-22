@@ -1,8 +1,9 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { PublishStatus, RealEstateCategory } from '../real-estate.constants';
+import { RealEstateCategory } from '../real-estate.constants';
 
-export class AdvertisementFilterDto {
+/** Filters for the public, unauthenticated listings catalog (published only). */
+export class PublicListingFilterDto {
   @Type(() => Number)
   @IsInt()
   @Min(0)
@@ -15,18 +16,9 @@ export class AdvertisementFilterDto {
   @IsOptional()
   limit?: number;
 
-  @Type(() => Number)
-  @IsInt()
-  @IsOptional()
-  targetId?: number;
-
   @IsEnum(RealEstateCategory)
   @IsOptional()
   category?: RealEstateCategory;
-
-  @IsEnum(PublishStatus)
-  @IsOptional()
-  publishStatus?: PublishStatus;
 
   @IsString()
   @IsOptional()
@@ -51,7 +43,6 @@ export class AdvertisementFilterDto {
   @IsOptional()
   maxPrice?: number;
 
-  /** Free-text search over title/description. */
   @IsString()
   @IsOptional()
   q?: string;

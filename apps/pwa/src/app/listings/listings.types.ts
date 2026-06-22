@@ -1,0 +1,43 @@
+import { RealEstateCategory } from '../dashboard/crawler/crawler.types';
+
+export { RealEstateCategory };
+
+/** Public, trimmed listing shape returned by /public/listings. */
+export interface PublicListing {
+  id: number;
+  trackingCode: string;
+  title?: string;
+  description?: string;
+  category: RealEstateCategory;
+  totalPrice?: number;
+  deposit?: number;
+  rent?: number;
+  pricePerMeter?: number;
+  area?: number;
+  rooms?: number;
+  yearBuilt?: number;
+  floor?: number;
+  province?: string;
+  city?: string;
+  district?: string;
+  images?: string[];
+  attributes?: Record<string, unknown>;
+  publishedAt?: string;
+}
+
+export interface PublicListingsResponse {
+  items: PublicListing[];
+  meta: { page: number; limit: number; total: number; pageCount: number };
+}
+
+export interface PublicListingFilters {
+  page?: number;
+  limit?: number;
+  category?: RealEstateCategory;
+  city?: string;
+  district?: string;
+  rooms?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  q?: string;
+}

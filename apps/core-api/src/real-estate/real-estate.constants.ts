@@ -11,6 +11,16 @@ export enum RealEstateCategory {
   UNKNOWN = 'unknown',
 }
 
+/** Moderation/distribution state of a listing. */
+export enum PublishStatus {
+  /** Newly crawled, awaiting manager review. */
+  PENDING = 'pending',
+  /** Approved — visible on the public site and posted to Telegram. */
+  PUBLISHED = 'published',
+  /** Reviewed and hidden. */
+  REJECTED = 'rejected',
+}
+
 /** Stable site keys for the real-estate providers shipped today. */
 export const SiteKey = {
   MOCK: 'mock',

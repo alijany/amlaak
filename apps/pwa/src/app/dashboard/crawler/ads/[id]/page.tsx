@@ -1,11 +1,16 @@
 'use client';
 
 import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
+import { useAuth } from '@/components/auth/auth.context.provider';
+import { Role } from '@/components/auth/auth.constants.roles';
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
+import { ApiError } from '@/libs/api/api.types.error';
 import { trackingCode } from '@/libs/lead/lead.util.tracking';
-import { JsonViewer } from '@/ui/atoms';
+import { Button, JsonViewer } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
+import { toast } from 'react-toastify';
+import { PublishStatusPill } from '../../crawler.component.status-pill';
 import {
   IconArrowRight,
   IconBuildingEstate,
@@ -17,8 +22,12 @@ import {
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
-import { Advertisement, RealEstateCategory } from '../../crawler.types';
-import { useAdvertisement } from './crawler.ads.detail.api';
+import { Advertisement, PublishStatus, RealEstateCategory } from '../../crawler.types';
+import {
+  useAdvertisement,
+  useApproveListing,
+  useRejectListing,
+} from './crawler.ads.detail.api';
 
 const CATEGORY_LABEL: Record<RealEstateCategory, string> = {
   [RealEstateCategory.SALE]: 'فروش',
@@ -345,6 +354,73 @@ function DebugView({ ad }: { ad: Advertisement }) {
 
 type Tab = 'info' | 'debug';
 
+function ModerationBar({
+  ad,
+  refresh,
+}: {
+  ad: Advertisement;
+  refresh: () => void;
+}) {
+  const { hasAnyRole } = useAuth();
+  const canModerate = hasAnyRole([Role.ADMIN, Role.MANAGER, Role.OWNER]);
+
+  const { submit: approve, isLoading: approving } = useApproveListing(ad.id);
+  const { submit: reject, isLoading: rejecting } = useRejectListing(ad.id);
+
+  const onApprove = async () => {
+    try {
+      await approve();
+      toast.success('آگهی منتشر شد و به تلگرام ارسال شد');
+      refresh();
+    } catch (e) {
+      toast.error((e as ApiError).message || 'انتشار ناموفق بود');
+    }
+  };
+
+  const onReject = async () => {
+    try {
+      await reject();
+      toast.success('آگهی رد شد');
+      refresh();
+    } catch (e) {
+      toast.error((e as ApiError).message || 'عملیات ناموفق بود');
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-4 mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm text-slate-500">
+        <span>وضعیت انتشار:</span>
+        <PublishStatusPill status={ad.publishStatus} />
+        {ad.telegramPostedAt && (
+          <span className="text-[11px] text-emerald-600">
+            • ارسال‌شده به تلگرام
+          </span>
+        )}
+      </div>
+      {canModerate && (
+        <div className="flex items-center gap-2">
+          {ad.publishStatus !== PublishStatus.PUBLISHED && (
+            <Button size="sm" onClick={onApprove} disabled={approving}>
+              تأیید و انتشار
+            </Button>
+          )}
+          {ad.publishStatus !== PublishStatus.REJECTED && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onReject}
+              disabled={rejecting}
+            >
+              رد
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdDetailContent({ id }: { id: number }) {
   const { data: ad, error, isLoading, refresh } = useAdvertisement(id);
   const [tab, setTab] = useState<Tab>('info');
@@ -415,6 +491,8 @@ function AdDetailContent({ id }: { id: number }) {
           </button>
         </div>
       </div>
+
+      {ad && <ModerationBar ad={ad} refresh={refresh} />}
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="grow overflow-auto">

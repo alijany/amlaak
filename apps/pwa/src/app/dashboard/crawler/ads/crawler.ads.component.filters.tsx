@@ -3,13 +3,20 @@
 import { Input } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconSearch } from '@tabler/icons-react';
-import { AdvertisementFilters, RealEstateCategory } from '../crawler.types';
+import { AdvertisementFilters, PublishStatus, RealEstateCategory } from '../crawler.types';
 
 const CATEGORY_ITEMS: { label: string; value: RealEstateCategory | '' }[] = [
   { label: 'همه دسته‌ها', value: '' },
   { label: 'فروش', value: RealEstateCategory.SALE },
   { label: 'رهن و اجاره', value: RealEstateCategory.RENT },
   { label: 'رهن کامل', value: RealEstateCategory.MORTGAGE },
+];
+
+const PUBLISH_ITEMS: { label: string; value: PublishStatus | '' }[] = [
+  { label: 'همه وضعیت‌ها', value: '' },
+  { label: 'در انتظار تأیید', value: PublishStatus.PENDING },
+  { label: 'منتشرشده', value: PublishStatus.PUBLISHED },
+  { label: 'رد شده', value: PublishStatus.REJECTED },
 ];
 
 interface AdsFiltersProps {
@@ -29,6 +36,18 @@ export function AdsFilters({ filters, onChange }: AdsFiltersProps) {
         />
       </div>
       <div className="flex items-center gap-2">
+        <div className="w-44">
+          <Dropdown<PublishStatus | ''>
+            items={PUBLISH_ITEMS}
+            value={filters.publishStatus ?? ''}
+            onChange={(value) =>
+              onChange({ publishStatus: (value || undefined) as PublishStatus, page: 0 })
+            }
+            placeholder="وضعیت انتشار"
+            variant="outline"
+            size="sm"
+          />
+        </div>
         <div className="w-44">
           <Dropdown<RealEstateCategory | ''>
             items={CATEGORY_ITEMS}

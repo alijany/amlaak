@@ -6,7 +6,10 @@ import { AdvertisementController } from './advertisement.controller';
 import { AdvertisementImageService } from './advertisement-image.service';
 import { RealEstateAdvertisementEntity } from './advertisement.entity';
 import { AdvertisementService } from './advertisement.service';
+import { ListingModerationService } from './listing-moderation.service';
 import { NormalizationService } from './normalization.service';
+import { PublicListingController } from './public-listing.controller';
+import { TelegramListingPublisher } from './publishing/telegram-listing.publisher';
 import { DivarAuthProvider } from './providers/divar/divar.auth.provider';
 import { DivarCrawlerProvider } from './providers/divar/divar.crawler.provider';
 import { MockAuthProvider } from './providers/mock/mock.auth.provider';
@@ -27,11 +30,13 @@ import { RealEstateSink } from './real-estate.sink';
     S3StorageModule,
     MikroOrmModule.forFeature([RealEstateAdvertisementEntity]),
   ],
-  controllers: [AdvertisementController],
+  controllers: [AdvertisementController, PublicListingController],
   providers: [
     AdvertisementService,
     AdvertisementImageService,
     NormalizationService,
+    ListingModerationService,
+    TelegramListingPublisher,
     RealEstateSink,
     // site providers
     MockCrawlerProvider,

@@ -43,6 +43,12 @@ export enum RealEstateCategory {
   UNKNOWN = 'unknown',
 }
 
+export enum PublishStatus {
+  PENDING = 'pending',
+  PUBLISHED = 'published',
+  REJECTED = 'rejected',
+}
+
 export interface CrawlTarget {
   id: number;
   siteKey: string;
@@ -161,6 +167,9 @@ export interface Advertisement {
   rawPayload?: Record<string, unknown>;
   postedAt?: string;
   crawledAt?: string;
+  publishStatus?: PublishStatus;
+  publishedAt?: string;
+  telegramPostedAt?: string;
 }
 
 export interface AdvertisementsResponse {
@@ -173,6 +182,7 @@ export interface AdvertisementFilters {
   limit?: number;
   targetId?: number;
   category?: RealEstateCategory;
+  publishStatus?: PublishStatus;
   city?: string;
   district?: string;
   rooms?: number;

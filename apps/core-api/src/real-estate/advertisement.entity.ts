@@ -4,12 +4,13 @@ import {
   Index,
   ManyToOne,
   Property,
+  types,
   Unique,
 } from '@mikro-orm/core';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
-import { RealEstateCategory } from './real-estate.constants';
+import { PublishStatus, RealEstateCategory } from './real-estate.constants';
 
 /**
  * A normalized real-estate advertisement collected from a target.
@@ -108,4 +109,19 @@ export class RealEstateAdvertisementEntity extends BaseEntity {
 
   @Property({ type: 'timestamp', nullable: true })
   crawledAt?: Date;
+
+  // --- moderation / distribution (M2) ---
+  /** Listings start PENDING; a manager approves to publish + post to Telegram. */
+  @Enum({ items: () => PublishStatus, default: PublishStatus.PENDING })
+  @Index()
+  publishStatus: PublishStatus = PublishStatus.PENDING;
+
+  @Property({ type: 'timestamp', nullable: true })
+  publishedAt?: Date;
+
+  @Property({ type: 'timestamp', nullable: true })
+  telegramPostedAt?: Date;
+
+  @Property({ type: types.bigint, nullable: true })
+  telegramMessageId?: number;
 }
