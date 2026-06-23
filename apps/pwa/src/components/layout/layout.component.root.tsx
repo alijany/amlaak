@@ -8,7 +8,7 @@ interface RootLayoutProps {
 
 export function RootLayout({ children, navbarTransparent }: RootLayoutProps) {
   return (
-    <div className="overflow-x-hidden">
+    <div>
       <Navbar transparent={navbarTransparent} />
       <main>{children}</main>
       <Footer />

@@ -28,7 +28,7 @@ export function LandingHeroSearch() {
   };
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="">      
       {/* Image-forward background with a dark gradient for legibility.
           Falls back to the gradient alone if the photo asset is absent. */}
       <div

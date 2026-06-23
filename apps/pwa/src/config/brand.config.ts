@@ -61,7 +61,7 @@ export const brand = {
       searchPlaceholder: 'شهر، محله یا عنوان ملک…',
       searchCta: 'جستجو',
       // Hero background; swap for a real photo (e.g. /images/hero-home.jpg) anytime.
-      backgroundImage: '/images/hero-home.svg',
+      backgroundImage: '/images/image.png',
     },
 
     // Category tabs in the hero search + the browse-by-category cards.

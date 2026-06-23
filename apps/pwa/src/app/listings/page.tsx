@@ -43,14 +43,17 @@ function ListingsContent() {
         data={data}
         error={error}
         isLoading={isLoading}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
         isEmpty={(d) => !d?.items.length}
         emptyMessage="آگهی‌ای برای نمایش وجود ندارد."
         onRetry={refresh}
       >
-        {data?.items?.map((listing) => (
-          <ListingCard key={listing.id} listing={listing} />
-        ))}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          {data?.items?.map((listing) => (
+            <ListingCard key={listing.id} listing={listing} />
+          ))}
+        </div>
       </DataView>
 
       {data?.meta && data.meta.total > (filters.limit || 12) && (
