@@ -20,7 +20,10 @@ A PM review of the customer-facing flows produced a prioritized backlog (full te
   "جدیدترین آگهی‌ها" + "فروش ملک" strips (`usePublicListings` + `ListingCard`); seeker value
   props; 3-step how-it-works; a dedicated **agencies** band; trimmed FAQ. Sections live in
   `apps/pwa/src/components/landing/`; content in `brand.config.ts` (`landing` schema reshaped).
-  Image-forward hero degrades gracefully to a gradient until a photo asset is added.
+- ✅ **Public navbar matched to the landing**: scroll-aware (transparent white-text over the
+  hero → solid white on scroll), marketplace nav links (خانه/آگهی‌ها/خرید/رهن و اجاره/سوالات),
+  CTAs «ثبت آگهی» + «ورود» / «پنل کاربری». Authored **SVG skyline** hero background
+  (`public/images/hero-home.svg`), swappable for a photo via `brand.config` `hero.backgroundImage`.
 - ✅ Login modal stale «هم‌اوا» fixed; **role-aware post-login redirect** (staff → `/dashboard`,
   customers → `/listings`)
 - ✅ Listing-detail contact routes to the **owning agency** (public shape exposes agency

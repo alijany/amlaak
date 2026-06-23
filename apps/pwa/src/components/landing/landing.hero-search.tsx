@@ -34,8 +34,7 @@ export function LandingHeroSearch() {
       <div
         className="absolute inset-0 -z-10 bg-slate-900"
         style={{
-          backgroundImage:
-            'linear-gradient(to top, rgba(15,23,42,0.94), rgba(15,23,42,0.55)), url(/images/hero-home.jpg)',
+          backgroundImage: `linear-gradient(to top, rgba(15,23,42,0.94), rgba(15,23,42,0.55)), url(${hero.backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

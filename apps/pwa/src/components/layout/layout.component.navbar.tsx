@@ -1,30 +1,47 @@
 "use client";
 
 import { brand } from '@/config/brand.config';
+import { cn } from '@/libs/style/style.util.helpers';
 import { Button } from '@/ui/atoms';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import { IconCancel, IconMenu, IconPhone, IconRocket, IconUser } from '@tabler/icons-react';
+import { IconBuildingEstate, IconCancel, IconMenu, IconPhone, IconUser } from '@tabler/icons-react';
 import Link from 'next/link';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useAuth } from '../auth/auth.context.provider';
 import { MenuItems } from "./layout.component.menu-items";
 
 export function Navbar({ transparent }: { transparent?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated } = useAuth();
+
+  // Over the hero we start transparent (white text); turn solid on scroll.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const overHero = !!transparent && !scrolled;
 
   return (
     <>
       <div className="z-30 sticky top-4 m-4 lg:top-6">
         <nav
-          className={`max-w-7xl mx-auto flex justify-between items-center rounded-2xl p-3 lg:p-4 border transition-all duration-300 ${transparent
-            ? 'bg-white/10 backdrop-blur-xl border-white/40 shadow-lg shadow-black/10'
-            : 'bg-white/80 backdrop-blur-xl border-white shadow-2xl shadow-black/10'
-            }`}
+          className={cn(
+            'max-w-7xl mx-auto flex justify-between items-center rounded-2xl p-3 lg:p-4 border transition-all duration-300',
+            overHero
+              ? 'bg-white/10 backdrop-blur-xl border-white/30 shadow-lg shadow-black/10'
+              : 'bg-white/90 backdrop-blur-xl border-white shadow-2xl shadow-black/10',
+          )}
         >
           <div className="flex items-center gap-3">
             <Button
-              className="lg:hidden visible p-2"
+              className={cn(
+                "lg:hidden visible p-2",
+                overHero && "bg-white/10 border border-white/40 text-white hover:bg-white/20",
+              )}
               variant="outline"
               size="lg"
               onClick={() => setIsOpen(true)}
@@ -32,31 +49,53 @@ export function Navbar({ transparent }: { transparent?: boolean }) {
               <IconMenu className="size-4" />
             </Button>
             <Link href='/' className="flex items-center space-x-reverse space-x-2">
-              <img src="/images/logo.svg" alt="Logo" className="h-6 lg:h-8" />
-              <h1 className="text-base lg:text-lg font-bold text-slate-800">{brand.name}</h1>
+              <img
+                src="/images/logo.svg"
+                alt="Logo"
+                className={cn("h-6 lg:h-8", overHero && "brightness-0 invert")}
+              />
+              <h1 className={cn("text-base lg:text-lg font-bold", overHero ? "text-white" : "text-slate-800")}>
+                {brand.name}
+              </h1>
             </Link>
           </div>
 
-          <MenuItems onClose={() => setIsOpen(false)} className="lg:flex space-x-reverse space-x-6 hidden" />
+          <MenuItems
+            light={overHero}
+            onClose={() => setIsOpen(false)}
+            className="lg:flex space-x-reverse space-x-6 hidden"
+          />
 
           <div className='flex space-x-2 space-x-reverse items-center'>
             {!isAuthenticated && (
               <>
-                <a className="block" href="/login" rel="noreferrer">
+                <Link
+                  href="/login"
+                  className={cn(
+                    "hidden sm:block text-sm font-medium px-2 transition-colors",
+                    overHero ? "text-white/90 hover:text-white" : "text-slate-600 hover:text-slate-900",
+                  )}
+                >
+                  ورود
+                </Link>
+                <Link className="block" href="/dashboard/listings">
                   <Button variant="primary" size="md" className="flex gap-2 text-white shadow-md shadow-blue-500/20">
-                    <div className='text-sm hidden lg:block'>شروع رایگان</div>
-                    <IconRocket size={18} />
+                    <div className='text-sm hidden lg:block'>ثبت آگهی</div>
+                    <IconBuildingEstate size={18} />
                   </Button>
-                </a>
+                </Link>
               </>
             )}
             {isAuthenticated && (
-              <a className="block" href="/dashboard" rel="noreferrer">
-                <Button variant="secondary" className="flex gap-3">
+              <Link className="block" href="/dashboard">
+                <Button
+                  variant={overHero ? 'white' : 'secondary'}
+                  className="flex gap-3"
+                >
                   <div className='text-sm hidden lg:block'>پنل کاربری</div>
                   <IconUser size={20} />
                 </Button>
-              </a>
+              </Link>
             )}
           </div>
         </nav>
@@ -124,4 +163,3 @@ export function Navbar({ transparent }: { transparent?: boolean }) {
     </>
   );
 }
-
