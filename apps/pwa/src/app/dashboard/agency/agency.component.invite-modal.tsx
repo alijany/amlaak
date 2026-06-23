@@ -63,7 +63,7 @@ export function InviteMemberModal({
     <Modal isOpen={isOpen} onClose={close} className="lg:w-[28rem]">
       <div className="flex flex-col">
         <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
-          <h2 className="font-bold text-slate-700">دعوت عضو جدید</h2>
+          <h2 className="font-bold text-slate-700">افزودن کاربر جدید</h2>
           <button onClick={close} className="text-slate-400 hover:text-slate-700">
             <IconX size={18} />
           </button>
@@ -106,7 +106,7 @@ export function InviteMemberModal({
             انصراف
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading || !phone.trim()}>
-            دعوت
+            افزودن کاربر
           </Button>
         </div>
       </div>

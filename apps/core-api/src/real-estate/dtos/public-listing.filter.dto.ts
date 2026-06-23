@@ -20,6 +20,11 @@ export class PublicListingFilterDto {
   @IsOptional()
   category?: RealEstateCategory;
 
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  agencyId?: number;
+
   @IsString()
   @IsOptional()
   city?: string;

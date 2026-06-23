@@ -13,11 +13,47 @@ import { toast } from 'react-toastify';
 import {
   useAgency,
   useAgencyMembers,
+  useCreateAgency,
   useRemoveMember,
   useUpdateAgency,
 } from './agency.api';
 import { InviteMemberModal } from './agency.component.invite-modal';
 import { AgencyMember } from './agency.types';
+
+/** Onboarding: register a new agency (caller becomes its OWNER). */
+function CreateAgency() {
+  const { refreshProfile } = useAuth();
+  const { submit, isLoading } = useCreateAgency();
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const onCreate = async () => {
+    if (!name.trim()) return;
+    try {
+      await submit({ name: name.trim(), phone: phone || undefined });
+      toast.success('آژانس ساخته شد. از منوی نقش‌ها آن را انتخاب کنید.');
+      refreshProfile();
+    } catch (e) {
+      toast.error((e as ApiError).message || 'ساخت آژانس ناموفق بود');
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto rounded-2xl bg-white p-6 space-y-3">
+      <div className="font-bold text-slate-700">ساخت آژانس جدید</div>
+      <p className="text-[13px] text-slate-500">
+        با ساخت آژانس، می‌توانید آگهی ثبت کنید، اعضا را دعوت کنید و سرنخ‌ها را مدیریت کنید.
+      </p>
+      <Input label="نام آژانس" value={name} onChange={(e) => setName(e.target.value)} />
+      <Input label="تلفن (اختیاری)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <div className="flex justify-end">
+        <Button onClick={onCreate} disabled={isLoading || !name.trim()}>
+          ساخت آژانس
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function memberName(m: AgencyMember): string {
   const full = `${m.user?.firstName ?? ''} ${m.user?.lastName ?? ''}`.trim();
@@ -104,7 +140,7 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
           <div className="font-bold text-slate-700">اعضا</div>
           <Button size="sm" onClick={() => setInviteOpen(true)}>
             <IconPlus size={16} className="ml-1" />
-            دعوت عضو
+            افزودن کاربر جدید
           </Button>
         </div>
         <DataView
@@ -154,15 +190,11 @@ export default function AgencyPage() {
   const agencyId = selectedRole?.agency?.id;
 
   return (
-    <RoleProtectedRoute allowedRoles={[Role.OWNER, Role.MANAGER, Role.ADMIN]}>
+    <RoleProtectedRoute
+      allowedRoles={[Role.USER, Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN]}
+    >
       <DashbaordLayout>
-        {agencyId ? (
-          <AgencyContent agencyId={agencyId} />
-        ) : (
-          <div className="rounded-2xl bg-white p-8 text-center text-slate-500">
-            برای مدیریت، یک آژانس را از منوی نقش‌ها انتخاب کنید.
-          </div>
-        )}
+        {agencyId ? <AgencyContent agencyId={agencyId} /> : <CreateAgency />}
       </DashbaordLayout>
     </RoleProtectedRoute>
   );

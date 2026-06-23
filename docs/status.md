@@ -5,9 +5,9 @@
 
 ## Current focus
 
-Phase 1 → **M1 (lead tracking)**, **M2 (distribution: approve-first publishing + Telegram +
-public site)**, and **M3 (agency & multi-tenancy foundation)** are **built** (verified by lint
-+ build). Next: live e2e against a DB, then **M4 (public self-service marketplace)**.
+Phase 1 milestones **M1–M4** are **built** (lead tracking, distribution/publishing, agency
+multi-tenancy, and the self-service marketplace), and the app is **rebranded to Nava Amlak**.
+All verified by lint + build. Next: **live e2e against a DB** across the whole flow.
 
 ## Foundation (already built)
 
@@ -67,17 +67,26 @@ public site)**, and **M3 (agency & multi-tenancy foundation)** are **built** (ve
 
 ## M4 — Public marketplace (self-service)
 
-- ⬜ Public registration/onboarding
-- ⬜ User/agency self-service listings (`Advertisement` `source=user`, owned by agency),
-  approve-first (reuse M2 gate)
-- ⬜ Public agency profile pages (`/agencies/[slug]`)
+- ✅ Self-service listings: `AdvertisementSource` (crawler/user) + nullable target/externalId
+  + `createdBy`; `POST/GET/PATCH/DELETE /real-estate/listings` (agency-scoped, approve-first);
+  `/dashboard/listings` ("آگهی‌های من") create/edit/delete with status pills
+- ✅ Onboarding: `POST /agencies` (any user becomes OWNER); a "create agency" form on
+  `/dashboard/agency` when the user has none
+- ✅ Public agency storefront: `GET /public/agencies/:slug` (agency + published listings) +
+  `/agencies/[slug]` page; `agencyId` filter on the public catalog
+- ⬜ Live e2e against a DB (create listing → approve → appears on public site + agency profile)
+- ⬜ Listing image upload (currently image URLs pasted; reuse S3 upload like profile picture)
+
+## Rebrand — Nava Amlak
+
+- ✅ `apps/pwa/src/config/brand.config.ts` rewritten (نوا املاک / Nava Amlak, real-estate copy)
+  — landing/nav/footer all read from it; root `README.md` + `.env.example` header updated
+- ⬜ `CLAUDE.md` still describes the generic boilerplate (left as the dev guide)
 
 ## Cross-cutting TODOs
 
-- ⬜ **Rebrand** example brand "مونو / Monno" → **Nava Amlak**:
-  [`apps/pwa/src/config/brand.config.ts`](../apps/pwa/src/config/brand.config.ts) plus
-  landing/nav/footer in [`apps/pwa/src/components/layout/`](../apps/pwa/src/components/layout),
-  and root [`README.md`](../README.md) / [`CLAUDE.md`](../CLAUDE.md)
+- ✅ **Rebrand** "مونو / Monno" → **Nava Amlak** (brand.config + README + .env.example);
+  `CLAUDE.md` intentionally left as the generic boilerplate dev guide
 - ⬜ Review/moderation + dedupe of collected ads (also in
   [`crawler/roadmap.md`](./crawler/roadmap.md) backlog)
 - ⬜ Stabilize test harness (currently `lint` + `build` is the verification loop)

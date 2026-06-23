@@ -21,6 +21,14 @@ export enum PublishStatus {
   REJECTED = 'rejected',
 }
 
+/** Where a listing came from. */
+export enum AdvertisementSource {
+  /** Aggregated from an external site by the crawler. */
+  CRAWLER = 'crawler',
+  /** Created in-app by a user/agency (marketplace). */
+  USER = 'user',
+}
+
 /** Stable site keys for the real-estate providers shipped today. */
 export const SiteKey = {
   MOCK: 'mock',

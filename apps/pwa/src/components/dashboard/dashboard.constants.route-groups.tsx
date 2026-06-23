@@ -1,6 +1,6 @@
 'use client';
 
-import { IconBuildingCommunity, IconDashboard, IconList, IconNotification, IconPhoneCall, IconSpider, IconUser, IconUsers } from "@tabler/icons-react";
+import { IconBuildingCommunity, IconDashboard, IconHomePlus, IconList, IconNotification, IconPhoneCall, IconSpider, IconUser, IconUsers } from "@tabler/icons-react";
 import { Role } from "../auth/auth.constants.roles";
 
 export interface RouteItem {
@@ -49,8 +49,14 @@ export const RouteItems = {
   agency: {
     href: "/dashboard/agency",
     label: "آژانس",
-    roles: [Role.OWNER, Role.MANAGER, Role.ADMIN],
+    roles: [Role.USER, Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
     icon: <IconBuildingCommunity className="size-5" />
+  },
+  myListings: {
+    href: "/dashboard/listings",
+    label: "آگهی‌های من",
+    roles: [Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
+    icon: <IconHomePlus className="size-5" />
   },
   crawler: {
     href: "/dashboard/crawler",
@@ -72,6 +78,7 @@ export const routeGroups: RouteGroup[] = [
     label: "پیشخوان",
     routes: [
       RouteItems.leads,
+      RouteItems.myListings,
       RouteItems.agency,
       RouteItems.crawler,
       RouteItems.crawlerAds,

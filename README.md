@@ -1,6 +1,8 @@
-# Web Boilerplate
+# Nava Amlak (نوا املاک)
 
-A production-ready monorepo boilerplate for building web applications with a NestJS backend and Next.js frontend. Includes authentication, a dashboard shell, Docker-based CI/CD, and a server provisioning toolkit.
+A real-estate lead-generation and marketplace platform — built on a NestJS backend and Next.js 15 frontend. It aggregates property listings from external sources, publishes them to the web and a Telegram channel, tracks inbound inquiries per listing, and lets agencies manage leads and publish their own listings. Includes authentication, RBAC + multi-tenant agencies, a dashboard, Docker-based CI/CD, and a server provisioning toolkit.
+
+> See [`docs/`](./docs) for the product vision, current-state map, roadmap, and the living status board.
 
 ## Project Structure
 

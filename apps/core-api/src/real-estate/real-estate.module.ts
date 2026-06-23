@@ -7,7 +7,9 @@ import { AdvertisementController } from './advertisement.controller';
 import { AdvertisementImageService } from './advertisement-image.service';
 import { RealEstateAdvertisementEntity } from './advertisement.entity';
 import { AdvertisementService } from './advertisement.service';
+import { ListingController } from './listing.controller';
 import { ListingModerationService } from './listing-moderation.service';
+import { PublicAgencyController } from './public-agency.controller';
 import { NormalizationService } from './normalization.service';
 import { PublicListingController } from './public-listing.controller';
 import { TelegramListingPublisher } from './publishing/telegram-listing.publisher';
@@ -32,7 +34,12 @@ import { RealEstateSink } from './real-estate.sink';
     AgencyModule,
     MikroOrmModule.forFeature([RealEstateAdvertisementEntity]),
   ],
-  controllers: [AdvertisementController, PublicListingController],
+  controllers: [
+    AdvertisementController,
+    ListingController,
+    PublicListingController,
+    PublicAgencyController,
+  ],
   providers: [
     AdvertisementService,
     AdvertisementImageService,

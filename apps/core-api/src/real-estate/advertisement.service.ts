@@ -1,16 +1,23 @@
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { AgencyContext } from 'src/agency/agency-access.service';
 import { AgencyEntity } from 'src/agency/agency.entity';
 import { AgencyService } from 'src/agency/agency.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
+import { UserEntity } from 'src/user/user.entity';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import { RealEstateAdvertisementEntity } from './advertisement.entity';
 import { AdvertisementFilterDto } from './dtos/advertisement.filter.dto';
+import { CreateListingDto, UpdateListingDto } from './dtos/listing.dto';
 import { PublicListingFilterDto } from './dtos/public-listing.filter.dto';
 import { NormalizedAdvertisement } from './normalization.service';
-import { PublishStatus } from './real-estate.constants';
+import { AdvertisementSource, PublishStatus } from './real-estate.constants';
 
 export interface UpsertResult {
   created: boolean;
@@ -127,6 +134,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     };
 
     if (rest.category) where.category = rest.category;
+    if (rest.agencyId) where.agency = rest.agencyId;
     if (rest.city) where.city = rest.city;
     if (rest.district) where.district = rest.district;
     if (rest.rooms != null) where.rooms = rest.rooms;
@@ -205,5 +213,81 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       attributes,
       publishedAt: ad.publishedAt,
     };
+  }
+
+  // --- self-service (marketplace) listings (M4) ---------------------------
+
+  private assertOwnAgency(
+    ad: RealEstateAdvertisementEntity,
+    ctx: AgencyContext,
+  ) {
+    if (ctx.isPlatformAdmin) return;
+    if (ctx.activeAgencyId != null && ad.agency?.id !== ctx.activeAgencyId) {
+      throw new ForbiddenException('listing belongs to another agency');
+    }
+  }
+
+  /** Create a user/agency listing — starts PENDING (approve-first). */
+  async createUserListing(
+    dto: CreateListingDto,
+    ctx: AgencyContext,
+    user: UserEntity,
+  ) {
+    const ad = this.repository.create({
+      ...dto,
+      source: AdvertisementSource.USER,
+      publishStatus: PublishStatus.PENDING,
+      agency: ctx.activeAgencyId
+        ? this.em.getReference(AgencyEntity, ctx.activeAgencyId)
+        : undefined,
+      createdBy: this.em.getReference(UserEntity, user.id),
+    });
+    await this.persistAndFlush(ad);
+    return ad;
+  }
+
+  /** The active agency's own (user-created) listings. */
+  async myListings(ctx: AgencyContext, filters: AdvertisementFilterDto) {
+    const { page = 0, limit = 12 } = filters;
+    const where: FilterQuery<RealEstateAdvertisementEntity> = {
+      source: AdvertisementSource.USER,
+    };
+    if (ctx.activeAgencyId != null) where.agency = ctx.activeAgencyId;
+    else if (!ctx.isPlatformAdmin) where.id = -1;
+    if (filters.publishStatus) where.publishStatus = filters.publishStatus;
+
+    const [items, total] = await this.findAll(where, {
+      orderBy: { created_at: 'DESC', id: 'DESC' },
+      limit,
+      offset: page * limit,
+    });
+    return {
+      items,
+      meta: { page, limit, total, pageCount: Math.ceil(total / limit) },
+    };
+  }
+
+  async updateUserListing(
+    id: number,
+    dto: UpdateListingDto,
+    ctx: AgencyContext,
+  ) {
+    const ad = await this.findOne({ id });
+    if (!ad) throw new NotFoundException('listing not found');
+    this.assertOwnAgency(ad, ctx);
+    const clean = Object.fromEntries(
+      Object.entries(dto).filter(([, v]) => v !== undefined),
+    );
+    this.em.assign(ad, clean);
+    await this.persistAndFlush(ad);
+    return ad;
+  }
+
+  async deleteUserListing(id: number, ctx: AgencyContext) {
+    const ad = await this.findOne({ id });
+    if (!ad) throw new NotFoundException('listing not found');
+    this.assertOwnAgency(ad, ctx);
+    await this.remove(ad);
+    return { success: true };
   }
 }

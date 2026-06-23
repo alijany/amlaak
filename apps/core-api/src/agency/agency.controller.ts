@@ -19,7 +19,7 @@ import { UserEntity } from 'src/user/user.entity';
 import { AgencyAccessService } from './agency-access.service';
 import { AgencyService } from './agency.service';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
-import { UpdateAgencyDto } from './dtos/agency.dto';
+import { CreateAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
 
 const MANAGER = [Role.OWNER, Role.MANAGER, Role.ADMIN] as const;
 
@@ -35,6 +35,12 @@ export class AgencyController {
   @Get('mine')
   mine(@CurrentUser() user: UserEntity) {
     return this.agencies.myAgencies(user);
+  }
+
+  /** Any authenticated user can register an agency (becomes its OWNER). */
+  @Post()
+  create(@Body() dto: CreateAgencyDto, @CurrentUser() user: UserEntity) {
+    return this.agencies.createAgency(dto, user);
   }
 
   @Get(':id')

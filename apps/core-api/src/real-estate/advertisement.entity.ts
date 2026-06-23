@@ -11,34 +11,49 @@ import { AgencyEntity } from '../agency/agency.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
-import { PublishStatus, RealEstateCategory } from './real-estate.constants';
+import { UserEntity } from '../user/user.entity';
+import {
+  AdvertisementSource,
+  PublishStatus,
+  RealEstateCategory,
+} from './real-estate.constants';
 
 /**
- * A normalized real-estate advertisement collected from a target.
- *
- * Real-estate-specific by design (per phase decision). The natural key is
- * (target, externalId), enforced unique so re-crawls upsert. `attributes` and
- * `rawPayload` keep anything that doesn't map to a typed column, so the schema
- * can evolve without losing source data.
+ * A normalized real-estate advertisement. Either aggregated from a target by the
+ * crawler (source=CRAWLER, keyed by (target, externalId)) or created in-app by a
+ * user/agency (source=USER, no target). `attributes`/`rawPayload` keep anything
+ * untyped so the schema can evolve without losing data.
  */
 @Entity()
 @Unique({ properties: ['target', 'externalId'] })
 export class RealEstateAdvertisementEntity extends BaseEntity {
-  @ManyToOne(() => CrawlTargetEntity)
-  target: CrawlTargetEntity;
+  /** Crawl target. Null for user-created (marketplace) listings. */
+  @ManyToOne(() => CrawlTargetEntity, { nullable: true })
+  target?: CrawlTargetEntity;
+
+  @Enum({
+    items: () => AdvertisementSource,
+    default: AdvertisementSource.CRAWLER,
+  })
+  @Index()
+  source: AdvertisementSource = AdvertisementSource.CRAWLER;
 
   /** Owning agency (tenant). Crawled listings belong to the platform agency. */
   @ManyToOne(() => AgencyEntity, { nullable: true })
   @Index()
   agency?: AgencyEntity;
 
+  /** The user who created an in-app listing. */
+  @ManyToOne(() => UserEntity, { nullable: true })
+  createdBy?: UserEntity;
+
   /** Job that most recently produced/updated this record. */
   @ManyToOne(() => CrawlJobEntity, { nullable: true })
   job?: CrawlJobEntity;
 
-  /** Source-side identifier (slug/token) — unique within a target. */
-  @Property()
-  externalId: string;
+  /** Source-side identifier (slug/token) — unique within a target. Null for user listings. */
+  @Property({ nullable: true })
+  externalId?: string;
 
   /** Divar URLs are percent-encoded Persian and can exceed varchar(255). */
   @Property({ type: 'text', nullable: true })

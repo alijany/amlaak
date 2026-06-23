@@ -22,6 +22,14 @@ export function useMyAgencies() {
   return useSwrHelper(swr);
 }
 
+export function useCreateAgency() {
+  const swr = useSWRMutation(
+    '/agencies',
+    postFetcher<{ name: string; phone?: string; description?: string }, Agency>,
+  );
+  return useSwrMutationHelper(swr);
+}
+
 export function useAgency(id?: number) {
   const swr = useSWR<Agency>(id != null ? `/agencies/${id}` : null, fetcher);
   return useSwrHelper(swr);

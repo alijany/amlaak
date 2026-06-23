@@ -53,6 +53,11 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
 
   async createAgency(dto: CreateAgencyDto, owner: UserEntity) {
     const agency = await this.create({ ...dto, owner });
+    // Ensure a unique, URL-safe slug for the public profile.
+    if (!agency.slug) {
+      agency.slug = `agency-${agency.id}`;
+      await this.persistAndFlush(agency);
+    }
     await this.roles.create({
       user: owner,
       role: Role.OWNER,
@@ -60,6 +65,11 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
       invitationStatus: InvitationStatus.ACCEPTED,
     });
     return agency;
+  }
+
+  /** Public lookup by slug (active agencies only). */
+  async findBySlug(slug: string) {
+    return this.findOne({ slug, isActive: true });
   }
 
   async updateAgency(id: number, dto: UpdateAgencyDto) {
