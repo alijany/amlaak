@@ -14,11 +14,15 @@ DB**, and the B2C P1/P2 backlog (see below).
 
 A PM review of the customer-facing flows produced a prioritized backlog (full text in
 `/root/.claude/plans/...` plan file). **P0 applied:**
-- ✅ Marketplace landing: hero **search box → `/listings`**; hero/CTA buttons go to
-  `/listings` and `/dashboard/listings` (no more `/login`-only); `/listings` reads `q/city/
-  category` from the URL
-- ✅ Fixed stale «هم‌اوا» copy in the login modal; **role-aware post-login redirect**
-  (staff → `/dashboard`, customers → `/listings`)
+- ✅ **Landing fully redesigned** (seeker-first, image-forward search hero): rebuilt
+  `app/page.tsx` from the SaaS template into a marketplace home — hero with category tabs +
+  location search + popular-city chips + live listing count; browse-by-category cards; live
+  "جدیدترین آگهی‌ها" + "فروش ملک" strips (`usePublicListings` + `ListingCard`); seeker value
+  props; 3-step how-it-works; a dedicated **agencies** band; trimmed FAQ. Sections live in
+  `apps/pwa/src/components/landing/`; content in `brand.config.ts` (`landing` schema reshaped).
+  Image-forward hero degrades gracefully to a gradient until a photo asset is added.
+- ✅ Login modal stale «هم‌اوا» fixed; **role-aware post-login redirect** (staff → `/dashboard`,
+  customers → `/listings`)
 - ✅ Listing-detail contact routes to the **owning agency** (public shape exposes agency
   name/phone/slug; falls back to the brand phone) + links to the agency profile
 
