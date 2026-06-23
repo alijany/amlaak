@@ -19,9 +19,9 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
   const pathname = usePathname();
   const { logout, hasAnyRole, user, selectedRole, setSelectedRole } = useAuth();
 
-  // Get user roles for dropdown
+  // Get user roles for dropdown (label shows the agency when role is scoped)
   const userRoles = user?.roles?.map(r => ({
-    label: getRoleName(r.role),
+    label: r.agency ? `${getRoleName(r.role)} · ${r.agency.name}` : getRoleName(r.role),
     value: r
   })) || [];
 
@@ -42,8 +42,10 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
             </div>
             <div className="flex flex-col items-start grow">
               <div dir="ltr">{user?.phone}</div>
-              <div className="text-xs text-neutral-400 max-w-28 truncate">
-                {`${getRoleName(selectedRole.role)}`}
+              <div className="text-xs text-neutral-400 max-w-36 truncate">
+                {selectedRole.agency
+                  ? `${getRoleName(selectedRole.role)} · ${selectedRole.agency.name}`
+                  : getRoleName(selectedRole.role)}
               </div>
             </div>
             <Button variant="white" className="!px-2">

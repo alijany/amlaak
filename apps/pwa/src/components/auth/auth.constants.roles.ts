@@ -35,11 +35,19 @@ export type UserSummary = {
   email?: string;
 };
 
+export type AgencyRef = {
+  id: number;
+  name: string;
+  slug?: string;
+};
+
 export type RoleType = {
   id: number;
   role: Role;
   invitationStatus: InvitationStatus;
   user?: UserSummary; // Optional populated user summary
+  /** Agency (tenant) this role is scoped to; null for platform roles. */
+  agency?: AgencyRef | null;
   organization?: number;
   description?: string;
 };

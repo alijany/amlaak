@@ -28,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       const user = await this.userService.findOne(
         { id: userId },
         {
-          populate: ['roles'] as never,
+          populate: ['roles', 'roles.agency'] as never,
         },
       );
 

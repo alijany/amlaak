@@ -1,13 +1,13 @@
 # Status — Living Task Board
 
 > Single source of truth for "what's next". **Update this file whenever a unit of work lands.**
-> Status keys: ✅ `done` · 🔄 `in-progress` · ⬜ `todo`. Last updated: 2026-06-22.
+> Status keys: ✅ `done` · 🔄 `in-progress` · ⬜ `todo`. Last updated: 2026-06-23.
 
 ## Current focus
 
-Phase 1 → **M1 (lead tracking)** and **M2 (distribution: approve-first publishing +
-Telegram + public site)** are **built** (verified by lint + build). Next: live e2e against a
-DB + a real Telegram bot/channel, then **M3 (public marketplace)**.
+Phase 1 → **M1 (lead tracking)**, **M2 (distribution: approve-first publishing + Telegram +
+public site)**, and **M3 (agency & multi-tenancy foundation)** are **built** (verified by lint
++ build). Next: live e2e against a DB, then **M4 (public self-service marketplace)**.
 
 ## Foundation (already built)
 
@@ -51,11 +51,26 @@ DB + a real Telegram bot/channel, then **M3 (public marketplace)**.
 - ⬜ Live e2e against a DB + real bot/channel (approve → published + Telegram post + public visibility)
 - ⬜ Promote/featured workflow (deferred — out of scope this milestone)
 
-## M3 — Public marketplace
+## M3 — Agency & multi-tenancy foundation
+
+- ✅ `agency` backend module (`apps/core-api/src/agency/`): `AgencyEntity`, agency-scoped
+  roles (`agency` FK on `RolesEntity`, reusing OWNER/MANAGER/MEMBER), members
+  invite/list/remove, agency profile CRUD — registered in `app.module.ts`
+- ✅ Active-agency resolution: `x-agency-id` header (`@CurrentAgencyId`) + `AgencyAccessService`
+  (platform ADMIN = cross-tenant); fetcher attaches it from `selected-agency`
+- ✅ Hard multi-tenant scoping: `agency` FK on leads, lead pools, advertisements; `LeadService`
+  scopes everything by active agency; crawled listings owned by the seeded **platform agency**
+- ✅ `AgencyBootstrapService`: seeds the platform agency + backfills legacy null-agency rows
+- ✅ Frontend: agency/role switcher shows agency name; `/dashboard/agency` (profile + members);
+  `RoleType.agency` wired from `/auth/profile` (jwt strategy populates `roles.agency`)
+- ⬜ Live e2e against a DB (tenant isolation, member invite, switcher → header → scoped data)
+
+## M4 — Public marketplace (self-service)
 
 - ⬜ Public registration/onboarding
-- ⬜ User-generated listings (extend `Advertisement` with ownership + `source`)
-- ⬜ Self-service listing management; multi-org workflows
+- ⬜ User/agency self-service listings (`Advertisement` `source=user`, owned by agency),
+  approve-first (reuse M2 gate)
+- ⬜ Public agency profile pages (`/agencies/[slug]`)
 
 ## Cross-cutting TODOs
 

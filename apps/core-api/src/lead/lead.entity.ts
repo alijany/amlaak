@@ -1,4 +1,5 @@
 import { Entity, Enum, Index, ManyToOne, Property } from '@mikro-orm/core';
+import { AgencyEntity } from '../agency/agency.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { RealEstateAdvertisementEntity } from '../real-estate/advertisement.entity';
 import { UserEntity } from '../user/user.entity';
@@ -12,6 +13,11 @@ import { LeadSource, LeadStatus } from './lead.constants';
  */
 @Entity()
 export class LeadEntity extends BaseEntity {
+  /** Owning agency (tenant). Null only for legacy rows until backfilled. */
+  @ManyToOne(() => AgencyEntity, { nullable: true })
+  @Index()
+  agency?: AgencyEntity;
+
   /** The listing this inquiry is about. */
   @ManyToOne(() => RealEstateAdvertisementEntity)
   advertisement: RealEstateAdvertisementEntity;

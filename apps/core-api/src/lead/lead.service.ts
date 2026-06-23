@@ -5,8 +5,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AgencyContext } from 'src/agency/agency-access.service';
+import { AgencyEntity } from 'src/agency/agency.entity';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
-import { Role } from 'src/roles/roles.constants';
 import { UserEntity } from 'src/user/user.entity';
 import { NotificationTemplate } from '../notification/notification.constants';
 import { NotificationService } from '../notification/services/notification.service';
@@ -20,7 +21,6 @@ import { LeadEntity } from './lead.entity';
 import { advertisementTrackingCode } from './lead.tracking';
 
 const POPULATE = ['advertisement', 'assignedAgent', 'pool'] as never;
-const MANAGER_ROLES = [Role.MANAGER, Role.OWNER, Role.ADMIN];
 
 @Injectable()
 export class LeadService extends BaseRepositoryService<LeadEntity> {
@@ -33,21 +33,42 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     super(repository);
   }
 
-  /** Managers/admins see every lead; agents see their own + claimable ones. */
-  private isManager(viewer: UserEntity): boolean {
-    return viewer.roles.exists((r) => MANAGER_ROLES.includes(r.role));
+  /** Restrict to the active agency (platform admin = cross-tenant). */
+  private agencyFilter(ctx: AgencyContext): FilterQuery<LeadEntity> {
+    if (ctx.activeAgencyId != null) return { agency: ctx.activeAgencyId };
+    if (ctx.isPlatformAdmin) return {};
+    return { id: -1 }; // no agency context, not admin → see nothing
   }
 
-  private scopeFilter(viewer: UserEntity): FilterQuery<LeadEntity> {
-    if (this.isManager(viewer)) return {};
-    return { $or: [{ assignedAgent: viewer.id }, { assignedAgent: null }] };
+  /** Agency scope + (for agents) only their own / claimable leads. */
+  private scopeFilter(ctx: AgencyContext): FilterQuery<LeadEntity> {
+    const and: FilterQuery<LeadEntity>[] = [this.agencyFilter(ctx)];
+    if (!ctx.isManager) {
+      and.push({
+        $or: [{ assignedAgent: ctx.viewerId }, { assignedAgent: null }],
+      });
+    }
+    return { $and: and };
   }
 
-  async createManual(dto: CreateLeadDto): Promise<LeadEntity> {
+  private assertSameAgency(lead: LeadEntity, ctx: AgencyContext) {
+    if (ctx.isPlatformAdmin) return;
+    if (ctx.activeAgencyId != null && lead.agency?.id !== ctx.activeAgencyId) {
+      throw new ForbiddenException('lead belongs to another agency');
+    }
+  }
+
+  async createManual(
+    dto: CreateLeadDto,
+    ctx: AgencyContext,
+  ): Promise<LeadEntity> {
     const ad = await this.advertisements.findOne({ id: dto.advertisementId });
     if (!ad) throw new NotFoundException('listing not found');
 
     const lead = this.repository.create({
+      agency: ctx.activeAgencyId
+        ? this.em.getReference(AgencyEntity, ctx.activeAgencyId)
+        : undefined,
       advertisement: ad,
       source: dto.source,
       contactName: dto.contactName,
@@ -69,10 +90,10 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     return lead;
   }
 
-  async search(filter: LeadFilterDto, viewer: UserEntity) {
+  async search(filter: LeadFilterDto, ctx: AgencyContext) {
     const { page = 0, limit = 20 } = filter;
 
-    const and: FilterQuery<LeadEntity>[] = [this.scopeFilter(viewer)];
+    const and: FilterQuery<LeadEntity>[] = [this.scopeFilter(ctx)];
     if (filter.status) and.push({ status: filter.status });
     if (filter.source) and.push({ source: filter.source });
     if (filter.poolId) and.push({ pool: filter.poolId });
@@ -106,21 +127,22 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     };
   }
 
-  async findOneScoped(id: number, viewer: UserEntity): Promise<LeadEntity> {
+  async findOneScoped(id: number, ctx: AgencyContext): Promise<LeadEntity> {
     const lead = await this.findOne({ id }, { populate: POPULATE });
     if (!lead) throw new NotFoundException('lead not found');
 
-    if (!this.isManager(viewer)) {
+    this.assertSameAgency(lead, ctx);
+    if (!ctx.isManager) {
       const ownerId = lead.assignedAgent?.id;
-      if (ownerId && ownerId !== viewer.id) {
+      if (ownerId && ownerId !== ctx.viewerId) {
         throw new ForbiddenException('not your lead');
       }
     }
     return lead;
   }
 
-  async update(id: number, dto: UpdateLeadDto, viewer: UserEntity) {
-    const lead = await this.findOneScoped(id, viewer);
+  async update(id: number, dto: UpdateLeadDto, ctx: AgencyContext) {
+    const lead = await this.findOneScoped(id, ctx);
 
     if (dto.status) {
       lead.status = dto.status;
@@ -146,9 +168,14 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
   }
 
   /** Manager action: assign a lead to an agent. */
-  async assign(id: number, agentId: number): Promise<LeadEntity> {
+  async assign(
+    id: number,
+    agentId: number,
+    ctx: AgencyContext,
+  ): Promise<LeadEntity> {
     const lead = await this.findOne({ id }, { populate: POPULATE });
     if (!lead) throw new NotFoundException('lead not found');
+    this.assertSameAgency(lead, ctx);
 
     this.em.assign(lead, { assignedAgent: agentId });
     await this.persistAndFlush(lead);
@@ -157,23 +184,24 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
   }
 
   /** Agent action: claim a lead (must be unassigned or already theirs). */
-  async claim(id: number, viewer: UserEntity): Promise<LeadEntity> {
+  async claim(id: number, ctx: AgencyContext): Promise<LeadEntity> {
     const lead = await this.findOne({ id }, { populate: POPULATE });
     if (!lead) throw new NotFoundException('lead not found');
+    this.assertSameAgency(lead, ctx);
 
     const ownerId = lead.assignedAgent?.id;
-    if (ownerId && ownerId !== viewer.id) {
+    if (ownerId && ownerId !== ctx.viewerId) {
       throw new ForbiddenException('lead already assigned');
     }
 
-    this.em.assign(lead, { assignedAgent: viewer.id });
+    this.em.assign(lead, { assignedAgent: ctx.viewerId });
     await this.persistAndFlush(lead);
     return lead;
   }
 
-  /** Status funnel for the dashboard, scoped to the viewer. */
-  async stats(viewer: UserEntity) {
-    const base = this.scopeFilter(viewer);
+  /** Status funnel for the dashboard, scoped to the active agency + viewer. */
+  async stats(ctx: AgencyContext) {
+    const base = this.scopeFilter(ctx);
     const statuses = Object.values(LeadStatus);
 
     const counts = await Promise.all(
@@ -188,7 +216,9 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       {},
     );
     const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
-    const mine = await this.count({ assignedAgent: viewer.id });
+    const mine = await this.count({
+      $and: [this.agencyFilter(ctx), { assignedAgent: ctx.viewerId }],
+    });
 
     return { total, mine, byStatus };
   }

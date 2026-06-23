@@ -2,20 +2,28 @@ import { getToken, refreshTokens } from '@/components/auth/auth.utils.tokens';
 import { API_URL } from '../../../constants';
 import { ApiError } from './api.types.error';
 
+/** The active agency (tenant) selected in the dashboard, sent on every request. */
+function getActiveAgencyId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('selected-agency');
+}
+
 export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
   const baseUrl = API_URL;
-  
+
   // Internal function to make the actual request
   const makeRequest = async (token: string | null): Promise<Response> => {
     const requestInit = { ...init };
-    
-    if (token) {
-      const headers = requestInit?.headers ?? {};
-      requestInit.headers = {
-        ...headers,
-        'Authorization': `Bearer ${token}`
-      };
-    }
+    const headers: Record<string, string> = {
+      ...(requestInit?.headers as Record<string, string>),
+    };
+
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const agencyId = getActiveAgencyId();
+    if (agencyId) headers['x-agency-id'] = agencyId;
+
+    requestInit.headers = headers;
 
     return fetch(`${baseUrl}${url}`, requestInit);
   };

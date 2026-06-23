@@ -10,6 +10,8 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { AgencyAccessService } from 'src/agency/agency-access.service';
+import { CurrentAgencyId } from 'src/agency/decorators/current-agency.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -38,14 +40,15 @@ export class LeadController {
     private readonly leads: LeadService,
     private readonly pools: LeadPoolService,
     private readonly advertisements: AdvertisementService,
+    private readonly access: AgencyAccessService,
   ) {}
 
   // --- static paths (declared before :id) -------------------------------
 
   @Get('stats')
   @Roles(...WORKER)
-  stats(@CurrentUser() user: UserEntity) {
-    return this.leads.stats(user);
+  stats(@CurrentUser() user: UserEntity, @CurrentAgencyId() agencyId?: number) {
+    return this.leads.stats(this.access.resolve(user, agencyId));
   }
 
   /** Resolve a per-listing tracking code → its advertisement. */
@@ -68,14 +71,21 @@ export class LeadController {
 
   @Get('pools')
   @Roles(...WORKER)
-  listPools() {
-    return this.pools.list();
+  listPools(
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.pools.list(this.access.resolve(user, agencyId));
   }
 
   @Post('pools')
   @Roles(...MANAGER)
-  createPool(@Body() dto: CreateLeadPoolDto) {
-    return this.pools.createPool(dto);
+  createPool(
+    @Body() dto: CreateLeadPoolDto,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.pools.createPool(dto, this.access.resolve(user, agencyId));
   }
 
   @Patch('pools/:id')
@@ -91,20 +101,32 @@ export class LeadController {
 
   @Get()
   @Roles(...WORKER)
-  search(@Query() filters: LeadFilterDto, @CurrentUser() user: UserEntity) {
-    return this.leads.search(filters, user);
+  search(
+    @Query() filters: LeadFilterDto,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.leads.search(filters, this.access.resolve(user, agencyId));
   }
 
   @Post()
   @Roles(...WORKER)
-  create(@Body() dto: CreateLeadDto) {
-    return this.leads.createManual(dto);
+  create(
+    @Body() dto: CreateLeadDto,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.leads.createManual(dto, this.access.resolve(user, agencyId));
   }
 
   @Get(':id')
   @Roles(...WORKER)
-  get(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: UserEntity) {
-    return this.leads.findOneScoped(id, user);
+  get(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.leads.findOneScoped(id, this.access.resolve(user, agencyId));
   }
 
   @Patch(':id')
@@ -113,14 +135,24 @@ export class LeadController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateLeadDto,
     @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
   ) {
-    return this.leads.update(id, dto, user);
+    return this.leads.update(id, dto, this.access.resolve(user, agencyId));
   }
 
   @Post(':id/assign')
   @Roles(...MANAGER)
-  assign(@Param('id', ParseIntPipe) id: number, @Body() dto: AssignLeadDto) {
-    return this.leads.assign(id, dto.agentId);
+  assign(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AssignLeadDto,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.leads.assign(
+      id,
+      dto.agentId,
+      this.access.resolve(user, agencyId),
+    );
   }
 
   @Post(':id/claim')
@@ -128,7 +160,8 @@ export class LeadController {
   claim(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
   ) {
-    return this.leads.claim(id, user);
+    return this.leads.claim(id, this.access.resolve(user, agencyId));
   }
 }

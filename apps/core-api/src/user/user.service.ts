@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import parsePhoneNumberFromString from 'libphonenumber-js';
+import { AgencyEntity } from 'src/agency/agency.entity';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { Role } from 'src/roles/roles.constants';
 import { InvitationStatus, RolesEntity } from 'src/roles/roles.entity';
@@ -69,11 +70,15 @@ export class UserService extends BaseRepositoryService<UserEntity> {
 
     const finalRole = dto.role ?? Role.USER;
 
-    // If user exists and organizationId is provided, check if already member
+    // Dedupe per (role, agency): a user may hold the same role in different agencies.
     if (user) {
       const existingRole = user.roles
         .getItems()
-        .find((role) => role.role === finalRole);
+        .find(
+          (role) =>
+            role.role === finalRole &&
+            (role.agency?.id ?? null) === (dto.agencyId ?? null),
+        );
       if (existingRole) {
         throw new ConflictException(
           `کاربر با این نقش در این سازمان قبلا ایجاد شده`,
@@ -93,6 +98,9 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     const newRole = await this.rolesService.create({
       user,
       role: finalRole,
+      agency: dto.agencyId
+        ? this.em.getReference(AgencyEntity, dto.agencyId)
+        : undefined,
       invitationStatus: InvitationStatus.PENDING,
     });
 

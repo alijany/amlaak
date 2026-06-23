@@ -1,0 +1,95 @@
+import { EntityRepository } from '@mikro-orm/core';
+import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
+import { Role } from 'src/roles/roles.constants';
+import { InvitationStatus } from 'src/roles/roles.entity';
+import { RolesService } from 'src/roles/roles.service';
+import { UserEntity } from 'src/user/user.entity';
+import { UserService } from 'src/user/user.service';
+import { AgencyEntity } from './agency.entity';
+import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
+import { CreateAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
+
+@Injectable()
+export class AgencyService extends BaseRepositoryService<AgencyEntity> {
+  private defaultAgencyId?: number;
+
+  constructor(
+    @InjectRepository(AgencyEntity)
+    protected repository: EntityRepository<AgencyEntity>,
+    private readonly roles: RolesService,
+    private readonly users: UserService,
+  ) {
+    super(repository);
+  }
+
+  /** The single operator-owned (platform) agency that owns crawled/legacy data. */
+  async getDefaultAgency(): Promise<AgencyEntity | null> {
+    return this.findOne({ isPlatform: true });
+  }
+
+  async getDefaultAgencyId(): Promise<number | null> {
+    if (this.defaultAgencyId) return this.defaultAgencyId;
+    const agency = await this.getDefaultAgency();
+    this.defaultAgencyId = agency?.id;
+    return agency?.id ?? null;
+  }
+
+  /** Agencies the user belongs to (via their agency-scoped roles). */
+  async myAgencies(user: UserEntity) {
+    const ids = Array.from(
+      new Set(
+        user.roles
+          .getItems()
+          .map((r) => r.agency?.id)
+          .filter((id): id is number => id != null),
+      ),
+    );
+    if (!ids.length) return { items: [] as AgencyEntity[] };
+    const [items] = await this.findAll({ id: { $in: ids } });
+    return { items };
+  }
+
+  async createAgency(dto: CreateAgencyDto, owner: UserEntity) {
+    const agency = await this.create({ ...dto, owner });
+    await this.roles.create({
+      user: owner,
+      role: Role.OWNER,
+      agency,
+      invitationStatus: InvitationStatus.ACCEPTED,
+    });
+    return agency;
+  }
+
+  async updateAgency(id: number, dto: UpdateAgencyDto) {
+    return this.updateOne({ id }, dto);
+  }
+
+  async listMembers(agencyId: number) {
+    const [items] = await this.roles.findAll(
+      { agency: agencyId },
+      { populate: ['user'] as never, orderBy: { created_at: 'DESC' } },
+    );
+    return { items };
+  }
+
+  /** Invite/assign a user into the agency with an agency-scoped role. */
+  async inviteMember(agencyId: number, dto: InviteAgencyMemberDto) {
+    return this.users.inviteUserByRole({ ...dto, agencyId });
+  }
+
+  async removeMember(agencyId: number, roleId: number) {
+    const role = await this.roles.findOne({ id: roleId, agency: agencyId });
+    if (!role) throw new NotFoundException('member not found');
+    await this.roles.remove(role);
+    return { success: true };
+  }
+
+  /** Reads a single agency the viewer may access (membership checked by caller). */
+  async getAgency(id: number): Promise<AgencyEntity> {
+    const agency = await this.findOne({ id }, { populate: ['owner'] as never });
+    if (!agency) throw new NotFoundException('agency not found');
+    return agency;
+  }
+}

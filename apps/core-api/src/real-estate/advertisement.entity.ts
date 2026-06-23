@@ -7,6 +7,7 @@ import {
   types,
   Unique,
 } from '@mikro-orm/core';
+import { AgencyEntity } from '../agency/agency.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
@@ -25,6 +26,11 @@ import { PublishStatus, RealEstateCategory } from './real-estate.constants';
 export class RealEstateAdvertisementEntity extends BaseEntity {
   @ManyToOne(() => CrawlTargetEntity)
   target: CrawlTargetEntity;
+
+  /** Owning agency (tenant). Crawled listings belong to the platform agency. */
+  @ManyToOne(() => AgencyEntity, { nullable: true })
+  @Index()
+  agency?: AgencyEntity;
 
   /** Job that most recently produced/updated this record. */
   @ManyToOne(() => CrawlJobEntity, { nullable: true })

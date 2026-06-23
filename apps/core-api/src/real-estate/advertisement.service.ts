@@ -1,6 +1,8 @@
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
 import { Injectable } from '@nestjs/common';
+import { AgencyEntity } from 'src/agency/agency.entity';
+import { AgencyService } from 'src/agency/agency.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
@@ -36,6 +38,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
   constructor(
     @InjectRepository(RealEstateAdvertisementEntity)
     protected repository: EntityRepository<RealEstateAdvertisementEntity>,
+    private readonly agencies: AgencyService,
   ) {
     super(repository);
   }
@@ -60,7 +63,16 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       return { created: false };
     }
 
-    const entity = this.repository.create({ ...data, target, job });
+    // Crawled listings are owned by the platform agency (tenant).
+    const defaultAgencyId = await this.agencies.getDefaultAgencyId();
+    const entity = this.repository.create({
+      ...data,
+      target,
+      job,
+      agency: defaultAgencyId
+        ? this.em.getReference(AgencyEntity, defaultAgencyId)
+        : undefined,
+    });
     await this.persistAndFlush(entity);
     return { created: true };
   }

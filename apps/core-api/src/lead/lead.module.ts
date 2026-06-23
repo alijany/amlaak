@@ -1,5 +1,6 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
+import { AgencyModule } from '../agency/agency.module';
 import { NotificationModule } from '../notification/notification.module';
 import { RealEstateModule } from '../real-estate/real-estate.module';
 import { LeadController } from './lead.controller';
@@ -19,6 +20,7 @@ import { LeadService } from './lead.service';
     MikroOrmModule.forFeature([LeadEntity, LeadPoolEntity]),
     RealEstateModule,
     NotificationModule,
+    AgencyModule,
   ],
   controllers: [LeadController],
   providers: [LeadService, LeadPoolService],

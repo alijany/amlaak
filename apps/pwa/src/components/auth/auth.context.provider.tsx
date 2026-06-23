@@ -61,10 +61,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfileChecked(true);
     }, [profileData, profileError, router]);
 
-    // Persist selectedRole changes to local storage.
+    // Persist selectedRole (and its agency) to local storage. The agency id is
+    // sent as the `x-agency-id` header by the fetcher for tenant scoping.
     useEffect(() => {
         if (selectedRole) {
             localStorage.setItem('selected-role', selectedRole.id.toString());
+            if (selectedRole.agency?.id != null) {
+                localStorage.setItem('selected-agency', String(selectedRole.agency.id));
+            } else {
+                localStorage.removeItem('selected-agency');
+            }
         }
     }, [selectedRole]);
 
@@ -74,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (organizationId !== undefined) {
             // Check for role in specific organization
             return profileData.roles.some(
-                (userRole) => userRole.role === role && userRole.organization === organizationId
+                (userRole) => userRole.role === role && userRole.agency?.id === organizationId
             );
         }
 
@@ -88,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (organizationId !== undefined) {
             // Check for any role in specific organization
             return profileData.roles.some(
-                (userRole) => roles.includes(userRole.role) && userRole.organization === organizationId
+                (userRole) => roles.includes(userRole.role) && userRole.agency?.id === organizationId
             );
         }
 
@@ -130,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logout = () => {
         setSelectedRole(null);
         localStorage.removeItem('selected-role');
+        localStorage.removeItem('selected-agency');
         setError(null);
         logoutUtil();
         reset();

@@ -46,14 +46,29 @@ Get listings in front of prospects and attribute the inbound.
   tracking).
 - **Public listing pages** — first public-facing read surface (also a stepping stone to M3).
 
-## M3 — Public marketplace
+## M3 — Agency & multi-tenancy foundation
 
-Open the platform to end users.
+Introduce the **Agency = Organization** tenant unit that the frontend org model already
+assumed but the backend never had.
 
-- Public registration/onboarding; user-generated listings (extend `Advertisement` with
-  ownership + `source = user` instead of crawler); self-service publish/manage; multi-org
-  workflows.
-- Reuse: existing RBAC/org scaffolding and the `Advertisement` model — no re-architecture.
+- `AgencyEntity` + an `agency` FK on roles (reuse `OWNER`/`MANAGER`/`MEMBER` as agency-scoped
+  roles), leads, lead pools, and advertisements.
+- **Hard multi-tenant scoping** of leads/pools via an `x-agency-id` header resolved by
+  `AgencyAccessService`; platform `ADMIN` stays cross-tenant. A seeded **platform agency**
+  owns all crawled/legacy data (backfilled on boot).
+- Agency management dashboard (`/dashboard/agency`): profile + members (invite/role/remove);
+  a real agency/role switcher.
+- Reuse: the role-invite flow (`UserService.inviteUserByRole`), the frontend `Organization`
+  model + `selectedRole`, the M1 lead scoping.
+
+## M4 — Public marketplace (self-service)
+
+Open the platform to end users, on top of the agency foundation.
+
+- Public registration/onboarding; user/agency self-service listings (extend `Advertisement`
+  with `source = user`, owned by the creating agency), **approve-first** before going public
+  (reuse the M2 gate); public agency profile pages (`/agencies/[slug]`).
+- Reuse: the M3 agency model + the M2 public catalog/publishing.
 
 ## Extensibility note
 
