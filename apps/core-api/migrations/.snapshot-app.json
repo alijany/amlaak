@@ -1623,11 +1623,34 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "mappedType": "integer"
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'crawler'",
+          "enumItems": [
+            "crawler",
+            "user"
+          ],
+          "mappedType": "enum"
         },
         "agency_id": {
           "name": "agency_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "integer"
+        },
+        "created_by_id": {
+          "name": "created_by_id",
           "type": "int",
           "unsigned": false,
           "autoincrement": false,
@@ -1650,7 +1673,7 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "length": 255,
           "mappedType": "string"
         },
@@ -1915,6 +1938,16 @@
       "indexes": [
         {
           "columnNames": [
+            "source"
+          ],
+          "composite": false,
+          "keyName": "real_estate_advertisement_entity_source_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
             "agency_id"
           ],
           "composite": false,
@@ -1987,6 +2020,7 @@
             "id"
           ],
           "referencedTableName": "public.crawl_target_entity",
+          "deleteRule": "set null",
           "updateRule": "cascade"
         },
         "real_estate_advertisement_entity_agency_id_foreign": {
@@ -1999,6 +2033,19 @@
             "id"
           ],
           "referencedTableName": "public.agency_entity",
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        },
+        "real_estate_advertisement_entity_created_by_id_foreign": {
+          "constraintName": "real_estate_advertisement_entity_created_by_id_foreign",
+          "columnNames": [
+            "created_by_id"
+          ],
+          "localTableName": "public.real_estate_advertisement_entity",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.user_entity",
           "deleteRule": "set null",
           "updateRule": "cascade"
         },
