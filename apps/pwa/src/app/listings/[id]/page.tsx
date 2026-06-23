@@ -5,6 +5,7 @@ import { RootLayout } from '@/components/layout/layout.component.root';
 import { DataView } from '@/ui/molecules';
 import {
   IconArrowRight,
+  IconBuildingCommunity,
   IconChevronLeft,
   IconChevronRight,
   IconMapPin,
@@ -184,12 +185,23 @@ function ListingView({ listing }: { listing: PublicListing }) {
           )}
 
           <a
-            href={`tel:${brand.contact.phone.primary}`}
+            href={`tel:${listing.agency?.phone || brand.contact.phone.primary}`}
             className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary text-white py-3 font-medium hover:opacity-90 transition-opacity"
           >
             <IconPhone size={18} />
             تماس برای این ملک
           </a>
+
+          {listing.agency?.slug && (
+            <Link
+              href={`/agencies/${listing.agency.slug}`}
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <IconBuildingCommunity size={16} className="text-slate-400" />
+              {listing.agency.name}
+            </Link>
+          )}
+
           <div className="text-center text-[11px] text-slate-400">
             هنگام تماس کد رهگیری{' '}
             <span className="font-mono text-slate-500">{listing.trackingCode}</span>{' '}

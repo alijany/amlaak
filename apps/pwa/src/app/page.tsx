@@ -2,9 +2,11 @@
 
 import { brand, type FeatureIconKey } from "@/config/brand.config";
 import { RootLayout } from "@/components/layout/layout.component.root";
-import { Button, Card, CardContent, CardHeader, Label } from "@/ui/atoms";
+import { Button, Card, CardContent, CardHeader, Input, Label } from "@/ui/atoms";
 import Image from "next/image";
-import { IconAnalyzeFilled, IconChartHistogram, IconMessageChatbotFilled, IconCheck, IconArrowLeft, IconChevronDown } from "@tabler/icons-react";
+import Link from "next/link";
+import { IconAnalyzeFilled, IconChartHistogram, IconMessageChatbotFilled, IconCheck, IconArrowLeft, IconChevronDown, IconSearch } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const iconMap: Record<FeatureIconKey, React.ReactNode> = {
@@ -17,6 +19,13 @@ const { hero, problem, features, workflow, cta, faq } = brand.landing;
 
 export default function Landing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
+  const goSearch = () => {
+    const q = query.trim();
+    router.push(q ? `/listings?q=${encodeURIComponent(q)}` : "/listings");
+  };
 
   return (
     <RootLayout navbarTransparent>
@@ -39,13 +48,35 @@ export default function Landing() {
           <p className="text-slate-600 text-md md:text-xl max-w-3xl">
             {hero.body}
           </p>
+
+          {/* Marketplace search */}
+          <div className="w-full max-w-2xl">
+            <div className="flex items-center gap-2 rounded-2xl bg-white/90 backdrop-blur border border-white shadow-xl shadow-black/5 p-2">
+              <div className="grow">
+                <Input
+                  placeholder="جستجوی شهر، محله یا عنوان ملک"
+                  icon={<IconSearch size={18} className="text-slate-400" />}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") goSearch();
+                  }}
+                  className="border-0"
+                />
+              </div>
+              <Button size="lg" variant="primary" className="text-white shrink-0" onClick={goSearch}>
+                جستجو
+              </Button>
+            </div>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-1">
-            <a className="block" href="/login" rel="noreferrer">
+            <Link className="block" href="/listings">
               <Button size="lg" variant="primary" className="shadow-xl shadow-blue-500/20 text-white">{hero.cta1}</Button>
-            </a>
-            <a href="#sample-output">
+            </Link>
+            <Link href="/dashboard/listings">
               <Button size="lg" variant="secondary" className="">{hero.cta2}</Button>
-            </a>
+            </Link>
           </div>
           <div className="hidden sm:grid grid-cols-3 gap-6 mt-10 w-full max-w-3xl">
           </div>
@@ -71,9 +102,9 @@ export default function Landing() {
               ))}
             </h2>
             <p className="text-slate-600 text-lg">{problem.body}</p>
-            <a className="block" href="/login" rel="noreferrer">
+            <Link className="block" href="/listings">
               <Button size="lg" variant="primary" className="mt-4">{problem.cta}</Button>
-            </a>
+            </Link>
           </div>
           <div
             className="relative group max-w-xl mx-auto w-full motion-safe:animate-[float_9s_ease-in-out_infinite]"
@@ -207,7 +238,7 @@ export default function Landing() {
             </div>
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-3 pt-2">
-              <a className="block" href="/login" rel="noreferrer">
+              <Link className="block" href="/listings">
                 <Button
                   size="lg"
                   variant="white"
@@ -215,8 +246,8 @@ export default function Landing() {
                 >
                   {cta.cta1}
                 </Button>
-              </a>
-              <a className="block" href="#early-access" rel="noreferrer">
+              </Link>
+              <Link className="block" href="/dashboard/listings">
                 <Button
                   size="lg"
                   variant="ghost"
@@ -225,7 +256,7 @@ export default function Landing() {
                   <span>{cta.cta2}</span>
                   <IconArrowLeft size={18} />
                 </Button>
-              </a>
+              </Link>
             </div>
 
             <p className="text-[11px] text-white/50 font-light">{cta.footnote}</p>

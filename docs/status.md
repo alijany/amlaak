@@ -6,8 +6,29 @@
 ## Current focus
 
 Phase 1 milestones **M1–M4** are **built** (lead tracking, distribution/publishing, agency
-multi-tenancy, and the self-service marketplace), and the app is **rebranded to Nava Amlak**.
-All verified by lint + build. Next: **live e2e against a DB** across the whole flow.
+multi-tenancy, and the self-service marketplace), the app is **rebranded to Nava Amlak**, and
+a **B2C polish pass (P0)** has landed. All verified by lint + build. Next: **live e2e against a
+DB**, and the B2C P1/P2 backlog (see below).
+
+## B2C product review & polish
+
+A PM review of the customer-facing flows produced a prioritized backlog (full text in
+`/root/.claude/plans/...` plan file). **P0 applied:**
+- ✅ Marketplace landing: hero **search box → `/listings`**; hero/CTA buttons go to
+  `/listings` and `/dashboard/listings` (no more `/login`-only); `/listings` reads `q/city/
+  category` from the URL
+- ✅ Fixed stale «هم‌اوا» copy in the login modal; **role-aware post-login redirect**
+  (staff → `/dashboard`, customers → `/listings`)
+- ✅ Listing-detail contact routes to the **owning agency** (public shape exposes agency
+  name/phone/slug; falls back to the brand phone) + links to the agency profile
+
+**B2C backlog (not yet done):**
+- ⬜ **P1 — Web inquiry → tracked Lead** (online "request callback" creating a `source=website`
+  lead by tracking code) — highest-ROI conversion gap
+- ⬜ P1 — Discovery upgrade (price/rooms/area filters, sort, buy/rent tabs); SSR + SEO/OG for
+  public pages; funnel analytics
+- ⬜ P2 — favorites/saved searches, share, agency enrichment, similar listings, map (`lat/lng`),
+  report listing, OTP cooldown, profile-completion onboarding
 
 ## Foundation (already built)
 

@@ -1,6 +1,8 @@
 'use client';
 
 import { useAuth } from '@/components/auth/auth.context.provider';
+import { Role } from '@/components/auth/auth.constants.roles';
+import { brand } from '@/config/brand.config';
 import { TermsModal } from '@/components/modals/modals.component.terms';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +38,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
     const [success, setSuccess] = useState<string | null>(null);
     const [termsModalOpen, setTermsModalOpen] = useState(false);
     const router = useRouter();
-    const { sendOtp, verifyOtpAndLogin, isLoading: authLoading, isAuthenticated } = useAuth();
+    const { sendOtp, verifyOtpAndLogin, isLoading: authLoading, isAuthenticated, hasAnyRole } = useAuth();
 
     const {
         register: registerPhone,
@@ -69,11 +71,13 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                     // Decode and redirect to the saved route with all query params
                     router.push(decodeURIComponent(redirectPath));
                 } else {
-                    router.push('/dashboard');
+                    // Staff land in the dashboard; customers go to the listings catalog.
+                    const isStaff = hasAnyRole([Role.ADMIN, Role.OWNER, Role.MANAGER, Role.MEMBER]);
+                    router.push(isStaff ? '/dashboard' : '/listings');
                 }
             }
         }
-    }, [isAuthenticated, props, router]);
+    }, [isAuthenticated, props, router, hasAnyRole]);
 
     // Handle phone form submission
     const onPhoneSubmit = async (data: PhoneFormData) => {
@@ -157,7 +161,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                         <div className='lg:p-6 rounded-2xl lg:bg-white space-y-4'>
                             <div className='font-semibold text-lg text-slate-700'>شماره موبایل خود را وارد کنید</div>
                             <div className='text-sm text-slate-500'>
-                                برای استفاده از امکانات هم‌اوا، لطفاً شمارهٔ موبایل خود را وارد کنید. کد تأیید به این شماره پیامک خواهد شد.
+                                برای استفاده از امکانات {brand.name}، لطفاً شمارهٔ موبایل خود را وارد کنید. کد تأیید به این شماره پیامک خواهد شد.
                             </div>
                             <br />
                             {error && (

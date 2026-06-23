@@ -155,6 +155,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       orderBy: { publishedAt: 'DESC', id: 'DESC' },
       limit,
       offset: page * limit,
+      populate: ['agency'] as never,
     });
 
     return {
@@ -165,10 +166,13 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
 
   /** A single PUBLISHED listing in public shape, or null. */
   async findOnePublic(id: number) {
-    const ad = await this.findOne({
-      id,
-      publishStatus: PublishStatus.PUBLISHED,
-    });
+    const ad = await this.findOne(
+      {
+        id,
+        publishStatus: PublishStatus.PUBLISHED,
+      },
+      { populate: ['agency'] as never },
+    );
     return ad ? this.toPublic(ad) : null;
   }
 
@@ -212,6 +216,14 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       images: ad.images,
       attributes,
       publishedAt: ad.publishedAt,
+      agency: ad.agency
+        ? {
+            id: ad.agency.id,
+            name: ad.agency.name,
+            slug: ad.agency.slug,
+            phone: ad.agency.phone,
+          }
+        : undefined,
     };
   }
 

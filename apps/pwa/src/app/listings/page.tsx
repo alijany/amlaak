@@ -2,16 +2,21 @@
 
 import { RootLayout } from '@/components/layout/layout.component.root';
 import { DataView, Pagination } from '@/ui/molecules';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { usePublicListings } from './listings.api';
 import { ListingCard } from './listings.component.card';
 import { ListingsFilters } from './listings.component.filters';
-import { PublicListingFilters } from './listings.types';
+import { PublicListingFilters, RealEstateCategory } from './listings.types';
 
 function ListingsContent() {
+  const searchParams = useSearchParams();
   const [filters, setFilters] = useState<PublicListingFilters>({
     page: 0,
     limit: 12,
+    q: searchParams.get('q') || undefined,
+    city: searchParams.get('city') || undefined,
+    category: (searchParams.get('category') as RealEstateCategory) || undefined,
   });
 
   const { data, error, isLoading, refresh } = usePublicListings(filters);
