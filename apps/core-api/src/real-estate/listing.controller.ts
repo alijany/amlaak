@@ -49,6 +49,19 @@ export class ListingController {
     );
   }
 
+  @Get(':id')
+  @Roles(...WORKER)
+  one(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.advertisements.myListing(
+      id,
+      this.access.resolve(user, agencyId),
+    );
+  }
+
   @Post()
   @Roles(...WORKER)
   create(

@@ -25,10 +25,14 @@ export class S3StorageController {
 
   @Post('uploads')
   @UseInterceptors(FileInterceptor('file'))
-  async upload(@UploadedFile() file: Express.Multer.File): Promise<{ url: string }> {
+  async upload(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ url: string }> {
     if (!file) throw new BadRequestException('فایلی آپلود نشده است');
     if (!ALLOWED_MIME.includes(file.mimetype)) {
-      throw new BadRequestException('فرمت فایل نامعتبر است. فقط تصاویر مجاز هستند');
+      throw new BadRequestException(
+        'فرمت فایل نامعتبر است. فقط تصاویر مجاز هستند',
+      );
     }
     if (file.size > MAX_SIZE) {
       throw new BadRequestException('حجم فایل بیش از ۵ مگابایت است');

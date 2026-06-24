@@ -19,6 +19,7 @@ export interface MyListing {
   city?: string;
   district?: string;
   images?: string[];
+  attributes?: Record<string, unknown>;
   publishStatus?: PublishStatus;
   created_at?: string;
 }
@@ -44,4 +45,5 @@ export interface ListingFormDto {
   city?: string;
   district?: string;
   images?: string[];
+  attributes?: Record<string, unknown>;
 }

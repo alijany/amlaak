@@ -16,6 +16,25 @@ const CATEGORY_ITEMS = [
   { label: 'رهن کامل', value: RealEstateCategory.MORTGAGE },
 ];
 
+/** Property type stored in `attributes.propertySubtype` (value === display label). */
+const PROPERTY_TYPE_ITEMS = [
+  { label: 'آپارتمان', value: 'آپارتمان' },
+  { label: 'ویلایی', value: 'ویلایی' },
+  { label: 'زمین', value: 'زمین' },
+  { label: 'تجاری', value: 'تجاری' },
+  { label: 'دفتر کار', value: 'دفتر کار' },
+];
+
+/** Which financial fields make sense for each deal type. */
+const PRICE_FIELDS: Record<string, ('totalPrice' | 'pricePerMeter' | 'deposit' | 'rent')[]> = {
+  [RealEstateCategory.SALE]: ['totalPrice', 'pricePerMeter'],
+  [RealEstateCategory.RENT]: ['deposit', 'rent'],
+  [RealEstateCategory.MORTGAGE]: ['deposit'],
+};
+
+/** Land has no rooms/floor; everything else is a building. */
+const isLand = (subtype: string) => subtype === 'زمین';
+
 interface ListingFormModalProps {
   isOpen: boolean;
   editing?: MyListing | null;
@@ -37,11 +56,16 @@ export function ListingFormModal({
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<RealEstateCategory>(RealEstateCategory.SALE);
+  const [propertyType, setPropertyType] = useState<string>('آپارتمان');
   const [totalPrice, setTotalPrice] = useState('');
+  const [pricePerMeter, setPricePerMeter] = useState('');
   const [deposit, setDeposit] = useState('');
   const [rent, setRent] = useState('');
   const [area, setArea] = useState('');
   const [rooms, setRooms] = useState('');
+  const [yearBuilt, setYearBuilt] = useState('');
+  const [floor, setFloor] = useState('');
+  const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
   const [district, setDistrict] = useState('');
   const [description, setDescription] = useState('');
@@ -51,11 +75,18 @@ export function ListingFormModal({
     if (isOpen) {
       setTitle(editing?.title ?? '');
       setCategory(editing?.category ?? RealEstateCategory.SALE);
+      setPropertyType(
+        (editing?.attributes?.propertySubtype as string) ?? 'آپارتمان',
+      );
       setTotalPrice(editing?.totalPrice?.toString() ?? '');
+      setPricePerMeter(editing?.pricePerMeter?.toString() ?? '');
       setDeposit(editing?.deposit?.toString() ?? '');
       setRent(editing?.rent?.toString() ?? '');
       setArea(editing?.area?.toString() ?? '');
       setRooms(editing?.rooms?.toString() ?? '');
+      setYearBuilt(editing?.yearBuilt?.toString() ?? '');
+      setFloor(editing?.floor?.toString() ?? '');
+      setProvince(editing?.province ?? '');
       setCity(editing?.city ?? '');
       setDistrict(editing?.district ?? '');
       setDescription(editing?.description ?? '');
@@ -63,20 +94,39 @@ export function ListingFormModal({
     }
   }, [isOpen, editing]);
 
+  // When the deal type changes, clear financial fields that no longer apply so
+  // stale values aren't submitted.
+  const onCategoryChange = (next: RealEstateCategory) => {
+    setCategory(next);
+    const allowed = PRICE_FIELDS[next] ?? [];
+    if (!allowed.includes('totalPrice')) setTotalPrice('');
+    if (!allowed.includes('pricePerMeter')) setPricePerMeter('');
+    if (!allowed.includes('deposit')) setDeposit('');
+    if (!allowed.includes('rent')) setRent('');
+  };
+
+  const priceFields = PRICE_FIELDS[category] ?? [];
+  const land = isLand(propertyType);
+
   const handleSubmit = async () => {
     if (!title.trim()) return;
     const dto: ListingFormDto = {
       title: title.trim(),
       category,
-      totalPrice: numOrUndef(totalPrice),
-      deposit: numOrUndef(deposit),
-      rent: numOrUndef(rent),
+      totalPrice: priceFields.includes('totalPrice') ? numOrUndef(totalPrice) : undefined,
+      pricePerMeter: priceFields.includes('pricePerMeter') ? numOrUndef(pricePerMeter) : undefined,
+      deposit: priceFields.includes('deposit') ? numOrUndef(deposit) : undefined,
+      rent: priceFields.includes('rent') ? numOrUndef(rent) : undefined,
       area: numOrUndef(area),
-      rooms: numOrUndef(rooms),
+      rooms: land ? undefined : numOrUndef(rooms),
+      yearBuilt: land ? undefined : numOrUndef(yearBuilt),
+      floor: land ? undefined : numOrUndef(floor),
+      province: province || undefined,
       city: city || undefined,
       district: district || undefined,
       description: description || undefined,
       images,
+      attributes: { ...(editing?.attributes ?? {}), propertySubtype: propertyType },
     };
     try {
       if (editing) await update.submit(dto);
@@ -103,26 +153,65 @@ export function ListingFormModal({
 
         <div className="overflow-auto px-5 py-4 space-y-3">
           <Input label="عنوان" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <div>
-            <label className="font-medium mb-2 block text-slate-700">دسته‌بندی</label>
-            <Dropdown<RealEstateCategory>
-              items={CATEGORY_ITEMS}
-              value={category}
-              onChange={(v) => {
-                if (v) setCategory(v);
-              }}
-              variant="outline"
-            />
-          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <Input label="قیمت کل (تومان)" type="number" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} />
-            <Input label="ودیعه" type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
-            <Input label="اجاره" type="number" value={rent} onChange={(e) => setRent(e.target.value)} />
+            <div>
+              <label className="font-medium mb-2 block text-slate-700">نوع معامله</label>
+              <Dropdown<RealEstateCategory>
+                items={CATEGORY_ITEMS}
+                value={category}
+                onChange={(v) => {
+                  if (v) onCategoryChange(v);
+                }}
+                variant="outline"
+              />
+            </div>
+            <div>
+              <label className="font-medium mb-2 block text-slate-700">نوع ملک</label>
+              <Dropdown<string>
+                items={PROPERTY_TYPE_ITEMS}
+                value={propertyType}
+                onChange={(v) => {
+                  if (v) setPropertyType(v);
+                }}
+                variant="outline"
+              />
+            </div>
+          </div>
+
+          {/* Financial fields — depend on the deal type */}
+          <div className="grid grid-cols-2 gap-3">
+            {priceFields.includes('totalPrice') && (
+              <Input label="قیمت کل (تومان)" type="number" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} />
+            )}
+            {priceFields.includes('pricePerMeter') && (
+              <Input label="قیمت هر متر (تومان)" type="number" value={pricePerMeter} onChange={(e) => setPricePerMeter(e.target.value)} />
+            )}
+            {priceFields.includes('deposit') && (
+              <Input label="ودیعه (تومان)" type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+            )}
+            {priceFields.includes('rent') && (
+              <Input label="اجاره ماهیانه (تومان)" type="number" value={rent} onChange={(e) => setRent(e.target.value)} />
+            )}
+          </div>
+
+          {/* Specs — depend on the property type */}
+          <div className="grid grid-cols-2 gap-3">
             <Input label="متراژ" type="number" value={area} onChange={(e) => setArea(e.target.value)} />
-            <Input label="تعداد خواب" type="number" value={rooms} onChange={(e) => setRooms(e.target.value)} />
+            {!land && (
+              <Input label="تعداد خواب" type="number" value={rooms} onChange={(e) => setRooms(e.target.value)} />
+            )}
+            {!land && (
+              <Input label="سال ساخت" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
+            )}
+            {!land && (
+              <Input label="طبقه" type="number" value={floor} onChange={(e) => setFloor(e.target.value)} />
+            )}
+            <Input label="استان" value={province} onChange={(e) => setProvince(e.target.value)} />
             <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
             <Input label="محله" value={district} onChange={(e) => setDistrict(e.target.value)} />
           </div>
+
           <Input label="توضیحات" textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           <ImageUploader label="تصاویر ملک" value={images} onChange={setImages} previewClassName="h-24 w-24" />
         </div>

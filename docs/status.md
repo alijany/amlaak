@@ -115,6 +115,12 @@ A PM review of the customer-facing flows produced a prioritized backlog (full te
   `/dashboard/agency` when the user has none
 - ✅ Public agency storefront: `GET /public/agencies/:slug` (agency + published listings) +
   `/agencies/[slug]` page; `agencyId` filter on the public catalog
+- ✅ My Listings optimization (`/dashboard/listings`): **category-aware form** (deal-type drives
+  the financial fields — SALE→total/price-m², RENT→deposit+rent, MORTGAGE→deposit; property-type
+  selector → `attributes.propertySubtype`, land hides rooms/floor); **listing detail page**
+  (`/dashboard/listings/[id]`, scoped `GET /real-estate/listings/:id`) with a **public-preview**
+  tab reusing the shared `ListingDetailView` (works for PENDING); per-listing **quick add/assign
+  lead** modal (reuses `useCreateLead`/`useUsers`/`useLeadPools`, one-step assign)
 - ⬜ Live e2e against a DB (create listing → approve → appears on public site + agency profile)
 - ⬜ Listing image upload (currently image URLs pasted; reuse S3 upload like profile picture)
 

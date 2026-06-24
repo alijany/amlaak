@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { RealEstateCategory } from '../real-estate.constants';
 
 export class CreateListingDto {
@@ -70,6 +77,11 @@ export class CreateListingDto {
   @IsString({ each: true })
   @IsOptional()
   images?: string[];
+
+  /** Free-form extra attributes (e.g. `{ propertySubtype }`). */
+  @IsObject()
+  @IsOptional()
+  attributes?: Record<string, any>;
 }
 
 export class UpdateListingDto extends CreateListingDto {

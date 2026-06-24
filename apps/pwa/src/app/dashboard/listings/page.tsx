@@ -8,11 +8,13 @@ import { ApiError } from '@/libs/api/api.types.error';
 import { Button } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
 import { PublishStatusPill } from '@/app/dashboard/crawler/crawler.component.status-pill';
-import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconPlus, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useDeleteListing, useMyListings } from './listings.api';
 import { ListingFormModal } from './listings.component.form-modal';
+import { QuickLeadModal } from './listings.component.lead-modal';
 import { MyListing } from './listings.types';
 
 function ListingRow({
@@ -25,6 +27,7 @@ function ListingRow({
   onDeleted: () => void;
 }) {
   const { submit: remove, isLoading } = useDeleteListing(listing.id);
+  const [leadOpen, setLeadOpen] = useState(false);
 
   const onDelete = async () => {
     try {
@@ -38,8 +41,8 @@ function ListingRow({
 
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-4 flex items-center justify-between gap-3">
-      <div className="min-w-0">
-        <div className="font-semibold text-slate-700 truncate">
+      <Link href={`/dashboard/listings/${listing.id}`} className="min-w-0 group">
+        <div className="font-semibold text-slate-700 truncate group-hover:text-primary transition-colors">
           {listing.title ?? 'بدون عنوان'}
         </div>
         <div className="text-[12px] text-slate-400">
@@ -47,16 +50,29 @@ function ListingRow({
           {listing.totalPrice != null &&
             ` · ${listing.totalPrice.toLocaleString('fa-IR')} تومان`}
         </div>
-      </div>
+      </Link>
       <div className="flex items-center gap-2 flex-shrink-0">
         <PublishStatusPill status={listing.publishStatus} />
-        <button onClick={() => onEdit(listing)} className="text-slate-400 hover:text-slate-700 p-1.5">
+        <button
+          onClick={() => setLeadOpen(true)}
+          className="text-slate-400 hover:text-emerald-600 p-1.5"
+          title="افزودن سرنخ"
+        >
+          <IconUserPlus size={16} />
+        </button>
+        <button onClick={() => onEdit(listing)} className="text-slate-400 hover:text-slate-700 p-1.5" title="ویرایش">
           <IconEdit size={16} />
         </button>
-        <button onClick={onDelete} disabled={isLoading} className="text-slate-400 hover:text-rose-500 p-1.5">
+        <button onClick={onDelete} disabled={isLoading} className="text-slate-400 hover:text-rose-500 p-1.5" title="حذف">
           <IconTrash size={16} />
         </button>
       </div>
+      <QuickLeadModal
+        advertisementId={listing.id}
+        listingTitle={listing.title}
+        isOpen={leadOpen}
+        onClose={() => setLeadOpen(false)}
+      />
     </div>
   );
 }
