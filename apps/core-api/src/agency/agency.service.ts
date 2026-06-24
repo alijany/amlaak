@@ -1,6 +1,6 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { Role } from 'src/roles/roles.constants';
@@ -148,9 +148,16 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
     return this.users.inviteUserByRole({ ...dto, agencyId });
   }
 
-  async removeMember(agencyId: number, roleId: number) {
-    const role = await this.roles.findOne({ id: roleId, agency: agencyId });
+  async removeMember(agencyId: number, roleId: number, callerId: number) {
+    const role = await this.roles.findOne(
+      { id: roleId, agency: agencyId },
+      { populate: ['user'] as never },
+    );
     if (!role) throw new NotFoundException('member not found');
+    if (role.role === Role.OWNER)
+      throw new ForbiddenException('مالک آژانس را نمی‌توان حذف کرد');
+    if (role.user.id === callerId)
+      throw new ForbiddenException('نمی‌توانید خودتان را از آژانس حذف کنید');
     await this.roles.remove(role);
     return { success: true };
   }

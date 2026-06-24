@@ -84,6 +84,7 @@ function memberName(m: AgencyMember): string {
 }
 
 function AgencyContent({ agencyId }: { agencyId: number }) {
+  const { user } = useAuth();
   const { data: agency, error, isLoading, refresh } = useAgency(agencyId);
   const members = useAgencyMembers(agencyId);
   const { submit: update, isLoading: saving } = useUpdateAgency(agencyId);
@@ -208,25 +209,31 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
           variant="inline"
           className="divide-y divide-slate-100"
         >
-          {members.data?.items?.map((m) => (
-            <div key={m.id} className="flex items-center justify-between py-2.5">
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-slate-700 truncate">
-                  {memberName(m)}
+          {members.data?.items?.map((m) => {
+            const isProtected = m.role === Role.OWNER || m.user?.id === user?.id;
+            return (
+              <div key={m.id} className="flex items-center justify-between py-2.5">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-slate-700 truncate">
+                    {memberName(m)}
+                  </div>
+                  <div className="text-[12px] text-slate-400">
+                    {getRoleName(m.role)} · {m.invitationStatus}
+                  </div>
                 </div>
-                <div className="text-[12px] text-slate-400">
-                  {getRoleName(m.role)} · {m.invitationStatus}
-                </div>
+                <button
+                  onClick={() => onRemove(m.id)}
+                  disabled={isProtected}
+                  className={isProtected
+                    ? 'text-slate-200 cursor-not-allowed p-1.5'
+                    : 'text-slate-400 hover:text-rose-500 p-1.5'}
+                  title={isProtected ? undefined : 'حذف'}
+                >
+                  <IconTrash size={16} />
+                </button>
               </div>
-              <button
-                onClick={() => onRemove(m.id)}
-                className="text-slate-400 hover:text-rose-500 p-1.5"
-                title="حذف"
-              >
-                <IconTrash size={16} />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </DataView>
       </div>
 

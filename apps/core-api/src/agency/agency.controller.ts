@@ -103,7 +103,7 @@ export class AgencyController {
     @CurrentUser() user: UserEntity,
   ) {
     this.assertManager(user, id);
-    return this.agencies.removeMember(id, roleId);
+    return this.agencies.removeMember(id, roleId, user.id);
   }
 
   /** Admin: confirm a self-registered agency. */
