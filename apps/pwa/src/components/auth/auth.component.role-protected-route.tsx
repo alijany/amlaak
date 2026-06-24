@@ -21,9 +21,10 @@ export function RoleProtectedRoute({
 
   useEffect(() => {
     if (!isLoading) {
-      // If not authenticated, redirect to login
+      // If not authenticated, redirect to login and remember where to return.
       if (!isAuthenticated) {
-        router.push('/login');
+        const current = window.location.pathname + window.location.search;
+        router.push(`/login?redirect=${encodeURIComponent(current)}`);
         return;
       }
 

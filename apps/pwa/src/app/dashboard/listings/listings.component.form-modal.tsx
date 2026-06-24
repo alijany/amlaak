@@ -1,5 +1,6 @@
 'use client';
 
+import { ImageUploader } from '@/components/upload/upload.component.image';
 import { ApiError } from '@/libs/api/api.types.error';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
@@ -44,7 +45,7 @@ export function ListingFormModal({
   const [city, setCity] = useState('');
   const [district, setDistrict] = useState('');
   const [description, setDescription] = useState('');
-  const [images, setImages] = useState('');
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -58,7 +59,7 @@ export function ListingFormModal({
       setCity(editing?.city ?? '');
       setDistrict(editing?.district ?? '');
       setDescription(editing?.description ?? '');
-      setImages((editing?.images ?? []).join('\n'));
+      setImages(editing?.images ?? []);
     }
   }, [isOpen, editing]);
 
@@ -75,10 +76,7 @@ export function ListingFormModal({
       city: city || undefined,
       district: district || undefined,
       description: description || undefined,
-      images: images
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      images,
     };
     try {
       if (editing) await update.submit(dto);
@@ -126,13 +124,7 @@ export function ListingFormModal({
             <Input label="محله" value={district} onChange={(e) => setDistrict(e.target.value)} />
           </div>
           <Input label="توضیحات" textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Input
-            label="تصاویر (هر آدرس در یک خط)"
-            textarea
-            rows={2}
-            value={images}
-            onChange={(e) => setImages(e.target.value)}
-          />
+          <ImageUploader label="تصاویر ملک" value={images} onChange={setImages} previewClassName="h-24 w-24" />
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4">

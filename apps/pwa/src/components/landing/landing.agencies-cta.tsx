@@ -14,7 +14,7 @@ export function LandingAgenciesCta() {
         <div className="space-y-4">
           <h2 className="text-2xl md:text-3xl font-black">{forAgencies.title}</h2>
           <p className="text-white/70 leading-relaxed">{forAgencies.body}</p>
-          <Link href="/dashboard/listings" className="inline-block">
+          <Link href="/dashboard/agency" className="inline-block">
             <Button size="lg" variant="white" className="rounded-2xl">
               {forAgencies.cta}
             </Button>

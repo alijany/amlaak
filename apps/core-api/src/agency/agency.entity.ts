@@ -30,6 +30,19 @@ export class AgencyEntity extends BaseEntity {
   @Property({ nullable: true })
   logo?: string;
 
+  /** Wide cover image for the public storefront. */
+  @Property({ nullable: true })
+  banner?: string;
+
+  @Property({ nullable: true })
+  website?: string;
+
+  @Property({ nullable: true })
+  city?: string;
+
+  @Property({ nullable: true })
+  address?: string;
+
   @Property({ default: true })
   isActive: boolean = true;
 

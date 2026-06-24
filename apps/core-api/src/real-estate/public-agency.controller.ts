@@ -31,6 +31,10 @@ export class PublicAgencyController {
         description: agency.description,
         phone: agency.phone,
         logo: agency.logo,
+        banner: agency.banner,
+        website: agency.website,
+        city: agency.city,
+        address: agency.address,
       },
       listings,
     };

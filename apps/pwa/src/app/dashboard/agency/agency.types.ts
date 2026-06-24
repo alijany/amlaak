@@ -7,9 +7,24 @@ export interface Agency {
   description?: string;
   phone?: string;
   logo?: string;
+  banner?: string;
+  website?: string;
+  city?: string;
+  address?: string;
   isActive: boolean;
   isPlatform?: boolean;
   created_at?: string;
+}
+
+export interface CreateAgencyDto {
+  name: string;
+  phone?: string;
+  description?: string;
+  logo?: string;
+  banner?: string;
+  website?: string;
+  city?: string;
+  address?: string;
 }
 
 export interface AgencyMember {
@@ -30,6 +45,11 @@ export interface UpdateAgencyDto {
   slug?: string;
   description?: string;
   phone?: string;
+  logo?: string;
+  banner?: string;
+  website?: string;
+  city?: string;
+  address?: string;
 }
 
 export interface InviteAgencyMemberDto {

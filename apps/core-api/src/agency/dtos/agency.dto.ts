@@ -19,6 +19,22 @@ export class CreateAgencyDto {
   @IsString()
   @IsOptional()
   logo?: string;
+
+  @IsString()
+  @IsOptional()
+  banner?: string;
+
+  @IsString()
+  @IsOptional()
+  website?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
 }
 
 export class UpdateAgencyDto {
@@ -41,6 +57,22 @@ export class UpdateAgencyDto {
   @IsString()
   @IsOptional()
   logo?: string;
+
+  @IsString()
+  @IsOptional()
+  banner?: string;
+
+  @IsString()
+  @IsOptional()
+  website?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
 
   @IsBoolean()
   @IsOptional()

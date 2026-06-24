@@ -13,6 +13,7 @@ import useSWRMutation from 'swr/mutation';
 import {
   Agency,
   AgencyMember,
+  CreateAgencyDto,
   InviteAgencyMemberDto,
   UpdateAgencyDto,
 } from './agency.types';
@@ -23,10 +24,7 @@ export function useMyAgencies() {
 }
 
 export function useCreateAgency() {
-  const swr = useSWRMutation(
-    '/agencies',
-    postFetcher<{ name: string; phone?: string; description?: string }, Agency>,
-  );
+  const swr = useSWRMutation('/agencies', postFetcher<CreateAgencyDto, Agency>);
   return useSwrMutationHelper(swr);
 }
 

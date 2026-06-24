@@ -10,6 +10,19 @@ multi-tenancy, and the self-service marketplace), the app is **rebranded to Nava
 a **B2C polish pass (P0)** has landed. All verified by lint + build. Next: **live e2e against a
 DB**, and the B2C P1/P2 backlog (see below).
 
+## Agency storefront, identity & uploads
+
+- ✅ Generic image upload: `POST /storage/uploads` (auth, S3) + a reusable `ImageUploader`
+  (`apps/pwa/src/components/upload/`) wrapping the `FilePicker` atom + `uploadFileFetcher`.
+- ✅ Agency identity: `banner/website/city/address` added to `AgencyEntity` + DTOs + public
+  shape; create + profile-edit forms now have logo/banner uploaders + website/city/address.
+- ✅ Listing form now **uploads images** (was pasted URLs).
+- ✅ Public agency **storefront** (`/agencies/[slug]`): banner + logo + about + city/address +
+  website + phone CTA + listing count + ads, with **JSON-LD `RealEstateAgent`** for SEO
+  (full SSR `generateMetadata` still backlog).
+- ✅ Redirect-aware login: `RoleProtectedRoute` now sends guests to
+  `/login?redirect=<intended>`; landing agencies CTA → `/dashboard/agency`.
+
 ## B2C product review & polish
 
 A PM review of the customer-facing flows produced a prioritized backlog (full text in

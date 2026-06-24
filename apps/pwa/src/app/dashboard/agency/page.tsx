@@ -4,6 +4,7 @@ import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protec
 import { useAuth } from '@/components/auth/auth.context.provider';
 import { getRoleName, Role } from '@/components/auth/auth.constants.roles';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
+import { ImageUploader } from '@/components/upload/upload.component.image';
 import { ApiError } from '@/libs/api/api.types.error';
 import { Button, Input } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
@@ -26,11 +27,24 @@ function CreateAgency() {
   const { submit, isLoading } = useCreateAgency();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [website, setWebsite] = useState('');
+  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
+  const [logo, setLogo] = useState<string[]>([]);
+  const [banner, setBanner] = useState<string[]>([]);
 
   const onCreate = async () => {
     if (!name.trim()) return;
     try {
-      await submit({ name: name.trim(), phone: phone || undefined });
+      await submit({
+        name: name.trim(),
+        phone: phone || undefined,
+        website: website || undefined,
+        city: city || undefined,
+        address: address || undefined,
+        logo: logo[0],
+        banner: banner[0],
+      });
       toast.success('آژانس ساخته شد. از منوی نقش‌ها آن را انتخاب کنید.');
       refreshProfile();
     } catch (e) {
@@ -39,13 +53,22 @@ function CreateAgency() {
   };
 
   return (
-    <div className="max-w-md mx-auto rounded-2xl bg-white p-6 space-y-3">
+    <div className="max-w-lg mx-auto rounded-2xl bg-white p-6 space-y-4">
       <div className="font-bold text-slate-700">ساخت آژانس جدید</div>
       <p className="text-[13px] text-slate-500">
         با ساخت آژانس، می‌توانید آگهی ثبت کنید، اعضا را دعوت کنید و سرنخ‌ها را مدیریت کنید.
       </p>
       <Input label="نام آژانس" value={name} onChange={(e) => setName(e.target.value)} />
-      <Input label="تلفن (اختیاری)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Input label="تلفن" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <Input label="وب‌سایت" value={website} onChange={(e) => setWebsite(e.target.value)} />
+        <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
+        <Input label="آدرس" value={address} onChange={(e) => setAddress(e.target.value)} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <ImageUploader label="لوگو" value={logo} onChange={setLogo} max={1} previewClassName="h-20 w-20 rounded-full" />
+        <ImageUploader label="بنر" value={banner} onChange={setBanner} max={1} previewClassName="h-20 w-full" />
+      </div>
       <div className="flex justify-end">
         <Button onClick={onCreate} disabled={isLoading || !name.trim()}>
           ساخت آژانس
@@ -69,6 +92,11 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
+  const [website, setWebsite] = useState('');
+  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
+  const [logo, setLogo] = useState<string[]>([]);
+  const [banner, setBanner] = useState<string[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
 
   useEffect(() => {
@@ -76,12 +104,26 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
       setName(agency.name ?? '');
       setPhone(agency.phone ?? '');
       setDescription(agency.description ?? '');
+      setWebsite(agency.website ?? '');
+      setCity(agency.city ?? '');
+      setAddress(agency.address ?? '');
+      setLogo(agency.logo ? [agency.logo] : []);
+      setBanner(agency.banner ? [agency.banner] : []);
     }
   }, [agency]);
 
   const onSave = async () => {
     try {
-      await update({ name, phone: phone || undefined, description: description || undefined });
+      await update({
+        name,
+        phone: phone || undefined,
+        description: description || undefined,
+        website: website || undefined,
+        city: city || undefined,
+        address: address || undefined,
+        logo: logo[0] ?? '',
+        banner: banner[0] ?? '',
+      });
       toast.success('اطلاعات آژانس ذخیره شد');
       refresh();
     } catch (e) {
@@ -117,14 +159,21 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input label="نام آژانس" value={name} onChange={(e) => setName(e.target.value)} />
               <Input label="تلفن" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input label="وب‌سایت" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
             </div>
+            <Input label="آدرس" value={address} onChange={(e) => setAddress(e.target.value)} />
             <Input
-              label="توضیحات"
+              label="درباره آژانس"
               textarea
-              rows={2}
+              rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ImageUploader label="لوگو" value={logo} onChange={setLogo} max={1} previewClassName="h-20 w-20 rounded-full" />
+              <ImageUploader label="بنر" value={banner} onChange={setBanner} max={1} previewClassName="h-20 w-full" />
+            </div>
             <div className="flex justify-end">
               <Button onClick={onSave} disabled={saving}>
                 ذخیره
