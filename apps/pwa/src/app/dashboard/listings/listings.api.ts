@@ -20,6 +20,14 @@ export function useMyListings() {
   return useSwrHelper(swr);
 }
 
+export function useListing(id?: number) {
+  const swr = useSWR<MyListing>(
+    id != null ? `/real-estate/listings/${id}` : null,
+    fetcher,
+  );
+  return useSwrHelper(swr);
+}
+
 export function useCreateListing() {
   const swr = useSWRMutation(
     '/real-estate/listings',

@@ -258,6 +258,14 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     return ad;
   }
 
+  /** A single own (agency-scoped) listing — any publish status. */
+  async myListing(id: number, ctx: AgencyContext) {
+    const ad = await this.findOne({ id }, { populate: ['agency'] as never });
+    if (!ad) throw new NotFoundException('listing not found');
+    this.assertOwnAgency(ad, ctx);
+    return ad;
+  }
+
   /** The active agency's own (user-created) listings. */
   async myListings(ctx: AgencyContext, filters: AdvertisementFilterDto) {
     const { page = 0, limit = 12 } = filters;
