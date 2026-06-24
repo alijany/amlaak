@@ -5,7 +5,27 @@ import {
 import { fetcher, patchFetcher } from '@/libs/api/api.util.fetcher';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
-import { Advertisement } from '../../crawler.types';
+import { Advertisement, RealEstateCategory } from '../../crawler.types';
+
+export interface UpdateAdvertisementDto {
+  title?: string;
+  description?: string;
+  category?: RealEstateCategory;
+  totalPrice?: number;
+  deposit?: number;
+  rent?: number;
+  pricePerMeter?: number;
+  area?: number;
+  rooms?: number;
+  yearBuilt?: number;
+  floor?: number;
+  province?: string;
+  city?: string;
+  district?: string;
+  images?: string[];
+  sourceUrl?: string;
+  attributes?: Record<string, unknown>;
+}
 
 export function useAdvertisement(id: number | undefined) {
   const swr = useSWR<Advertisement>(
@@ -13,6 +33,14 @@ export function useAdvertisement(id: number | undefined) {
     fetcher,
   );
   return useSwrHelper(swr);
+}
+
+export function useUpdateAdvertisement(id: number) {
+  const swr = useSWRMutation(
+    `/real-estate/advertisements/${id}`,
+    patchFetcher<UpdateAdvertisementDto, Advertisement>,
+  );
+  return useSwrMutationHelper(swr);
 }
 
 export function useApproveListing(id: number) {

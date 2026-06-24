@@ -66,7 +66,7 @@ export const RouteItems = {
   },
   crawlerAds: {
     href: "/dashboard/crawler/ads",
-    label: "آگهی‌های",
+    label: "آگهی‌ها",
     roles: [Role.ADMIN],
     icon: <IconList className="size-5" />
   },

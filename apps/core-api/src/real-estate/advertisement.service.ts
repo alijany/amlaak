@@ -177,6 +177,18 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     return ad ? this.toPublic(ad) : null;
   }
 
+  /** Admin update — patches any typed field on any advertisement. */
+  async adminUpdate(id: number, dto: UpdateListingDto) {
+    const ad = await this.findOne({ id });
+    if (!ad) throw new NotFoundException('advertisement not found');
+    const clean = Object.fromEntries(
+      Object.entries(dto).filter(([, v]) => v !== undefined),
+    );
+    this.em.assign(ad, clean);
+    await this.persistAndFlush(ad);
+    return ad;
+  }
+
   async setPublishStatus(
     ad: RealEstateAdvertisementEntity,
     status: PublishStatus,
