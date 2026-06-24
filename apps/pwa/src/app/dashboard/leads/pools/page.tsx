@@ -43,7 +43,7 @@ function PoolsContent() {
           بازگشت
         </Link>
         <div className="w-px h-5 bg-slate-200" />
-        <h1 className="font-bold text-slate-700">صف‌های سرنخ</h1>
+        <h1 className="font-bold text-slate-700">صف‌های مشتری</h1>
       </div>
 
       <div className="bg-white rounded-2xl p-4 flex flex-col sm:flex-row gap-3 sm:items-end">

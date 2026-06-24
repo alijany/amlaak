@@ -78,10 +78,10 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
   const onClaim = async () => {
     try {
       await claimLead();
-      toast.success('سرنخ به شما اختصاص یافت');
+      toast.success('مشتری به شما اختصاص یافت');
       refresh();
     } catch (e) {
-      toast.error((e as ApiError).message || 'خطا در دریافت سرنخ');
+      toast.error((e as ApiError).message || 'خطا در دریافت مشتری');
     }
   };
 
@@ -89,10 +89,10 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
     if (!agentId) return;
     try {
       await assignLead({ agentId });
-      toast.success('سرنخ اختصاص یافت');
+      toast.success('مشتری اختصاص یافت');
       refresh();
     } catch (e) {
-      toast.error((e as ApiError).message || 'خطا در اختصاص سرنخ');
+      toast.error((e as ApiError).message || 'خطا در اختصاص مشتری');
     }
   };
 
@@ -203,7 +203,7 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
                 disabled={claiming || lead.assignedAgent != null}
                 className="w-full"
               >
-                دریافت این سرنخ
+                دریافت این مشتری
               </Button>
             )}
           </div>
@@ -247,7 +247,7 @@ function LeadDetailContent({ id }: { id: number }) {
           بازگشت
         </Link>
         <div className="w-px h-5 bg-slate-200" />
-        <h1 className="font-bold text-slate-700">سرنخ #{id.toLocaleString('fa-IR')}</h1>
+        <h1 className="font-bold text-slate-700">مشتری #{id.toLocaleString('fa-IR')}</h1>
       </div>
 
       <div className="grow overflow-auto">
@@ -256,7 +256,7 @@ function LeadDetailContent({ id }: { id: number }) {
           error={error}
           isLoading={isLoading}
           isEmpty={(d) => !d}
-          emptyMessage="سرنخ یافت نشد."
+          emptyMessage="مشتری یافت نشد."
           onRetry={refresh}
         >
           {lead && <LeadDetail lead={lead} refresh={refresh} />}

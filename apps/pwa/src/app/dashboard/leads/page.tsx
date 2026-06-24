@@ -25,7 +25,7 @@ function LeadsContent({ isConfirmed }: { isConfirmed: boolean }) {
     setFilters((prev) => ({ ...prev, ...p }));
 
   const totalLabel = useMemo(
-    () => (data?.meta ? `${data.meta.total.toLocaleString('fa-IR')} سرنخ` : ''),
+    () => (data?.meta ? `${data.meta.total.toLocaleString('fa-IR')} مشتری` : ''),
     [data?.meta],
   );
 
@@ -33,17 +33,17 @@ function LeadsContent({ isConfirmed }: { isConfirmed: boolean }) {
     <div className="space-y-3 grow flex flex-col overflow-hidden">
       {!isConfirmed && (
         <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
-          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت سرنخ وجود ندارد.
+          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت مشتری وجود ندارد.
         </div>
       )}
       <div className="p-4 rounded-2xl bg-white flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <div className="font-bold">سرنخ‌ها</div>
+          <div className="font-bold">مشتری‌ها</div>
           <div className="flex items-center gap-3">
             <span className="text-[12px] text-slate-400">{totalLabel}</span>
             <Button size="sm" onClick={() => setModalOpen(true)} disabled={!isConfirmed}>
               <IconPlus size={16} className="ml-1" />
-              ثبت سرنخ
+              ثبت مشتری
             </Button>
           </div>
         </div>
@@ -56,7 +56,7 @@ function LeadsContent({ isConfirmed }: { isConfirmed: boolean }) {
           error={error}
           isLoading={isLoading}
           isEmpty={(d) => !d?.items.length}
-          emptyMessage="هنوز سرنخی ثبت نشده است. با دکمه «ثبت سرنخ» شروع کنید."
+          emptyMessage="هنوز مشتریی ثبت نشده است. با دکمه «ثبت مشتری» شروع کنید."
           onRetry={refresh}
         >
           <div

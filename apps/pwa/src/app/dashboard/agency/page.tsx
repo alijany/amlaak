@@ -56,7 +56,7 @@ function CreateAgency() {
     <div className="max-w-lg mx-auto rounded-2xl bg-white p-6 space-y-4 overflow-auto">
       <div className="font-bold text-slate-700">ساخت آژانس جدید</div>
       <p className="text-[13px] text-slate-500">
-        با ساخت آژانس، می‌توانید آگهی ثبت کنید، اعضا را دعوت کنید و سرنخ‌ها را مدیریت کنید.
+        با ساخت آژانس، می‌توانید آگهی ثبت کنید، اعضا را دعوت کنید و مشتری‌ها را مدیریت کنید.
       </p>
       <Input label="نام آژانس" value={name} onChange={(e) => setName(e.target.value)} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -146,7 +146,7 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
     <div className="space-y-4 grow flex flex-col overflow-auto">
       {agency && !agency.isConfirmed && (
         <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
-          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت آگهی یا سرنخ وجود ندارد.
+          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت آگهی یا مشتری وجود ندارد.
         </div>
       )}
 

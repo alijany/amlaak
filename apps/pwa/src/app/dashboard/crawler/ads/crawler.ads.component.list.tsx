@@ -80,7 +80,7 @@ export function AdCard({
         <button
           onClick={onAddLead}
           className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm rounded-full p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-white shadow-sm transition-colors"
-          title="افزودن سرنخ"
+          title="افزودن مشتری"
         >
           <IconUserPlus size={15} />
         </button>

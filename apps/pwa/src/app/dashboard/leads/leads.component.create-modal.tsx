@@ -91,11 +91,11 @@ export function CreateLeadModal({
         note: note || undefined,
         poolId: poolId === '' ? undefined : Number(poolId),
       });
-      toast.success('سرنخ ثبت شد');
+      toast.success('مشتری ثبت شد');
       onCreated();
       close();
     } catch (e) {
-      toast.error((e as ApiError).message || 'ثبت سرنخ ناموفق بود');
+      toast.error((e as ApiError).message || 'ثبت مشتری ناموفق بود');
     }
   };
 
@@ -103,7 +103,7 @@ export function CreateLeadModal({
     <Modal isOpen={isOpen} onClose={close} className="lg:w-[32rem]">
       <div className="flex flex-col max-h-[calc(100vh-4rem)]">
         <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
-          <h2 className="font-bold text-slate-700">ثبت سرنخ جدید</h2>
+          <h2 className="font-bold text-slate-700">ثبت مشتری جدید</h2>
           <button onClick={close} className="text-slate-400 hover:text-slate-700">
             <IconX size={18} />
           </button>
@@ -212,7 +212,7 @@ export function CreateLeadModal({
             onClick={handleSubmit}
             disabled={isLoading || !resolved}
           >
-            ثبت سرنخ
+            ثبت مشتری
           </Button>
         </div>
       </div>

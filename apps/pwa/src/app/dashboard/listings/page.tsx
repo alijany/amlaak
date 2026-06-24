@@ -57,7 +57,7 @@ function ListingRow({
         <button
           onClick={() => setLeadOpen(true)}
           className="text-slate-400 hover:text-emerald-600 p-1.5"
-          title="افزودن سرنخ"
+          title="افزودن مشتری"
         >
           <IconUserPlus size={16} />
         </button>

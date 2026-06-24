@@ -124,11 +124,11 @@ function LeadsTab({ advertisementId, onAddLead }: { advertisementId: number; onA
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="text-sm text-slate-500">
-          {data?.meta ? `${data.meta.total.toLocaleString('fa-IR')} سرنخ` : ''}
+          {data?.meta ? `${data.meta.total.toLocaleString('fa-IR')} مشتری` : ''}
         </div>
         <Button size="sm" variant="secondary" onClick={onAddLead}>
           <IconUserPlus size={15} className="ml-1" />
-          افزودن سرنخ
+          افزودن مشتری
         </Button>
       </div>
       <DataView
@@ -136,7 +136,7 @@ function LeadsTab({ advertisementId, onAddLead }: { advertisementId: number; onA
         error={error}
         isLoading={isLoading}
         isEmpty={(d) => !d?.items.length}
-        emptyMessage="هنوز سرنخی برای این آگهی ثبت نشده است."
+        emptyMessage="هنوز مشتریی برای این آگهی ثبت نشده است."
         onRetry={refresh}
         className="space-y-2"
       >
@@ -218,7 +218,7 @@ function ListingDetailContent({ id }: { id: number }) {
             <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 w-fit">
               {(
                 [
-                  { key: 'leads', label: 'سرنخ‌ها' },
+                  { key: 'leads', label: 'مشتری‌ها' },
                   { key: 'manage', label: 'جزئیات' },
                   { key: 'preview', label: 'پیش‌نمایش عمومی' },
                 ] as const

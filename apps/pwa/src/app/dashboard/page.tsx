@@ -80,13 +80,13 @@ function DashboardContent() {
         />
         <Kpi
           icon={<IconPhoneCall size={20} />}
-          label="سرنخ‌های جدید"
+          label="مشتری‌های جدید"
           value={fa(byStatus?.[LeadStatus.NEW])}
           href={RouteItems.leads.href}
         />
         <Kpi
           icon={<IconUserCheck size={20} />}
-          label="سرنخ‌های من"
+          label="مشتری‌های من"
           value={fa(stats.data?.mine)}
           href={RouteItems.leads.href}
         />
@@ -102,7 +102,7 @@ function DashboardContent() {
         {/* Lead funnel */}
         <div className="rounded-2xl bg-white p-4 lg:col-span-1">
           <div className="flex items-center justify-between mb-3">
-            <div className="font-bold text-slate-700">قیف سرنخ‌ها</div>
+            <div className="font-bold text-slate-700">قیف مشتری‌ها</div>
             <Link
               href={RouteItems.leads.href}
               className="text-[12px] text-blue-500 hover:underline flex items-center"

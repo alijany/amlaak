@@ -247,7 +247,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     const title = lead.advertisement?.title ?? `#${lead.advertisement?.id}`;
     await this.notifications.sendToUser(
       agentId,
-      `یک سرنخ جدید برای «${title}» به شما اختصاص یافت.`,
+      `یک مشتری جدید برای «${title}» به شما اختصاص یافت.`,
       {
         priority: 'high',
         metadata: {

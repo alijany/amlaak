@@ -365,7 +365,7 @@ function LeadsTab({ advertisementId }: { advertisementId: number }) {
         error={error}
         isLoading={isLoading}
         isEmpty={(d) => !d?.items.length}
-        emptyMessage="هنوز سرنخی برای این آگهی ثبت نشده است."
+        emptyMessage="هنوز مشتریی برای این آگهی ثبت نشده است."
         onRetry={refresh}
         className="space-y-2"
       >
@@ -435,7 +435,7 @@ function ModerationBar({
               onClick={() => setLeadOpen(true)}
             >
               <IconUserPlus size={15} className="ml-1" />
-              افزودن سرنخ
+              افزودن مشتری
             </Button>
             {ad.publishStatus !== PublishStatus.PUBLISHED && (
               <Button size="sm" onClick={onApprove} disabled={approving}>
@@ -519,7 +519,7 @@ function AdDetailContent({ id }: { id: number }) {
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            سرنخ‌ها
+            مشتری‌ها
           </button>
           <button
             onClick={() => setTab('info')}

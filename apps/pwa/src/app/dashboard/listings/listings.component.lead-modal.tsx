@@ -72,11 +72,11 @@ export function QuickLeadModal({
         poolId: poolId === '' ? undefined : Number(poolId),
         assignedAgentId: agentId === '' ? undefined : Number(agentId),
       });
-      toast.success('سرنخ ثبت شد');
+      toast.success('مشتری ثبت شد');
       onCreated?.();
       close();
     } catch (e) {
-      toast.error((e as ApiError).message || 'ثبت سرنخ ناموفق بود');
+      toast.error((e as ApiError).message || 'ثبت مشتری ناموفق بود');
     }
   };
 
@@ -85,7 +85,7 @@ export function QuickLeadModal({
       <div className="flex flex-col max-h-[calc(100vh-4rem)]">
         <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
           <div className="min-w-0">
-            <h2 className="font-bold text-slate-700">افزودن سرنخ</h2>
+            <h2 className="font-bold text-slate-700">افزودن مشتری</h2>
             {listingTitle && (
               <p className="text-[12px] text-slate-400 truncate">{listingTitle}</p>
             )}
@@ -176,7 +176,7 @@ export function QuickLeadModal({
             انصراف
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading}>
-            ثبت سرنخ
+            ثبت مشتری
           </Button>
         </div>
       </div>

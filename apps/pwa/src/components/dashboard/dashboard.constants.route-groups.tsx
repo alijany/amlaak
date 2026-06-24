@@ -42,7 +42,7 @@ export const RouteItems = {
   },
   leads: {
     href: "/dashboard/leads",
-    label: "سرنخ‌ها",
+    label: "مشتری‌ها",
     roles: [Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
     icon: <IconPhoneCall className="size-5" />
   },
