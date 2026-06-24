@@ -18,6 +18,7 @@ import {
   LeadStats,
   LeadsResponse,
   UpdateLeadDto,
+  UpdateLeadPoolDto,
 } from './leads.types';
 
 function buildQuery(filters?: LeadFilters): string {
@@ -58,14 +59,6 @@ export function useUpdateLead(id: number) {
   return useSwrMutationHelper(swr);
 }
 
-export function useAssignLead(id: number) {
-  const swr = useSWRMutation(
-    `/leads/${id}/assign`,
-    postFetcher<{ agentId: number }, Lead>,
-  );
-  return useSwrMutationHelper(swr);
-}
-
 export function useClaimLead(id: number) {
   const swr = useSWRMutation(`/leads/${id}/claim`, postFetcher<undefined, Lead>);
   return useSwrMutationHelper(swr);
@@ -75,6 +68,14 @@ export function useCreateLeadPool() {
   const swr = useSWRMutation(
     '/leads/pools',
     postFetcher<CreateLeadPoolDto, LeadPool>,
+  );
+  return useSwrMutationHelper(swr);
+}
+
+export function useUpdateLeadPool(id: number) {
+  const swr = useSWRMutation(
+    `/leads/pools/${id}`,
+    patchFetcher<UpdateLeadPoolDto, LeadPool>,
   );
   return useSwrMutationHelper(swr);
 }

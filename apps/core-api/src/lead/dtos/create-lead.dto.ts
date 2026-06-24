@@ -29,13 +29,15 @@ export class CreateLeadDto {
   @IsOptional()
   trackingCode?: string;
 
+  /** Place the lead in a shared pool (mutually exclusive with agencyId). */
   @Type(() => Number)
   @IsInt()
   @IsOptional()
   poolId?: number;
 
+  /** Assign the lead to a single agency (mutually exclusive with poolId). */
   @Type(() => Number)
   @IsInt()
   @IsOptional()
-  assignedAgentId?: number;
+  agencyId?: number;
 }

@@ -6,16 +6,14 @@ import { LEAD_SOURCE_LABEL } from './leads.constants';
 import { LeadStatusPill } from './leads.component.status-pill';
 import { Lead } from './leads.types';
 
-function agentName(lead: Lead): string | undefined {
-  const a = lead.assignedAgent;
-  if (!a) return undefined;
-  const full = `${a.firstName ?? ''} ${a.lastName ?? ''}`.trim();
-  return full || a.phone;
+/** Where the lead currently sits: owned by an agency, queued in a pool, or unassigned. */
+function ownerLabel(lead: Lead): string {
+  if (lead.agency) return `آژانس: ${lead.agency.name}`;
+  if (lead.pool) return `صف: ${lead.pool.name}`;
+  return 'واگذار نشده';
 }
 
 export function LeadRow({ lead }: { lead: Lead }) {
-  const agent = agentName(lead);
-
   return (
     <Link
       href={`/dashboard/leads/${lead.id}`}
@@ -55,10 +53,7 @@ export function LeadRow({ lead }: { lead: Lead }) {
       </div>
 
       <div className="mt-auto flex items-center justify-between text-[11px] text-slate-400">
-        <span>
-          {agent ? `کارشناس: ${agent}` : 'بدون کارشناس'}
-          {lead.pool && ` · ${lead.pool.name}`}
-        </span>
+        <span>{ownerLabel(lead)}</span>
         <span>
           {new Date(lead.created_at).toLocaleDateString('fa-IR', {
             month: 'long',

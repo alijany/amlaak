@@ -86,8 +86,8 @@ function DashboardContent() {
         />
         <Kpi
           icon={<IconUserCheck size={20} />}
-          label="مشتری‌های من"
-          value={fa(stats.data?.mine)}
+          label="کل مشتری‌ها"
+          value={fa(stats.data?.total)}
           href={RouteItems.leads.href}
         />
         <Kpi

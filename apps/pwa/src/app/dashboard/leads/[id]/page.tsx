@@ -11,6 +11,7 @@ import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { DataView } from '@/ui/molecules';
 import {
   IconArrowRight,
+  IconBuildingEstate,
   IconExternalLink,
   IconMapPin,
   IconPhone,
@@ -19,10 +20,10 @@ import {
 import Link from 'next/link';
 import { use, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useUsers } from '../../users/users.api';
 import {
-  useAssignLead,
+  useClaimLead,
   useLead,
+  useLeadPools,
   useUpdateLead,
 } from '../leads.api';
 import { LEAD_STATUS_LABEL, LEAD_STATUS_ORDER } from '../leads.constants';
@@ -38,12 +39,15 @@ function formatPrice(value?: number): string | undefined {
 function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
   const { selectedRole } = useAuth();
   const isAdmin = selectedRole?.role === Role.ADMIN;
+  // A lead sitting in a pool with no owning agency can be claimed.
+  const isClaimable = !lead.agency && !!lead.pool;
 
   const { submit: updateLead, isLoading: updating } = useUpdateLead(lead.id);
-  const { submit: assignLead, isLoading: assigning } = useAssignLead(lead.id);
-  const { data: users } = useUsers(isAdmin ? { limit: 100 } : undefined);
+  const { submit: claimLead, isLoading: claiming } = useClaimLead(lead.id);
+  const { data: pools } = useLeadPools();
 
   const [note, setNote] = useState(lead.note ?? '');
+  const [poolId, setPoolId] = useState<number | ''>(lead.pool?.id ?? '');
   const ad = lead.advertisement;
   const price =
     formatPrice(ad?.totalPrice) ??
@@ -72,14 +76,25 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
     }
   };
 
-  const onAssign = async (agentId: number | null) => {
-    if (!agentId) return;
+  const onClaim = async () => {
     try {
-      await assignLead({ agentId });
-      toast.success('مشتری اختصاص یافت');
+      await claimLead();
+      toast.success('لید تصاحب شد');
       refresh();
     } catch (e) {
-      toast.error((e as ApiError).message || 'خطا در اختصاص مشتری');
+      toast.error((e as ApiError).message || 'خطا در تصاحب لید');
+    }
+  };
+
+  const onPoolChange = async (newPoolId: number | null) => {
+    if (newPoolId === (lead.pool?.id ?? null)) return;
+    try {
+      await updateLead({ poolId: newPoolId ?? undefined });
+      toast.success('صف به‌روزرسانی شد');
+      setPoolId(newPoolId ?? '');
+      refresh();
+    } catch (e) {
+      toast.error((e as ApiError).message || 'خطا در به‌روزرسانی صف');
     }
   };
 
@@ -149,18 +164,32 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
             </a>
           )}
         </div>
-        <div className="text-[12px] text-slate-400">
-          کارشناس:{' '}
-          {lead.assignedAgent
-            ? `${lead.assignedAgent.firstName ?? ''} ${lead.assignedAgent.lastName ?? ''}`.trim() ||
-              lead.assignedAgent.phone
-            : 'اختصاص نیافته'}
+        <div className="flex items-center gap-1.5 text-[12px] text-slate-400">
+          <IconBuildingEstate size={13} className="text-slate-400" />
+          {lead.agency
+            ? `آژانس: ${lead.agency.name}`
+            : lead.pool
+              ? `در صف: ${lead.pool.name}`
+              : 'واگذار نشده'}
         </div>
       </div>
 
+      {/* Claim banner for unclaimed pool leads */}
+      {isClaimable && (
+        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 flex items-center justify-between gap-3">
+          <div className="text-sm text-emerald-800">
+            این لید در صف «{lead.pool?.name}» است. با تصاحب آن، لید به آژانس شما
+            منتقل می‌شود.
+          </div>
+          <Button size="sm" onClick={onClaim} disabled={claiming}>
+            تصاحب لید
+          </Button>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="rounded-2xl bg-white p-4 space-y-4">
-        <div className={`grid gap-3 ${isAdmin ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+        <div className={`grid gap-3 ${isAdmin && isClaimable ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
           <div>
             <label className="font-medium mb-2 block text-slate-700 text-sm">
               وضعیت
@@ -177,21 +206,23 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
             />
           </div>
 
-          {isAdmin && (
+          {isAdmin && isClaimable && (
             <div>
               <label className="font-medium mb-2 block text-slate-700 text-sm">
-                اختصاص به کارشناس
+                صف
               </label>
-              <Dropdown<number>
-                items={(users?.items ?? []).map((u) => ({
-                  label: u.name || u.phone,
-                  value: u.id,
-                }))}
-                value={lead.assignedAgent?.id ?? null}
-                onChange={onAssign}
-                placeholder="انتخاب کارشناس"
+              <Dropdown<number | ''>
+                items={[
+                  { label: 'بدون صف', value: '' },
+                  ...(pools?.items ?? []).map((p) => ({
+                    label: p.name,
+                    value: p.id,
+                  })),
+                ]}
+                value={poolId}
+                onChange={(v) => onPoolChange(v === '' ? null : v ?? null)}
                 variant="outline"
-                disabled={assigning}
+                disabled={updating}
               />
             </div>
           )}

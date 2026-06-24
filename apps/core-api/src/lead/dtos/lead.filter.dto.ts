@@ -31,7 +31,7 @@ export class LeadFilterDto {
   @Type(() => Number)
   @IsInt()
   @IsOptional()
-  assignedAgentId?: number;
+  agencyId?: number;
 
   @Type(() => Number)
   @IsInt()

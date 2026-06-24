@@ -17,11 +17,9 @@ export enum LeadSource {
   OTHER = 'other',
 }
 
-export interface LeadAgent {
+export interface LeadAgency {
   id: number;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
+  name: string;
 }
 
 export interface LeadPool {
@@ -29,12 +27,13 @@ export interface LeadPool {
   name: string;
   description?: string;
   isActive: boolean;
+  agencies: { agency: { id: number; name: string } }[];
 }
 
 export interface Lead {
   id: number;
   advertisement: Advertisement;
-  assignedAgent?: LeadAgent;
+  agency?: LeadAgency;
   pool?: LeadPool;
   status: LeadStatus;
   source: LeadSource;
@@ -58,14 +57,13 @@ export interface LeadFilters {
   status?: LeadStatus;
   source?: LeadSource;
   poolId?: number;
-  assignedAgentId?: number;
+  agencyId?: number;
   advertisementId?: number;
   q?: string;
 }
 
 export interface LeadStats {
   total: number;
-  mine: number;
   byStatus: Record<LeadStatus, number>;
 }
 
@@ -81,8 +79,10 @@ export interface CreateLeadDto {
   contactPhone?: string;
   note?: string;
   trackingCode?: string;
+  /** Mutually exclusive with agencyId. */
   poolId?: number;
-  assignedAgentId?: number;
+  /** Mutually exclusive with poolId. */
+  agencyId?: number;
 }
 
 export interface UpdateLeadDto {
@@ -97,4 +97,12 @@ export interface UpdateLeadDto {
 export interface CreateLeadPoolDto {
   name: string;
   description?: string;
+  agencyIds: number[];
+}
+
+export interface UpdateLeadPoolDto {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  agencyIds?: number[];
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import { useAuth } from '@/components/auth/auth.context.provider';
-import { Role } from '@/components/auth/auth.constants.roles';
 import { ApiError } from '@/libs/api/api.types.error';
 import { fetcher } from '@/libs/api/api.util.fetcher';
 import { Button, Input, Modal } from '@/ui/atoms';
@@ -9,6 +7,7 @@ import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconCheck, IconSearch, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { useMyAgencies } from '../agency/agency.api';
 import { useCreateLead, useLeadPools } from './leads.api';
 import { LEAD_SOURCE_LABEL } from './leads.constants';
 import { LeadSource, LookupResponse } from './leads.types';
@@ -29,11 +28,9 @@ export function CreateLeadModal({
   onClose,
   onCreated,
 }: CreateLeadModalProps) {
-  const { selectedRole } = useAuth();
-  const canUsePool = selectedRole?.role === Role.ADMIN && !selectedRole?.agency;
-
   const { submit, isLoading } = useCreateLead();
   const { data: pools } = useLeadPools();
+  const { data: agencies } = useMyAgencies();
 
   const [code, setCode] = useState('');
   const [resolved, setResolved] = useState<LookupResponse | null>(null);
@@ -45,6 +42,7 @@ export function CreateLeadModal({
   const [contactPhone, setContactPhone] = useState('');
   const [note, setNote] = useState('');
   const [poolId, setPoolId] = useState<number | ''>('');
+  const [agencyId, setAgencyId] = useState<number | ''>('');
 
   const reset = () => {
     setCode('');
@@ -55,6 +53,7 @@ export function CreateLeadModal({
     setContactPhone('');
     setNote('');
     setPoolId('');
+    setAgencyId('');
   };
 
   const close = () => {
@@ -90,6 +89,7 @@ export function CreateLeadModal({
         contactPhone: contactPhone || undefined,
         note: note || undefined,
         poolId: poolId === '' ? undefined : Number(poolId),
+        agencyId: agencyId === '' ? undefined : Number(agencyId),
       });
       toast.success('مشتری ثبت شد');
       onCreated();
@@ -100,8 +100,8 @@ export function CreateLeadModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} className="lg:w-[32rem]">
-      <div className="flex flex-col max-h-[calc(100vh-4rem)]">
+    <Modal isOpen={isOpen} onClose={close} className="lg:w-[32rem] flex flex-col">
+      <div className="contents">
         <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
           <h2 className="font-bold text-slate-700">ثبت مشتری جدید</h2>
           <button onClick={close} className="text-slate-400 hover:text-slate-700">
@@ -109,7 +109,7 @@ export function CreateLeadModal({
           </button>
         </div>
 
-        <div className="overflow-auto px-5 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-auto px-5 py-4 space-y-4">
           {/* Listing lookup by tracking code */}
           <div className="space-y-2">
             <div className="flex items-end gap-2">
@@ -162,7 +162,7 @@ export function CreateLeadModal({
             />
           </div>
 
-          <div className={`grid grid-cols-1 gap-3 ${canUsePool ? 'sm:grid-cols-2' : ''}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="font-medium mb-2 block text-slate-700">منبع</label>
               <Dropdown<LeadSource>
@@ -174,25 +174,49 @@ export function CreateLeadModal({
                 variant="outline"
               />
             </div>
-            {canUsePool && (
-              <div>
-                <label className="font-medium mb-2 block text-slate-700">
-                  صف (اختیاری)
-                </label>
-                <Dropdown<number | ''>
-                  items={[
-                    { label: 'بدون صف', value: '' },
-                    ...(pools?.items ?? []).map((p) => ({
-                      label: p.name,
-                      value: p.id,
-                    })),
-                  ]}
-                  value={poolId}
-                  onChange={(v) => setPoolId(v ?? '')}
-                  variant="outline"
-                />
-              </div>
-            )}
+            <div>
+              <label className="font-medium mb-2 block text-slate-700">
+                آژانس
+              </label>
+              <Dropdown<number | ''>
+                items={[
+                  { label: 'انتخاب آژانس', value: '' },
+                  ...(agencies?.items ?? []).map((a) => ({
+                    label: a.name,
+                    value: a.id,
+                  })),
+                ]}
+                value={agencyId}
+                onChange={(v) => {
+                  setAgencyId(v ?? '');
+                  if (v) setPoolId('');
+                }}
+                variant="outline"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="font-medium mb-2 block text-slate-700">
+              یا صف
+            </label>
+            <Dropdown<number | ''>
+              items={[
+                { label: 'انتخاب صف', value: '' },
+                ...(pools?.items ?? []).map((p) => ({
+                  label: p.name,
+                  value: p.id,
+                })),
+              ]}
+              value={poolId}
+              onChange={(v) => {
+                setPoolId(v ?? '');
+                if (v) setAgencyId('');
+              }}
+              variant="outline"
+            />
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              لید را به یک آژانس یا یک صف واگذار کنید (فقط یکی).
+            </p>
           </div>
 
           <Input
@@ -204,13 +228,13 @@ export function CreateLeadModal({
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4">
+        <div className="flex-shrink-0 flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4">
           <Button variant="outline" onClick={close}>
             انصراف
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || !resolved}
+            disabled={isLoading || !resolved || (!agencyId && !poolId)}
           >
             ثبت مشتری
           </Button>

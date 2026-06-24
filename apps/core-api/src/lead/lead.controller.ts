@@ -19,7 +19,6 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from 'src/roles/roles.constants';
 import { UserEntity } from 'src/user/user.entity';
 import { AdvertisementService } from '../real-estate/advertisement.service';
-import { AssignLeadDto } from './dtos/assign-lead.dto';
 import { CreateLeadDto } from './dtos/create-lead.dto';
 import { LeadFilterDto } from './dtos/lead.filter.dto';
 import { CreateLeadPoolDto, UpdateLeadPoolDto } from './dtos/lead-pool.dto';
@@ -87,7 +86,7 @@ export class LeadController {
   ) {
     const ctx = this.access.resolve(user, agencyId);
     await this.access.assertAgencyConfirmed(ctx.activeAgencyId, user);
-    return this.pools.createPool(dto, ctx);
+    return this.pools.createPool(dto);
   }
 
   @Patch('pools/:id')
@@ -142,21 +141,6 @@ export class LeadController {
     @CurrentAgencyId() agencyId?: number,
   ) {
     return this.leads.update(id, dto, this.access.resolve(user, agencyId));
-  }
-
-  @Post(':id/assign')
-  @Roles(...MANAGER)
-  assign(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: AssignLeadDto,
-    @CurrentUser() user: UserEntity,
-    @CurrentAgencyId() agencyId?: number,
-  ) {
-    return this.leads.assign(
-      id,
-      dto.agentId,
-      this.access.resolve(user, agencyId),
-    );
   }
 
   @Post(':id/claim')

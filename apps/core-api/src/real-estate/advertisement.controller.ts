@@ -45,10 +45,7 @@ export class AdvertisementController {
 
   /** Admin-only: update any field on a crawled or user-created advertisement. */
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateListingDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateListingDto) {
     return this.advertisements.adminUpdate(id, dto);
   }
 

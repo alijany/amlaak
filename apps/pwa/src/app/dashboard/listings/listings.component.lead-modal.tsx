@@ -1,17 +1,15 @@
 'use client';
 
-import { useAuth } from '@/components/auth/auth.context.provider';
-import { Role } from '@/components/auth/auth.constants.roles';
 import { ApiError } from '@/libs/api/api.types.error';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { useMyAgencies } from '../agency/agency.api';
 import { useCreateLead, useLeadPools } from '../leads/leads.api';
 import { LEAD_SOURCE_LABEL } from '../leads/leads.constants';
 import { LeadSource } from '../leads/leads.types';
-import { useUsers } from '../users/users.api';
 
 const SOURCE_ITEMS = Object.values(LeadSource).map((s) => ({
   label: LEAD_SOURCE_LABEL[s],
@@ -33,19 +31,16 @@ export function QuickLeadModal({
   onClose,
   onCreated,
 }: QuickLeadModalProps) {
-  const { selectedRole } = useAuth();
-  const canAssignAndPool = selectedRole?.role === Role.ADMIN && !selectedRole?.agency;
-
   const { submit, isLoading } = useCreateLead();
   const { data: pools } = useLeadPools();
-  const { data: users } = useUsers({ limit: 100 });
+  const { data: agencies } = useMyAgencies();
 
   const [source, setSource] = useState<LeadSource>(LeadSource.PHONE_CALL);
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [note, setNote] = useState('');
   const [poolId, setPoolId] = useState<number | ''>('');
-  const [agentId, setAgentId] = useState<number | ''>('');
+  const [agencyId, setAgencyId] = useState<number | ''>('');
 
   const reset = () => {
     setSource(LeadSource.PHONE_CALL);
@@ -53,7 +48,7 @@ export function QuickLeadModal({
     setContactPhone('');
     setNote('');
     setPoolId('');
-    setAgentId('');
+    setAgencyId('');
   };
 
   const close = () => {
@@ -70,7 +65,7 @@ export function QuickLeadModal({
         contactPhone: contactPhone || undefined,
         note: note || undefined,
         poolId: poolId === '' ? undefined : Number(poolId),
-        assignedAgentId: agentId === '' ? undefined : Number(agentId),
+        agencyId: agencyId === '' ? undefined : Number(agencyId),
       });
       toast.success('مشتری ثبت شد');
       onCreated?.();
@@ -81,8 +76,8 @@ export function QuickLeadModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} className="lg:w-[32rem]">
-      <div className="flex flex-col max-h-[calc(100vh-4rem)]">
+    <Modal isOpen={isOpen} onClose={close} className="lg:w-[32rem] flex flex-col">
+      <div className="contents">
         <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
           <div className="min-w-0">
             <h2 className="font-bold text-slate-700">افزودن مشتری</h2>
@@ -95,7 +90,7 @@ export function QuickLeadModal({
           </button>
         </div>
 
-        <div className="overflow-auto px-5 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-auto px-5 py-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="نام تماس‌گیرنده"
@@ -109,7 +104,7 @@ export function QuickLeadModal({
             />
           </div>
 
-          <div className={`grid grid-cols-1 gap-3 ${canAssignAndPool ? 'sm:grid-cols-2' : ''}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="font-medium mb-2 block text-slate-700">منبع</label>
               <Dropdown<LeadSource>
@@ -121,46 +116,51 @@ export function QuickLeadModal({
                 variant="outline"
               />
             </div>
-            {canAssignAndPool && (
-              <div>
-                <label className="font-medium mb-2 block text-slate-700">
-                  واگذاری به (اختیاری)
-                </label>
-                <Dropdown<number | ''>
-                  items={[
-                    { label: 'بدون واگذاری', value: '' },
-                    ...(users?.items ?? []).map((u) => ({
-                      label: u.name || u.phone,
-                      value: u.id,
-                    })),
-                  ]}
-                  value={agentId}
-                  onChange={(v) => setAgentId(v ?? '')}
-                  variant="outline"
-                />
-              </div>
-            )}
-          </div>
-
-          {canAssignAndPool && (
             <div>
               <label className="font-medium mb-2 block text-slate-700">
-                صف (اختیاری)
+                آژانس
               </label>
               <Dropdown<number | ''>
                 items={[
-                  { label: 'بدون صف', value: '' },
-                  ...(pools?.items ?? []).map((p) => ({
-                    label: p.name,
-                    value: p.id,
+                  { label: 'انتخاب آژانس', value: '' },
+                  ...(agencies?.items ?? []).map((a) => ({
+                    label: a.name,
+                    value: a.id,
                   })),
                 ]}
-                value={poolId}
-                onChange={(v) => setPoolId(v ?? '')}
+                value={agencyId}
+                onChange={(v) => {
+                  setAgencyId(v ?? '');
+                  if (v) setPoolId('');
+                }}
                 variant="outline"
               />
             </div>
-          )}
+          </div>
+
+          <div>
+            <label className="font-medium mb-2 block text-slate-700">
+              یا صف
+            </label>
+            <Dropdown<number | ''>
+              items={[
+                { label: 'انتخاب صف', value: '' },
+                ...(pools?.items ?? []).map((p) => ({
+                  label: p.name,
+                  value: p.id,
+                })),
+              ]}
+              value={poolId}
+              onChange={(v) => {
+                setPoolId(v ?? '');
+                if (v) setAgencyId('');
+              }}
+              variant="outline"
+            />
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              لید را به یک آژانس یا یک صف واگذار کنید (فقط یکی).
+            </p>
+          </div>
 
           <Input
             label="یادداشت"
@@ -171,11 +171,14 @@ export function QuickLeadModal({
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4">
+        <div className="flex-shrink-0 flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4">
           <Button variant="outline" onClick={close}>
             انصراف
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading || (!agencyId && !poolId)}
+          >
             ثبت مشتری
           </Button>
         </div>

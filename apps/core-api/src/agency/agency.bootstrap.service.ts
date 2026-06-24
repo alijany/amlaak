@@ -1,6 +1,5 @@
 import { EntityManager } from '@mikro-orm/core';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { LeadPoolEntity } from '../lead/lead-pool.entity';
 import { LeadEntity } from '../lead/lead.entity';
 import { RealEstateAdvertisementEntity } from '../real-estate/advertisement.entity';
 import { Role } from '../roles/roles.constants';
@@ -56,11 +55,7 @@ export class AgencyBootstrapService implements OnApplicationBootstrap {
         { agency: null },
         { agency: agency.id },
       );
-      await fork.nativeUpdate(
-        LeadPoolEntity,
-        { agency: null },
-        { agency: agency.id },
-      );
+
       await fork.nativeUpdate(
         RolesEntity,
         {

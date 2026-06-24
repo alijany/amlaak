@@ -2,18 +2,18 @@ import { Entity, Enum, Index, ManyToOne, Property } from '@mikro-orm/core';
 import { AgencyEntity } from '../agency/agency.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { RealEstateAdvertisementEntity } from '../real-estate/advertisement.entity';
-import { UserEntity } from '../user/user.entity';
 import { LeadPoolEntity } from './lead-pool.entity';
 import { LeadSource, LeadStatus } from './lead.constants';
 
 /**
  * An inbound inquiry attributed to a listing. Created manually by staff in M1;
- * assigned to an agent (directly or via a {@link LeadPoolEntity}) and tracked
+ * assigned to a single agency directly, or placed in a shared
+ * {@link LeadPoolEntity} until the first member agency claims it. Tracked
  * through the {@link LeadStatus} pipeline to conversion.
  */
 @Entity()
 export class LeadEntity extends BaseEntity {
-  /** Owning agency (tenant). Null only for legacy rows until backfilled. */
+  /** Owning agency (tenant). Null while the lead is unclaimed in a pool. */
   @ManyToOne(() => AgencyEntity, { nullable: true })
   @Index()
   agency?: AgencyEntity;
@@ -22,12 +22,7 @@ export class LeadEntity extends BaseEntity {
   @ManyToOne(() => RealEstateAdvertisementEntity)
   advertisement: RealEstateAdvertisementEntity;
 
-  /** Agent currently responsible. Null while in a pool / unassigned. */
-  @ManyToOne(() => UserEntity, { nullable: true })
-  @Index()
-  assignedAgent?: UserEntity;
-
-  /** Shared pool the lead sits in while unassigned. */
+  /** Shared pool the lead sits in while unclaimed by any agency. */
   @ManyToOne(() => LeadPoolEntity, { nullable: true })
   pool?: LeadPoolEntity;
 

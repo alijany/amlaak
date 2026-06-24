@@ -1,6 +1,7 @@
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -8,9 +9,6 @@ import {
 import { AgencyContext } from 'src/agency/agency-access.service';
 import { AgencyEntity } from 'src/agency/agency.entity';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
-import { UserEntity } from 'src/user/user.entity';
-import { NotificationTemplate } from '../notification/notification.constants';
-import { NotificationService } from '../notification/services/notification.service';
 import { AdvertisementService } from '../real-estate/advertisement.service';
 import { CreateLeadDto } from './dtos/create-lead.dto';
 import { LeadFilterDto } from './dtos/lead.filter.dto';
@@ -20,7 +18,7 @@ import { LeadStatus } from './lead.constants';
 import { LeadEntity } from './lead.entity';
 import { advertisementTrackingCode } from './lead.tracking';
 
-const POPULATE = ['advertisement', 'assignedAgent', 'pool'] as never;
+const POPULATE = ['advertisement', 'pool', 'pool.agencies', 'agency'] as never;
 
 @Injectable()
 export class LeadService extends BaseRepositoryService<LeadEntity> {
@@ -28,51 +26,52 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     @InjectRepository(LeadEntity)
     protected repository: EntityRepository<LeadEntity>,
     private readonly advertisements: AdvertisementService,
-    private readonly notifications: NotificationService,
   ) {
     super(repository);
   }
 
-  /** Restrict to the active agency (platform admin = cross-tenant). */
-  private agencyFilter(ctx: AgencyContext): FilterQuery<LeadEntity> {
-    if (ctx.activeAgencyId != null) return { agency: ctx.activeAgencyId };
-    if (ctx.isPlatformAdmin) return {};
-    return { id: -1 }; // no agency context, not admin → see nothing
-  }
-
-  /**
-   * Whether the viewer sees every lead in scope. Only a platform admin acting
-   * in their global (cross-tenant) role sees all leads. Anyone operating within
-   * an agency — including its owner/manager — is treated as an agent and scoped
-   * to their own + pooled leads.
-   */
   private canSeeAllLeads(ctx: AgencyContext): boolean {
     return ctx.activeAgencyId == null && ctx.isPlatformAdmin;
   }
 
   /**
-   * Agency scope + (for non-managers) only their own leads OR unassigned leads
-   * that are in a pool (claimable). Unassigned leads with no pool are invisible
-   * to non-managers — they belong to no one and cannot be claimed from a queue.
+   * Visibility filter: every member of an agency sees
+   *   - leads owned by their agency, OR
+   *   - unclaimed leads in a shared pool where their agency is a member.
    */
   private scopeFilter(ctx: AgencyContext): FilterQuery<LeadEntity> {
-    const and: FilterQuery<LeadEntity>[] = [this.agencyFilter(ctx)];
-    if (!this.canSeeAllLeads(ctx)) {
-      and.push({
-        $or: [
-          { assignedAgent: ctx.viewerId },
-          { assignedAgent: null, pool: { $ne: null } },
-        ],
-      });
-    }
-    return { $and: and };
+    if (this.canSeeAllLeads(ctx)) return {};
+
+    const agencyId = ctx.activeAgencyId;
+    if (!agencyId) return { id: -1 };
+
+    return {
+      $or: [
+        // Leads owned by this agency (any member can see/handle them)
+        { agency: agencyId },
+        // Unclaimed leads in a shared pool this agency belongs to
+        { agency: null, pool: { agencies: { agency: agencyId } } },
+      ],
+    };
   }
 
-  private assertSameAgency(lead: LeadEntity, ctx: AgencyContext) {
+  /** Verify the active agency may access the lead (owns it, or is a pool member). */
+  private assertCanAccess(lead: LeadEntity, ctx: AgencyContext) {
     if (ctx.isPlatformAdmin) return;
-    if (ctx.activeAgencyId != null && lead.agency?.id !== ctx.activeAgencyId) {
-      throw new ForbiddenException('lead belongs to another agency');
-    }
+    if (ctx.activeAgencyId == null)
+      throw new ForbiddenException('no active agency');
+    // Owned by this agency → ok.
+    if (lead.agency?.id === ctx.activeAgencyId) return;
+    // Unclaimed pool lead where this agency is a member → ok.
+    if (lead.agency == null && this.isPoolMember(lead, ctx.activeAgencyId))
+      return;
+    throw new ForbiddenException('lead belongs to another agency');
+  }
+
+  private isPoolMember(lead: LeadEntity, agencyId: number): boolean {
+    return !!lead.pool?.agencies
+      .getItems()
+      .some((m) => m.agency?.id === agencyId);
   }
 
   async createManual(
@@ -82,9 +81,18 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     const ad = await this.advertisements.findOne({ id: dto.advertisementId });
     if (!ad) throw new NotFoundException('listing not found');
 
+    // A lead targets exactly one of: a single agency, or a shared pool.
+    // When neither is given, default ownership to the creator's active agency.
+    const agencyId = dto.agencyId ?? (dto.poolId ? null : ctx.activeAgencyId);
+    if (Number(!!dto.poolId) + Number(!!agencyId) !== 1) {
+      throw new BadRequestException(
+        'یک لید باید دقیقاً به یک آژانس یا یک صف واگذار شود',
+      );
+    }
+
     const lead = this.repository.create({
-      agency: ctx.activeAgencyId
-        ? this.em.getReference(AgencyEntity, ctx.activeAgencyId)
+      agency: agencyId
+        ? this.em.getReference(AgencyEntity, agencyId)
         : undefined,
       advertisement: ad,
       source: dto.source,
@@ -96,15 +104,8 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       pool: dto.poolId
         ? this.em.getReference(LeadPoolEntity, dto.poolId)
         : undefined,
-      assignedAgent: dto.assignedAgentId
-        ? this.em.getReference(UserEntity, dto.assignedAgentId)
-        : undefined,
     });
     await this.persistAndFlush(lead);
-
-    // Don't notify when a user assigns the lead to themselves.
-    if (dto.assignedAgentId && dto.assignedAgentId !== ctx.viewerId)
-      await this.notifyAssigned(lead, dto.assignedAgentId);
     return lead;
   }
 
@@ -115,8 +116,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     if (filter.status) and.push({ status: filter.status });
     if (filter.source) and.push({ source: filter.source });
     if (filter.poolId) and.push({ pool: filter.poolId });
-    if (filter.assignedAgentId)
-      and.push({ assignedAgent: filter.assignedAgentId });
+    if (filter.agencyId) and.push({ agency: filter.agencyId });
     if (filter.advertisementId)
       and.push({ advertisement: filter.advertisementId });
     if (filter.q) {
@@ -151,13 +151,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     const lead = await this.findOne({ id }, { populate: POPULATE });
     if (!lead) throw new NotFoundException('lead not found');
 
-    this.assertSameAgency(lead, ctx);
-    if (!this.canSeeAllLeads(ctx)) {
-      const ownerId = lead.assignedAgent?.id;
-      if (ownerId && ownerId !== ctx.viewerId) {
-        throw new ForbiddenException('not your lead');
-      }
-    }
+    this.assertCanAccess(lead, ctx);
     return lead;
   }
 
@@ -187,39 +181,34 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     return lead;
   }
 
-  /** Manager action: assign a lead to an agent. */
-  async assign(
-    id: number,
-    agentId: number,
-    ctx: AgencyContext,
-  ): Promise<LeadEntity> {
-    const lead = await this.findOne({ id }, { populate: POPULATE });
-    if (!lead) throw new NotFoundException('lead not found');
-    this.assertSameAgency(lead, ctx);
-
-    this.em.assign(lead, { assignedAgent: agentId });
-    await this.persistAndFlush(lead);
-    if (agentId !== ctx.viewerId) await this.notifyAssigned(lead, agentId);
-    return lead;
-  }
-
-  /** Agent action: claim a lead (must be unassigned or already theirs). */
+  /**
+   * Agency action: claim an unclaimed lead out of a shared pool. The first
+   * member agency to claim it takes ownership — the lead leaves the pool and is
+   * assigned to the claiming agency.
+   */
   async claim(id: number, ctx: AgencyContext): Promise<LeadEntity> {
     const lead = await this.findOne({ id }, { populate: POPULATE });
     if (!lead) throw new NotFoundException('lead not found');
-    this.assertSameAgency(lead, ctx);
 
-    const ownerId = lead.assignedAgent?.id;
-    if (ownerId && ownerId !== ctx.viewerId) {
-      throw new ForbiddenException('lead already assigned');
-    }
+    if (ctx.activeAgencyId == null)
+      throw new ForbiddenException('no active agency');
+    if (lead.agency != null)
+      throw new ForbiddenException('این لید قبلاً واگذار شده است');
+    if (lead.pool == null)
+      throw new BadRequestException('این لید در هیچ صفی نیست');
+    if (!this.isPoolMember(lead, ctx.activeAgencyId))
+      throw new ForbiddenException('lead belongs to another pool');
 
-    this.em.assign(lead, { assignedAgent: ctx.viewerId });
+    // Transfer ownership to the claiming agency and clear the pool.
+    this.em.assign(lead, {
+      agency: this.em.getReference(AgencyEntity, ctx.activeAgencyId),
+      pool: undefined,
+    });
     await this.persistAndFlush(lead);
     return lead;
   }
 
-  /** Status funnel for the dashboard, scoped to the active agency + viewer. */
+  /** Status funnel for the dashboard, scoped to what the active agency can see. */
   async stats(ctx: AgencyContext) {
     const base = this.scopeFilter(ctx);
     const statuses = Object.values(LeadStatus);
@@ -236,26 +225,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       {},
     );
     const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
-    const mine = await this.count({
-      $and: [this.agencyFilter(ctx), { assignedAgent: ctx.viewerId }],
-    });
 
-    return { total, mine, byStatus };
-  }
-
-  private async notifyAssigned(lead: LeadEntity, agentId: number) {
-    const title = lead.advertisement?.title ?? `#${lead.advertisement?.id}`;
-    await this.notifications.sendToUser(
-      agentId,
-      `یک مشتری جدید برای «${title}» به شما اختصاص یافت.`,
-      {
-        priority: 'high',
-        metadata: {
-          template: NotificationTemplate.LEAD_ASSIGNED,
-          leadId: lead.id,
-          advertisementId: lead.advertisement?.id,
-        },
-      },
-    );
+    return { total, byStatus };
   }
 }

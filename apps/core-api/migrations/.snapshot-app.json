@@ -669,6 +669,85 @@
           "length": 6,
           "mappedType": "datetime"
         },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "true",
+          "mappedType": "boolean"
+        }
+      },
+      "name": "lead_pool_entity",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "lead_pool_entity_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "unsigned": false,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
         "to": {
           "name": "to",
           "type": "varchar(255)",
@@ -2146,60 +2225,71 @@
           "length": 6,
           "mappedType": "datetime"
         },
+        "pool_id": {
+          "name": "pool_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
         "agency_id": {
           "name": "agency_id",
           "type": "int",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
+          "nullable": false,
           "mappedType": "integer"
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
+        "added_at": {
+          "name": "added_at",
+          "type": "timestamptz",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
-          "mappedType": "string"
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "text"
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "default": "true",
-          "mappedType": "boolean"
+          "length": 6,
+          "mappedType": "datetime"
         }
       },
-      "name": "lead_pool_entity",
+      "name": "lead_pool_agency_entity",
       "schema": "public",
       "indexes": [
         {
           "columnNames": [
-            "agency_id"
+            "pool_id"
           ],
           "composite": false,
-          "keyName": "lead_pool_entity_agency_id_index",
+          "keyName": "lead_pool_agency_entity_pool_id_index",
           "constraint": false,
           "primary": false,
           "unique": false
         },
         {
-          "keyName": "lead_pool_entity_pkey",
+          "columnNames": [
+            "agency_id"
+          ],
+          "composite": false,
+          "keyName": "lead_pool_agency_entity_agency_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "lead_pool_agency_entity_pool_id_agency_id_unique",
+          "columnNames": [
+            "pool_id",
+            "agency_id"
+          ],
+          "composite": true,
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "lead_pool_agency_entity_pkey",
           "columnNames": [
             "id"
           ],
@@ -2211,17 +2301,28 @@
       ],
       "checks": [],
       "foreignKeys": {
-        "lead_pool_entity_agency_id_foreign": {
-          "constraintName": "lead_pool_entity_agency_id_foreign",
+        "lead_pool_agency_entity_pool_id_foreign": {
+          "constraintName": "lead_pool_agency_entity_pool_id_foreign",
+          "columnNames": [
+            "pool_id"
+          ],
+          "localTableName": "public.lead_pool_agency_entity",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.lead_pool_entity",
+          "updateRule": "cascade"
+        },
+        "lead_pool_agency_entity_agency_id_foreign": {
+          "constraintName": "lead_pool_agency_entity_agency_id_foreign",
           "columnNames": [
             "agency_id"
           ],
-          "localTableName": "public.lead_pool_entity",
+          "localTableName": "public.lead_pool_agency_entity",
           "referencedColumnNames": [
             "id"
           ],
           "referencedTableName": "public.agency_entity",
-          "deleteRule": "set null",
           "updateRule": "cascade"
         }
       },
@@ -2274,15 +2375,6 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "integer"
-        },
-        "assigned_agent_id": {
-          "name": "assigned_agent_id",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
           "mappedType": "integer"
         },
         "pool_id": {
@@ -2404,16 +2496,6 @@
         },
         {
           "columnNames": [
-            "assigned_agent_id"
-          ],
-          "composite": false,
-          "keyName": "lead_entity_assigned_agent_id_index",
-          "constraint": false,
-          "primary": false,
-          "unique": false
-        },
-        {
-          "columnNames": [
             "status"
           ],
           "composite": false,
@@ -2458,19 +2540,6 @@
             "id"
           ],
           "referencedTableName": "public.real_estate_advertisement_entity",
-          "updateRule": "cascade"
-        },
-        "lead_entity_assigned_agent_id_foreign": {
-          "constraintName": "lead_entity_assigned_agent_id_foreign",
-          "columnNames": [
-            "assigned_agent_id"
-          ],
-          "localTableName": "public.lead_entity",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.user_entity",
-          "deleteRule": "set null",
           "updateRule": "cascade"
         },
         "lead_entity_pool_id_foreign": {

@@ -19,7 +19,11 @@ import { UserEntity } from 'src/user/user.entity';
 import { AgencyAccessService } from './agency-access.service';
 import { AgencyService } from './agency.service';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
-import { CreateAgencyDto, InviteAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
+import {
+  CreateAgencyDto,
+  InviteAgencyDto,
+  UpdateAgencyDto,
+} from './dtos/agency.dto';
 
 const MANAGER = [Role.OWNER, Role.MANAGER, Role.ADMIN] as const;
 

@@ -1,18 +1,14 @@
-import { Entity, Index, ManyToOne, Property } from '@mikro-orm/core';
-import { AgencyEntity } from '../agency/agency.entity';
+import { Collection, Entity, OneToMany, Property } from '@mikro-orm/core';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
+import { LeadPoolAgencyEntity } from './lead-pool-agency.entity';
 
 /**
- * A shared lead pool (queue) within an agency. Unassigned leads can be routed to
- * a pool; agents claim leads out of pools. Managed by agency managers/admins.
+ * A shared lead pool (queue). All pools are cross-agency: member agencies are
+ * tracked via {@link LeadPoolAgencyEntity}. Agents claim leads out of pools;
+ * on claim the lead transfers ownership to the claiming agent's agency.
  */
 @Entity()
 export class LeadPoolEntity extends BaseEntity {
-  /** Owning agency (tenant). Null only for legacy rows until backfilled. */
-  @ManyToOne(() => AgencyEntity, { nullable: true })
-  @Index()
-  agency?: AgencyEntity;
-
   @Property()
   name: string;
 
@@ -21,4 +17,7 @@ export class LeadPoolEntity extends BaseEntity {
 
   @Property({ default: true })
   isActive: boolean = true;
+
+  @OneToMany(() => LeadPoolAgencyEntity, (lpa) => lpa.pool)
+  agencies = new Collection<LeadPoolAgencyEntity>(this);
 }
