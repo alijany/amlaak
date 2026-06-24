@@ -140,9 +140,9 @@ export function ListingFormModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="lg:w-[34rem]">
-      <div className="flex flex-col max-h-[calc(100vh-4rem)]">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
+    <Modal isOpen={isOpen} onClose={onClose} className="lg:w-[34rem] flex flex-col">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 flex-shrink-0">
           <h2 className="font-bold text-slate-700">
             {editing ? 'ویرایش آگهی' : 'ثبت آگهی جدید'}
           </h2>
@@ -151,7 +151,7 @@ export function ListingFormModal({
           </button>
         </div>
 
-        <div className="overflow-auto px-5 py-4 space-y-3">
+        <div className="overflow-y-auto min-h-0 flex-1 px-5 py-4 space-y-3">
           <Input label="عنوان" value={title} onChange={(e) => setTitle(e.target.value)} />
 
           <div className="grid grid-cols-2 gap-3">
@@ -182,30 +182,30 @@ export function ListingFormModal({
           {/* Financial fields — depend on the deal type */}
           <div className="grid grid-cols-2 gap-3">
             {priceFields.includes('totalPrice') && (
-              <Input label="قیمت کل (تومان)" type="number" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} />
+              <Input label="قیمت کل (تومان)" type="number" min="0" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} />
             )}
             {priceFields.includes('pricePerMeter') && (
-              <Input label="قیمت هر متر (تومان)" type="number" value={pricePerMeter} onChange={(e) => setPricePerMeter(e.target.value)} />
+              <Input label="قیمت هر متر (تومان)" type="number" min="0" value={pricePerMeter} onChange={(e) => setPricePerMeter(e.target.value)} />
             )}
             {priceFields.includes('deposit') && (
-              <Input label="ودیعه (تومان)" type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+              <Input label="ودیعه (تومان)" type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
             )}
             {priceFields.includes('rent') && (
-              <Input label="اجاره ماهیانه (تومان)" type="number" value={rent} onChange={(e) => setRent(e.target.value)} />
+              <Input label="اجاره ماهیانه (تومان)" type="number" min="0" value={rent} onChange={(e) => setRent(e.target.value)} />
             )}
           </div>
 
           {/* Specs — depend on the property type */}
           <div className="grid grid-cols-2 gap-3">
-            <Input label="متراژ" type="number" value={area} onChange={(e) => setArea(e.target.value)} />
+            <Input label="متراژ" type="number" min="0" value={area} onChange={(e) => setArea(e.target.value)} />
             {!land && (
-              <Input label="تعداد خواب" type="number" value={rooms} onChange={(e) => setRooms(e.target.value)} />
+              <Input label="تعداد خواب" type="number" min="0" value={rooms} onChange={(e) => setRooms(e.target.value)} />
             )}
             {!land && (
-              <Input label="سال ساخت" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
+              <Input label="سال ساخت" type="number" min="1300" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
             )}
             {!land && (
-              <Input label="طبقه" type="number" value={floor} onChange={(e) => setFloor(e.target.value)} />
+              <Input label="طبقه" type="number" min="0" value={floor} onChange={(e) => setFloor(e.target.value)} />
             )}
             <Input label="استان" value={province} onChange={(e) => setProvince(e.target.value)} />
             <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
@@ -216,7 +216,7 @@ export function ListingFormModal({
           <ImageUploader label="تصاویر ملک" value={images} onChange={setImages} previewClassName="h-24 w-24" />
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4">
+        <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-5 py-4 flex-shrink-0">
           <Button variant="outline" onClick={onClose}>
             انصراف
           </Button>

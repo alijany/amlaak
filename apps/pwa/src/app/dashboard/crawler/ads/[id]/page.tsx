@@ -81,9 +81,8 @@ function ImageGallery({ images, title }: { images: string[]; title?: string }) {
               <button
                 key={i}
                 onClick={() => setIdx(i)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === idx ? 'bg-white' : 'bg-white/40'
-                }`}
+                className={`w-2 h-2 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/40'
+                  }`}
               />
             ))}
           </div>
@@ -359,7 +358,7 @@ function DebugView({ ad }: { ad: Advertisement }) {
 function LeadsTab({ advertisementId }: { advertisementId: number }) {
   const { data, error, isLoading, refresh } = useLeads({ advertisementId, limit: 50 });
   return (
-    <div className="space-y-2 max-w-2xl mx-auto">
+    <div className="space-y-2 mx-auto">
       <DataView
         data={data}
         error={error}
@@ -513,32 +512,29 @@ function AdDetailContent({ id }: { id: number }) {
         <div className="flex items-center bg-slate-100 rounded-xl p-1 flex-shrink-0">
           <button
             onClick={() => setTab('leads')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
-              tab === 'leads'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${tab === 'leads'
                 ? 'bg-white text-slate-700 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             مشتری‌ها
           </button>
           <button
             onClick={() => setTab('info')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
-              tab === 'info'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${tab === 'info'
                 ? 'bg-white text-slate-700 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             <IconBuildingEstate size={14} />
             اطلاعات ملک
           </button>
           <button
             onClick={() => setTab('debug')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
-              tab === 'debug'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${tab === 'debug'
                 ? 'bg-white text-slate-700 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             <span className="font-mono text-[11px]">{'{}'}</span>
             داده‌های خام
@@ -562,14 +558,10 @@ function AdDetailContent({ id }: { id: number }) {
             <div>
               {tab === 'leads' && <LeadsTab advertisementId={ad.id} />}
               {tab === 'info' && (
-                <div className="max-w-2xl mx-auto">
-                  <StructuredView ad={ad} />
-                </div>
+                <StructuredView ad={ad} />
               )}
               {tab === 'debug' && (
-                <div className="max-w-2xl mx-auto">
-                  <DebugView ad={ad} />
-                </div>
+                <DebugView ad={ad} />
               )}
             </div>
           )}

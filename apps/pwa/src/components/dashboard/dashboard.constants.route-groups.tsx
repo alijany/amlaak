@@ -49,13 +49,13 @@ export const RouteItems = {
   agency: {
     href: "/dashboard/agency",
     label: "آژانس من",
-    roles: [Role.USER, Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
+    roles: [Role.USER, Role.MEMBER, Role.MANAGER, Role.OWNER],
     icon: <IconBuildingCommunity className="size-5" />
   },
   myListings: {
     href: "/dashboard/listings",
     label: "آگهی‌های من",
-    roles: [Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
+    roles: [Role.MEMBER, Role.MANAGER, Role.OWNER],
     icon: <IconHomePlus className="size-5" />
   },
   crawler: {
@@ -66,7 +66,7 @@ export const RouteItems = {
   },
   crawlerAds: {
     href: "/dashboard/crawler/ads",
-    label: "آگهی‌های گردآوری‌شده",
+    label: "آگهی‌های",
     roles: [Role.ADMIN],
     icon: <IconList className="size-5" />
   },
@@ -83,12 +83,12 @@ export const routeGroups: RouteGroup[] = [
   {
     label: "پیشخوان",
     routes: [
+      RouteItems.crawlerAds,
       RouteItems.myListings,
       RouteItems.leads,
       RouteItems.agency,
-      RouteItems.crawler,
-      RouteItems.crawlerAds,
       RouteItems.agencies,
+      RouteItems.crawler,
       RouteItems.users,
       RouteItems.profile,
       RouteItems.notifications,

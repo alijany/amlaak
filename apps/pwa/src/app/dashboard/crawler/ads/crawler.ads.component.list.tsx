@@ -3,7 +3,7 @@
 import { IconUserPlus } from '@tabler/icons-react';
 import Link from 'next/link';
 import { PublishStatusPill } from '../crawler.component.status-pill';
-import { Advertisement, RealEstateCategory } from '../crawler.types';
+import { Advertisement, AdvertisementSource, RealEstateCategory } from '../crawler.types';
 
 const CATEGORY_LABEL: Record<RealEstateCategory, string> = {
   [RealEstateCategory.SALE]: 'فروش',
@@ -36,7 +36,7 @@ export function AdCard({
         href={`/dashboard/crawler/ads/${ad.id}`}
         className="flex flex-col grow"
       >
-        {ad.images?.[0] && (
+        {ad.images?.[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={ad.images[0]}
@@ -44,12 +44,25 @@ export function AdCard({
             className="h-40 w-full object-cover"
             loading="lazy"
           />
+        ) : (
+          <div className="h-40 w-full bg-slate-100 flex items-center justify-center">
+            <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 21h18M3 3h18" />
+            </svg>
+          </div>
         )}
         <div className="p-3 flex flex-col gap-2 grow">
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-              {CATEGORY_LABEL[ad.category]}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                {CATEGORY_LABEL[ad.category]}
+              </span>
+              {ad.source === AdvertisementSource.USER && (
+                <span className="inline-flex items-center rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-medium text-violet-700">
+                  آژانس
+                </span>
+              )}
+            </div>
             <PublishStatusPill status={ad.publishStatus} />
           </div>
 

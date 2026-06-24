@@ -1,6 +1,8 @@
 import {
+  Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -13,6 +15,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from 'src/roles/roles.constants';
 import { AdvertisementService } from './advertisement.service';
 import { AdvertisementFilterDto } from './dtos/advertisement.filter.dto';
+import { UpdateListingDto } from './dtos/listing.dto';
 import { ListingModerationService } from './listing-moderation.service';
 
 // RolesGuard reads @Roles from the handler method, so the moderation mutations
@@ -39,6 +42,15 @@ export class AdvertisementController {
       { id },
       { populate: ['target'] as never },
     );
+  }
+
+  /** Admin-only: update any field on a crawled or user-created advertisement. */
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateListingDto,
+  ) {
+    return this.advertisements.adminUpdate(id, dto);
   }
 
   /** Approve → publish to the public site + post to Telegram. */

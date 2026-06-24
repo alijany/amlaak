@@ -22,6 +22,7 @@ const PUBLISH_ITEMS: { label: string; value: PublishStatus | '' }[] = [
 interface AdsFiltersProps {
   filters: AdvertisementFilters;
   onChange: (patch: Partial<AdvertisementFilters>) => void;
+  showTargetFilter?: boolean;
 }
 
 export function AdsFilters({ filters, onChange }: AdsFiltersProps) {

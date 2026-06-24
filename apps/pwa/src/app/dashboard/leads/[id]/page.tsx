@@ -22,7 +22,6 @@ import { toast } from 'react-toastify';
 import { useUsers } from '../../users/users.api';
 import {
   useAssignLead,
-  useClaimLead,
   useLead,
   useUpdateLead,
 } from '../leads.api';
@@ -30,7 +29,6 @@ import { LEAD_STATUS_LABEL, LEAD_STATUS_ORDER } from '../leads.constants';
 import { LeadStatusPill } from '../leads.component.status-pill';
 import { Lead, LeadStatus } from '../leads.types';
 
-const MANAGER_ROLES = [Role.MANAGER, Role.OWNER, Role.ADMIN];
 
 function formatPrice(value?: number): string | undefined {
   if (value == null) return undefined;
@@ -38,13 +36,12 @@ function formatPrice(value?: number): string | undefined {
 }
 
 function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
-  const { hasAnyRole } = useAuth();
-  const isManager = hasAnyRole(MANAGER_ROLES);
+  const { selectedRole } = useAuth();
+  const isAdmin = selectedRole?.role === Role.ADMIN;
 
   const { submit: updateLead, isLoading: updating } = useUpdateLead(lead.id);
-  const { submit: claimLead, isLoading: claiming } = useClaimLead(lead.id);
   const { submit: assignLead, isLoading: assigning } = useAssignLead(lead.id);
-  const { data: users } = useUsers(isManager ? { limit: 100 } : undefined);
+  const { data: users } = useUsers(isAdmin ? { limit: 100 } : undefined);
 
   const [note, setNote] = useState(lead.note ?? '');
   const ad = lead.advertisement;
@@ -75,16 +72,6 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
     }
   };
 
-  const onClaim = async () => {
-    try {
-      await claimLead();
-      toast.success('مشتری به شما اختصاص یافت');
-      refresh();
-    } catch (e) {
-      toast.error((e as ApiError).message || 'خطا در دریافت مشتری');
-    }
-  };
-
   const onAssign = async (agentId: number | null) => {
     if (!agentId) return;
     try {
@@ -97,7 +84,7 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
+    <div className="mx-auto space-y-4">
       {/* Listing card */}
       <div className="rounded-2xl bg-white p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
@@ -119,17 +106,28 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
               کد رهگیری: {lead.trackingCode}
             </span>
           )}
-          {ad?.sourceUrl && (
-            <a
-              href={ad.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-blue-500 hover:underline"
-            >
-              <IconExternalLink size={13} />
-              آگهی اصلی
-            </a>
-          )}
+          <div className="flex items-center gap-3">
+            {ad?.id && (
+              <Link
+                href={`/dashboard/listings/${ad.id}`}
+                className="flex items-center gap-1 text-slate-500 hover:text-slate-700"
+              >
+                <IconExternalLink size={13} />
+                مشاهده ملک
+              </Link>
+            )}
+            {ad?.sourceUrl && (
+              <a
+                href={ad.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-blue-500 hover:underline"
+              >
+                <IconExternalLink size={13} />
+                آگهی اصلی
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -162,7 +160,7 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
 
       {/* Actions */}
       <div className="rounded-2xl bg-white p-4 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className={`grid gap-3 ${isAdmin ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
           <div>
             <label className="font-medium mb-2 block text-slate-700 text-sm">
               وضعیت
@@ -179,34 +177,24 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
             />
           </div>
 
-          <div className="flex items-end">
-            {isManager ? (
-              <div className="w-full">
-                <label className="font-medium mb-2 block text-slate-700 text-sm">
-                  اختصاص به کارشناس
-                </label>
-                <Dropdown<number>
-                  items={(users?.items ?? []).map((u) => ({
-                    label: u.name || u.phone,
-                    value: u.id,
-                  }))}
-                  value={lead.assignedAgent?.id ?? null}
-                  onChange={onAssign}
-                  placeholder="انتخاب کارشناس"
-                  variant="outline"
-                  disabled={assigning}
-                />
-              </div>
-            ) : (
-              <Button
-                onClick={onClaim}
-                disabled={claiming || lead.assignedAgent != null}
-                className="w-full"
-              >
-                دریافت این مشتری
-              </Button>
-            )}
-          </div>
+          {isAdmin && (
+            <div>
+              <label className="font-medium mb-2 block text-slate-700 text-sm">
+                اختصاص به کارشناس
+              </label>
+              <Dropdown<number>
+                items={(users?.items ?? []).map((u) => ({
+                  label: u.name || u.phone,
+                  value: u.id,
+                }))}
+                value={lead.assignedAgent?.id ?? null}
+                onChange={onAssign}
+                placeholder="انتخاب کارشناس"
+                variant="outline"
+                disabled={assigning}
+              />
+            </div>
+          )}
         </div>
 
         <div>

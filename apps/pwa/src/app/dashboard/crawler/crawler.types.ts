@@ -36,6 +36,11 @@ export enum CrawlJobType {
   SINGLE_AD = 'single_ad',
 }
 
+export enum AdvertisementSource {
+  CRAWLER = 'crawler',
+  USER = 'user',
+}
+
 export enum RealEstateCategory {
   SALE = 'sale',
   RENT = 'rent',
@@ -145,8 +150,9 @@ export interface CreateJobDto {
 
 export interface Advertisement {
   id: number;
-  target: CrawlTarget;
-  externalId: string;
+  source: AdvertisementSource;
+  target?: CrawlTarget;
+  externalId?: string;
   sourceUrl?: string;
   title?: string;
   description?: string;
@@ -180,6 +186,7 @@ export interface AdvertisementsResponse {
 export interface AdvertisementFilters {
   page?: number;
   limit?: number;
+  source?: AdvertisementSource;
   targetId?: number;
   category?: RealEstateCategory;
   publishStatus?: PublishStatus;

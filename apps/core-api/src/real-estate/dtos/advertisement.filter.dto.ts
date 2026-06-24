@@ -1,6 +1,10 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { PublishStatus, RealEstateCategory } from '../real-estate.constants';
+import {
+  AdvertisementSource,
+  PublishStatus,
+  RealEstateCategory,
+} from '../real-estate.constants';
 
 export class AdvertisementFilterDto {
   @Type(() => Number)
@@ -50,6 +54,10 @@ export class AdvertisementFilterDto {
   @IsInt()
   @IsOptional()
   maxPrice?: number;
+
+  @IsEnum(AdvertisementSource)
+  @IsOptional()
+  source?: AdvertisementSource;
 
   /** Free-text search over title/description. */
   @IsString()

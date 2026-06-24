@@ -90,6 +90,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     const where: FilterQuery<RealEstateAdvertisementEntity> = {};
 
     if (rest.targetId) where.target = rest.targetId;
+    if (rest.source) where.source = rest.source;
     if (rest.category) where.category = rest.category;
     if (rest.publishStatus) where.publishStatus = rest.publishStatus;
     if (rest.city) where.city = rest.city;
