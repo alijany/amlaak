@@ -48,7 +48,7 @@ export const RouteItems = {
   },
   agency: {
     href: "/dashboard/agency",
-    label: "آژانس",
+    label: "آژانس من",
     roles: [Role.USER, Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
     icon: <IconBuildingCommunity className="size-5" />
   },
@@ -83,8 +83,8 @@ export const routeGroups: RouteGroup[] = [
   {
     label: "پیشخوان",
     routes: [
-      RouteItems.leads,
       RouteItems.myListings,
+      RouteItems.leads,
       RouteItems.agency,
       RouteItems.crawler,
       RouteItems.crawlerAds,
