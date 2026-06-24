@@ -3,6 +3,8 @@
 import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
+import { useAuth } from '@/components/auth/auth.context.provider';
+import { useAgency } from '@/app/dashboard/agency/agency.api';
 import { Button } from '@/ui/atoms';
 import { DataView, Pagination } from '@/ui/molecules';
 import { IconPlus } from '@tabler/icons-react';
@@ -13,7 +15,7 @@ import { LeadsFilters } from './leads.component.filters';
 import { LeadRow } from './leads.component.list';
 import { LeadFilters } from './leads.types';
 
-function LeadsContent() {
+function LeadsContent({ isConfirmed }: { isConfirmed: boolean }) {
   const [filters, setFilters] = useState<LeadFilters>({ page: 0, limit: 20 });
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -29,12 +31,17 @@ function LeadsContent() {
 
   return (
     <div className="space-y-3 grow flex flex-col overflow-hidden">
+      {!isConfirmed && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
+          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت سرنخ وجود ندارد.
+        </div>
+      )}
       <div className="p-4 rounded-2xl bg-white flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="font-bold">سرنخ‌ها</div>
           <div className="flex items-center gap-3">
             <span className="text-[12px] text-slate-400">{totalLabel}</span>
-            <Button size="sm" onClick={() => setModalOpen(true)}>
+            <Button size="sm" onClick={() => setModalOpen(true)} disabled={!isConfirmed}>
               <IconPlus size={16} className="ml-1" />
               ثبت سرنخ
             </Button>
@@ -86,10 +93,15 @@ function LeadsContent() {
 }
 
 export default function LeadsPage() {
+  const { selectedRole } = useAuth();
+  const agencyId = selectedRole?.agency?.id;
+  const { data: agency } = useAgency(agencyId);
+  const isConfirmed = agency ? agency.isConfirmed !== false : true;
+
   return (
     <RoleProtectedRoute allowedRoles={RouteItems.leads.roles}>
       <DashbaordLayout>
-        <LeadsContent />
+        <LeadsContent isConfirmed={isConfirmed} />
       </DashbaordLayout>
     </RoleProtectedRoute>
   );

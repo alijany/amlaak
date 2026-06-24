@@ -64,16 +64,14 @@ export class ListingController {
 
   @Post()
   @Roles(...WORKER)
-  create(
+  async create(
     @Body() dto: CreateListingDto,
     @CurrentUser() user: UserEntity,
     @CurrentAgencyId() agencyId?: number,
   ) {
-    return this.advertisements.createUserListing(
-      dto,
-      this.access.resolve(user, agencyId),
-      user,
-    );
+    const ctx = this.access.resolve(user, agencyId);
+    await this.access.assertAgencyConfirmed(ctx.activeAgencyId, user);
+    return this.advertisements.createUserListing(dto, ctx, user);
   }
 
   @Patch(':id')

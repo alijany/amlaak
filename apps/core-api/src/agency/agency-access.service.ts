@@ -1,4 +1,7 @@
+import { EntityRepository } from '@mikro-orm/core';
+import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { AgencyEntity } from './agency.entity';
 import { Role } from 'src/roles/roles.constants';
 import { RolesEntity } from 'src/roles/roles.entity';
 import { UserEntity } from 'src/user/user.entity';
@@ -22,6 +25,10 @@ export interface AgencyContext {
  */
 @Injectable()
 export class AgencyAccessService {
+  constructor(
+    @InjectRepository(AgencyEntity)
+    private readonly agencyRepo: EntityRepository<AgencyEntity>,
+  ) {}
   isPlatformAdmin(user: UserEntity): boolean {
     return user.roles
       .getItems()
@@ -55,5 +62,17 @@ export class AgencyAccessService {
       );
 
     return { viewerId: user.id, activeAgencyId, isManager, isPlatformAdmin };
+  }
+
+  async assertAgencyConfirmed(
+    agencyId: number | null,
+    user: UserEntity,
+  ): Promise<void> {
+    if (agencyId == null) return;
+    if (this.isPlatformAdmin(user)) return;
+    const agency = await this.agencyRepo.findOne({ id: agencyId });
+    if (!agency?.isConfirmed) {
+      throw new ForbiddenException('آژانس هنوز توسط مدیر تأیید نشده است');
+    }
   }
 }

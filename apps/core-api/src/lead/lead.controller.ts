@@ -80,12 +80,14 @@ export class LeadController {
 
   @Post('pools')
   @Roles(...MANAGER)
-  createPool(
+  async createPool(
     @Body() dto: CreateLeadPoolDto,
     @CurrentUser() user: UserEntity,
     @CurrentAgencyId() agencyId?: number,
   ) {
-    return this.pools.createPool(dto, this.access.resolve(user, agencyId));
+    const ctx = this.access.resolve(user, agencyId);
+    await this.access.assertAgencyConfirmed(ctx.activeAgencyId, user);
+    return this.pools.createPool(dto, ctx);
   }
 
   @Patch('pools/:id')
@@ -111,12 +113,14 @@ export class LeadController {
 
   @Post()
   @Roles(...WORKER)
-  create(
+  async create(
     @Body() dto: CreateLeadDto,
     @CurrentUser() user: UserEntity,
     @CurrentAgencyId() agencyId?: number,
   ) {
-    return this.leads.createManual(dto, this.access.resolve(user, agencyId));
+    const ctx = this.access.resolve(user, agencyId);
+    await this.access.assertAgencyConfirmed(ctx.activeAgencyId, user);
+    return this.leads.createManual(dto, ctx);
   }
 
   @Get(':id')

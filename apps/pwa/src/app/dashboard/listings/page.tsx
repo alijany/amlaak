@@ -12,6 +12,7 @@ import { IconEdit, IconPlus, IconTrash, IconUserPlus } from '@tabler/icons-react
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { useAgency } from '../agency/agency.api';
 import { useDeleteListing, useMyListings } from './listings.api';
 import { ListingFormModal } from './listings.component.form-modal';
 import { QuickLeadModal } from './listings.component.lead-modal';
@@ -77,7 +78,7 @@ function ListingRow({
   );
 }
 
-function ListingsContent() {
+function ListingsContent({ isConfirmed }: { isConfirmed: boolean }) {
   const { data, error, isLoading, refresh } = useMyListings();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<MyListing | null>(null);
@@ -93,9 +94,14 @@ function ListingsContent() {
 
   return (
     <div className="space-y-3 grow flex flex-col overflow-hidden">
+      {!isConfirmed && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
+          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت آگهی وجود ندارد.
+        </div>
+      )}
       <div className="p-4 rounded-2xl bg-white flex items-center justify-between">
         <div className="font-bold">آگهی‌های من</div>
-        <Button size="sm" onClick={openCreate}>
+        <Button size="sm" onClick={openCreate} disabled={!isConfirmed}>
           <IconPlus size={16} className="ml-1" />
           ثبت آگهی
         </Button>
@@ -129,13 +135,15 @@ function ListingsContent() {
 
 export default function ListingsPage() {
   const { selectedRole } = useAuth();
-  const hasAgency = selectedRole?.agency?.id != null;
+  const agencyId = selectedRole?.agency?.id;
+  const { data: agency } = useAgency(agencyId);
+  const isConfirmed = agency ? agency.isConfirmed !== false : true;
 
   return (
     <RoleProtectedRoute allowedRoles={[Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN]}>
       <DashbaordLayout>
-        {hasAgency ? (
-          <ListingsContent />
+        {agencyId != null ? (
+          <ListingsContent isConfirmed={isConfirmed} />
         ) : (
           <div className="rounded-2xl bg-white p-8 text-center text-slate-500">
             برای ثبت آگهی، ابتدا یک آژانس بسازید یا انتخاب کنید.

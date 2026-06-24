@@ -145,6 +145,12 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
     <div className="space-y-4 grow flex flex-col overflow-auto">
       <h1 className="font-bold text-slate-800 text-xl">آژانس</h1>
 
+      {agency && !agency.isConfirmed && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
+          آژانس شما در انتظار تأیید مدیر است. تا پیش از تأیید، امکان ثبت آگهی یا سرنخ وجود ندارد.
+        </div>
+      )}
+
       {/* Profile */}
       <div className="rounded-2xl bg-white p-4 space-y-3">
         <div className="font-bold text-slate-700">اطلاعات آژانس</div>
