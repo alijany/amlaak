@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/components/auth/auth.context.provider';
 import { ApiError } from '@/libs/api/api.types.error';
 import { fetcher } from '@/libs/api/api.util.fetcher';
 import { Button, Input, Modal } from '@/ui/atoms';
@@ -29,6 +30,10 @@ export function CreateLeadModal({
   onCreated,
 }: CreateLeadModalProps) {
   const { submit, isLoading } = useCreateLead();
+  const { selectedRole } = useAuth();
+  // When acting as an agency role, the lead is locked to that agency: no pool /
+  // cross-agency choice. Only a platform admin (no agency on the role) picks.
+  const lockedAgency = selectedRole?.agency ?? null;
   const { data: pools } = useLeadPools();
   const { data: agencies } = useMyAgencies();
 
@@ -88,8 +93,12 @@ export function CreateLeadModal({
         contactName: contactName || undefined,
         contactPhone: contactPhone || undefined,
         note: note || undefined,
-        poolId: poolId === '' ? undefined : Number(poolId),
-        agencyId: agencyId === '' ? undefined : Number(agencyId),
+        poolId: lockedAgency || poolId === '' ? undefined : Number(poolId),
+        agencyId: lockedAgency
+          ? lockedAgency.id
+          : agencyId === ''
+            ? undefined
+            : Number(agencyId),
       });
       toast.success('مشتری ثبت شد');
       onCreated();
@@ -174,50 +183,63 @@ export function CreateLeadModal({
                 variant="outline"
               />
             </div>
+            {lockedAgency ? (
+              <div>
+                <label className="font-medium mb-2 block text-slate-700">
+                  آژانس
+                </label>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
+                  {lockedAgency.name}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="font-medium mb-2 block text-slate-700">
+                  آژانس
+                </label>
+                <Dropdown<number | ''>
+                  items={[
+                    { label: 'انتخاب آژانس', value: '' },
+                    ...(agencies?.items ?? []).map((a) => ({
+                      label: a.name,
+                      value: a.id,
+                    })),
+                  ]}
+                  value={agencyId}
+                  onChange={(v) => {
+                    setAgencyId(v ?? '');
+                    if (v) setPoolId('');
+                  }}
+                  variant="outline"
+                />
+              </div>
+            )}
+          </div>
+          {!lockedAgency && (
             <div>
               <label className="font-medium mb-2 block text-slate-700">
-                آژانس
+                یا صف
               </label>
               <Dropdown<number | ''>
                 items={[
-                  { label: 'انتخاب آژانس', value: '' },
-                  ...(agencies?.items ?? []).map((a) => ({
-                    label: a.name,
-                    value: a.id,
+                  { label: 'انتخاب صف', value: '' },
+                  ...(pools?.items ?? []).map((p) => ({
+                    label: p.name,
+                    value: p.id,
                   })),
                 ]}
-                value={agencyId}
+                value={poolId}
                 onChange={(v) => {
-                  setAgencyId(v ?? '');
-                  if (v) setPoolId('');
+                  setPoolId(v ?? '');
+                  if (v) setAgencyId('');
                 }}
                 variant="outline"
               />
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                لید را به یک آژانس یا یک صف واگذار کنید (فقط یکی).
+              </p>
             </div>
-          </div>
-          <div>
-            <label className="font-medium mb-2 block text-slate-700">
-              یا صف
-            </label>
-            <Dropdown<number | ''>
-              items={[
-                { label: 'انتخاب صف', value: '' },
-                ...(pools?.items ?? []).map((p) => ({
-                  label: p.name,
-                  value: p.id,
-                })),
-              ]}
-              value={poolId}
-              onChange={(v) => {
-                setPoolId(v ?? '');
-                if (v) setAgencyId('');
-              }}
-              variant="outline"
-            />
-            <p className="mt-1.5 text-[11px] text-slate-400">
-              لید را به یک آژانس یا یک صف واگذار کنید (فقط یکی).
-            </p>
-          </div>
+          )}
 
           <Input
             label="یادداشت"
@@ -234,7 +256,9 @@ export function CreateLeadModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || !resolved || (!agencyId && !poolId)}
+            disabled={
+              isLoading || !resolved || (!lockedAgency && !agencyId && !poolId)
+            }
           >
             ثبت مشتری
           </Button>

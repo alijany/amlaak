@@ -82,12 +82,23 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     if (!ad) throw new NotFoundException('listing not found');
 
     // A lead targets exactly one of: a single agency, or a shared pool.
-    // When neither is given, default ownership to the creator's active agency.
-    const agencyId = dto.agencyId ?? (dto.poolId ? null : ctx.activeAgencyId);
-    if (Number(!!dto.poolId) + Number(!!agencyId) !== 1) {
-      throw new BadRequestException(
-        'یک لید باید دقیقاً به یک آژانس یا یک صف واگذار شود',
-      );
+    let agencyId: number | null;
+    let poolId: number | null;
+
+    if (ctx.activeAgencyId != null) {
+      // Acting as an agency → the lead is locked to that agency; pool /
+      // cross-agency assignment is not allowed from this context.
+      agencyId = ctx.activeAgencyId;
+      poolId = null;
+    } else {
+      // Platform admin: choose exactly one of agency or pool.
+      agencyId = dto.agencyId ?? null;
+      poolId = dto.poolId ?? null;
+      if (Number(!!poolId) + Number(!!agencyId) !== 1) {
+        throw new BadRequestException(
+          'یک لید باید دقیقاً به یک آژانس یا یک صف واگذار شود',
+        );
+      }
     }
 
     const lead = this.repository.create({
@@ -101,9 +112,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       note: dto.note,
       trackingCode: dto.trackingCode ?? advertisementTrackingCode(ad.id),
       status: LeadStatus.NEW,
-      pool: dto.poolId
-        ? this.em.getReference(LeadPoolEntity, dto.poolId)
-        : undefined,
+      pool: poolId ? this.em.getReference(LeadPoolEntity, poolId) : undefined,
     });
     await this.persistAndFlush(lead);
     return lead;
