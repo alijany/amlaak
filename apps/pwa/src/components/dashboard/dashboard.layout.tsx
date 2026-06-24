@@ -17,9 +17,6 @@ export function DashbaordLayout({ children, showSidebar = true }: RootLayoutProp
                     {children}
                 </main>
             </div>
-            <div className="hidden lg:block">
-                <p className="text-sm text-neutral-400 text-center">نسخه آزمایشی . انتشار عمومی</p>
-            </div>
             <BottomNavBar />
         </div>
     );
