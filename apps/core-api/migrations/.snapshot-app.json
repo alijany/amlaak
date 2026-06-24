@@ -1417,6 +1417,16 @@
           "default": "false",
           "mappedType": "boolean"
         },
+        "is_confirmed": {
+          "name": "is_confirmed",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        },
         "owner_id": {
           "name": "owner_id",
           "type": "int",
