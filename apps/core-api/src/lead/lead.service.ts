@@ -40,12 +40,19 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     return { id: -1 }; // no agency context, not admin → see nothing
   }
 
-  /** Agency scope + (for agents) only their own / claimable leads. */
+  /**
+   * Agency scope + (for non-managers) only their own leads OR unassigned leads
+   * that are in a pool (claimable). Unassigned leads with no pool are invisible
+   * to non-managers — they belong to no one and cannot be claimed from a queue.
+   */
   private scopeFilter(ctx: AgencyContext): FilterQuery<LeadEntity> {
     const and: FilterQuery<LeadEntity>[] = [this.agencyFilter(ctx)];
     if (!ctx.isManager) {
       and.push({
-        $or: [{ assignedAgent: ctx.viewerId }, { assignedAgent: null }],
+        $or: [
+          { assignedAgent: ctx.viewerId },
+          { assignedAgent: null, pool: { $ne: null } },
+        ],
       });
     }
     return { $and: and };
@@ -85,7 +92,8 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     });
     await this.persistAndFlush(lead);
 
-    if (dto.assignedAgentId)
+    // Don't notify when a user assigns the lead to themselves.
+    if (dto.assignedAgentId && dto.assignedAgentId !== ctx.viewerId)
       await this.notifyAssigned(lead, dto.assignedAgentId);
     return lead;
   }
@@ -99,6 +107,8 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     if (filter.poolId) and.push({ pool: filter.poolId });
     if (filter.assignedAgentId)
       and.push({ assignedAgent: filter.assignedAgentId });
+    if (filter.advertisementId)
+      and.push({ advertisement: filter.advertisementId });
     if (filter.q) {
       const like = `%${filter.q}%`;
       and.push({
@@ -179,7 +189,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
 
     this.em.assign(lead, { assignedAgent: agentId });
     await this.persistAndFlush(lead);
-    await this.notifyAssigned(lead, agentId);
+    if (agentId !== ctx.viewerId) await this.notifyAssigned(lead, agentId);
     return lead;
   }
 

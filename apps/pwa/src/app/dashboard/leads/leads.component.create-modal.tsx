@@ -1,5 +1,7 @@
 'use client';
 
+import { useAuth } from '@/components/auth/auth.context.provider';
+import { Role } from '@/components/auth/auth.constants.roles';
 import { ApiError } from '@/libs/api/api.types.error';
 import { fetcher } from '@/libs/api/api.util.fetcher';
 import { Button, Input, Modal } from '@/ui/atoms';
@@ -27,6 +29,9 @@ export function CreateLeadModal({
   onClose,
   onCreated,
 }: CreateLeadModalProps) {
+  const { selectedRole } = useAuth();
+  const canUsePool = selectedRole?.role === Role.ADMIN && !selectedRole?.agency;
+
   const { submit, isLoading } = useCreateLead();
   const { data: pools } = useLeadPools();
 
@@ -157,7 +162,7 @@ export function CreateLeadModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className={`grid grid-cols-1 gap-3 ${canUsePool ? 'sm:grid-cols-2' : ''}`}>
             <div>
               <label className="font-medium mb-2 block text-slate-700">منبع</label>
               <Dropdown<LeadSource>
@@ -169,23 +174,25 @@ export function CreateLeadModal({
                 variant="outline"
               />
             </div>
-            <div>
-              <label className="font-medium mb-2 block text-slate-700">
-                صف (اختیاری)
-              </label>
-              <Dropdown<number | ''>
-                items={[
-                  { label: 'بدون صف', value: '' },
-                  ...(pools?.items ?? []).map((p) => ({
-                    label: p.name,
-                    value: p.id,
-                  })),
-                ]}
-                value={poolId}
-                onChange={(v) => setPoolId(v ?? '')}
-                variant="outline"
-              />
-            </div>
+            {canUsePool && (
+              <div>
+                <label className="font-medium mb-2 block text-slate-700">
+                  صف (اختیاری)
+                </label>
+                <Dropdown<number | ''>
+                  items={[
+                    { label: 'بدون صف', value: '' },
+                    ...(pools?.items ?? []).map((p) => ({
+                      label: p.name,
+                      value: p.id,
+                    })),
+                  ]}
+                  value={poolId}
+                  onChange={(v) => setPoolId(v ?? '')}
+                  variant="outline"
+                />
+              </div>
+            )}
           </div>
 
           <Input

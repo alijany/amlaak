@@ -1,5 +1,7 @@
 'use client';
 
+import { useAuth } from '@/components/auth/auth.context.provider';
+import { Role } from '@/components/auth/auth.constants.roles';
 import { ApiError } from '@/libs/api/api.types.error';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
@@ -24,11 +26,6 @@ interface QuickLeadModalProps {
   onCreated?: () => void;
 }
 
-/**
- * Per-listing quick lead capture: the advertisement is already known, so we
- * skip the tracking-code lookup that the generic CreateLeadModal does. Supports
- * assigning to an agent in the same step (create + assign).
- */
 export function QuickLeadModal({
   advertisementId,
   listingTitle,
@@ -36,6 +33,9 @@ export function QuickLeadModal({
   onClose,
   onCreated,
 }: QuickLeadModalProps) {
+  const { selectedRole } = useAuth();
+  const canAssignAndPool = selectedRole?.role === Role.ADMIN && !selectedRole?.agency;
+
   const { submit, isLoading } = useCreateLead();
   const { data: pools } = useLeadPools();
   const { data: users } = useUsers({ limit: 100 });
@@ -109,7 +109,7 @@ export function QuickLeadModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className={`grid grid-cols-1 gap-3 ${canAssignAndPool ? 'sm:grid-cols-2' : ''}`}>
             <div>
               <label className="font-medium mb-2 block text-slate-700">منبع</label>
               <Dropdown<LeadSource>
@@ -121,42 +121,46 @@ export function QuickLeadModal({
                 variant="outline"
               />
             </div>
+            {canAssignAndPool && (
+              <div>
+                <label className="font-medium mb-2 block text-slate-700">
+                  واگذاری به (اختیاری)
+                </label>
+                <Dropdown<number | ''>
+                  items={[
+                    { label: 'بدون واگذاری', value: '' },
+                    ...(users?.items ?? []).map((u) => ({
+                      label: u.name || u.phone,
+                      value: u.id,
+                    })),
+                  ]}
+                  value={agentId}
+                  onChange={(v) => setAgentId(v ?? '')}
+                  variant="outline"
+                />
+              </div>
+            )}
+          </div>
+
+          {canAssignAndPool && (
             <div>
               <label className="font-medium mb-2 block text-slate-700">
-                واگذاری به (اختیاری)
+                صف (اختیاری)
               </label>
               <Dropdown<number | ''>
                 items={[
-                  { label: 'بدون واگذاری', value: '' },
-                  ...(users?.items ?? []).map((u) => ({
-                    label: u.name || u.phone,
-                    value: u.id,
+                  { label: 'بدون صف', value: '' },
+                  ...(pools?.items ?? []).map((p) => ({
+                    label: p.name,
+                    value: p.id,
                   })),
                 ]}
-                value={agentId}
-                onChange={(v) => setAgentId(v ?? '')}
+                value={poolId}
+                onChange={(v) => setPoolId(v ?? '')}
                 variant="outline"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="font-medium mb-2 block text-slate-700">
-              صف (اختیاری)
-            </label>
-            <Dropdown<number | ''>
-              items={[
-                { label: 'بدون صف', value: '' },
-                ...(pools?.items ?? []).map((p) => ({
-                  label: p.name,
-                  value: p.id,
-                })),
-              ]}
-              value={poolId}
-              onChange={(v) => setPoolId(v ?? '')}
-              variant="outline"
-            />
-          </div>
+          )}
 
           <Input
             label="یادداشت"

@@ -7,6 +7,9 @@ import { RouteItems } from '@/components/dashboard/dashboard.constants.route-gro
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { ApiError } from '@/libs/api/api.types.error';
 import { trackingCode } from '@/libs/lead/lead.util.tracking';
+import { QuickLeadModal } from '@/app/dashboard/listings/listings.component.lead-modal';
+import { useLeads } from '@/app/dashboard/leads/leads.api';
+import { LeadRow } from '@/app/dashboard/leads/leads.component.list';
 import { Button, JsonViewer } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
 import { toast } from 'react-toastify';
@@ -19,6 +22,7 @@ import {
   IconExternalLink,
   IconMapPin,
   IconPhone,
+  IconUserPlus,
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
@@ -350,9 +354,32 @@ function DebugView({ ad }: { ad: Advertisement }) {
   );
 }
 
+// ── Leads tab ─────────────────────────────────────────────────────────────────
+
+function LeadsTab({ advertisementId }: { advertisementId: number }) {
+  const { data, error, isLoading, refresh } = useLeads({ advertisementId, limit: 50 });
+  return (
+    <div className="space-y-2 max-w-2xl mx-auto">
+      <DataView
+        data={data}
+        error={error}
+        isLoading={isLoading}
+        isEmpty={(d) => !d?.items.length}
+        emptyMessage="هنوز سرنخی برای این آگهی ثبت نشده است."
+        onRetry={refresh}
+        className="space-y-2"
+      >
+        {data?.items?.map((lead) => (
+          <LeadRow key={lead.id} lead={lead} />
+        ))}
+      </DataView>
+    </div>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'info' | 'debug';
+type Tab = 'leads' | 'info' | 'debug';
 
 function ModerationBar({
   ad,
@@ -364,6 +391,7 @@ function ModerationBar({
   const { hasAnyRole } = useAuth();
   const canModerate = hasAnyRole([Role.ADMIN, Role.MANAGER, Role.OWNER]);
 
+  const [leadOpen, setLeadOpen] = useState(false);
   const { submit: approve, isLoading: approving } = useApproveListing(ad.id);
   const { submit: reject, isLoading: rejecting } = useRejectListing(ad.id);
 
@@ -388,42 +416,58 @@ function ModerationBar({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 mb-3 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <span>وضعیت انتشار:</span>
-        <PublishStatusPill status={ad.publishStatus} />
-        {ad.telegramPostedAt && (
-          <span className="text-[11px] text-emerald-600">
-            • ارسال‌شده به تلگرام
-          </span>
-        )}
-      </div>
-      {canModerate && (
-        <div className="flex items-center gap-2">
-          {ad.publishStatus !== PublishStatus.PUBLISHED && (
-            <Button size="sm" onClick={onApprove} disabled={approving}>
-              تأیید و انتشار
-            </Button>
+    <>
+      <div className="bg-white rounded-2xl p-4 mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <span>وضعیت انتشار:</span>
+          <PublishStatusPill status={ad.publishStatus} />
+          {ad.telegramPostedAt && (
+            <span className="text-[11px] text-emerald-600">
+              • ارسال‌شده به تلگرام
+            </span>
           )}
-          {ad.publishStatus !== PublishStatus.REJECTED && (
+        </div>
+        {canModerate && (
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="outline"
-              onClick={onReject}
-              disabled={rejecting}
+              onClick={() => setLeadOpen(true)}
             >
-              رد
+              <IconUserPlus size={15} className="ml-1" />
+              افزودن سرنخ
             </Button>
-          )}
-        </div>
-      )}
-    </div>
+            {ad.publishStatus !== PublishStatus.PUBLISHED && (
+              <Button size="sm" onClick={onApprove} disabled={approving}>
+                تأیید و انتشار
+              </Button>
+            )}
+            {ad.publishStatus !== PublishStatus.REJECTED && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onReject}
+                disabled={rejecting}
+              >
+                رد
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+      <QuickLeadModal
+        advertisementId={ad.id}
+        listingTitle={ad.title ?? undefined}
+        isOpen={leadOpen}
+        onClose={() => setLeadOpen(false)}
+      />
+    </>
   );
 }
 
 function AdDetailContent({ id }: { id: number }) {
   const { data: ad, error, isLoading, refresh } = useAdvertisement(id);
-  const [tab, setTab] = useState<Tab>('info');
+  const [tab, setTab] = useState<Tab>('leads');
 
   return (
     <div className="flex flex-col grow overflow-hidden">
@@ -468,6 +512,16 @@ function AdDetailContent({ id }: { id: number }) {
         {/* Tab switcher */}
         <div className="flex items-center bg-slate-100 rounded-xl p-1 flex-shrink-0">
           <button
+            onClick={() => setTab('leads')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
+              tab === 'leads'
+                ? 'bg-white text-slate-700 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            سرنخ‌ها
+          </button>
+          <button
             onClick={() => setTab('info')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
               tab === 'info'
@@ -505,9 +559,18 @@ function AdDetailContent({ id }: { id: number }) {
           onRetry={refresh}
         >
           {ad && (
-            <div className="max-w-2xl mx-auto">
-              {tab === 'info' && <StructuredView ad={ad} />}
-              {tab === 'debug' && <DebugView ad={ad} />}
+            <div>
+              {tab === 'leads' && <LeadsTab advertisementId={ad.id} />}
+              {tab === 'info' && (
+                <div className="max-w-2xl mx-auto">
+                  <StructuredView ad={ad} />
+                </div>
+              )}
+              {tab === 'debug' && (
+                <div className="max-w-2xl mx-auto">
+                  <DebugView ad={ad} />
+                </div>
+              )}
             </div>
           )}
         </DataView>

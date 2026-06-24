@@ -1,8 +1,11 @@
 'use client';
 
 import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
+import { useAuth } from '@/components/auth/auth.context.provider';
+import { Role } from '@/components/auth/auth.constants.roles';
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
+import { QuickLeadModal } from '@/app/dashboard/listings/listings.component.lead-modal';
 import { DataView, Pagination } from '@/ui/molecules';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState } from 'react';
@@ -15,11 +18,15 @@ function AdsContent() {
   const searchParams = useSearchParams();
   const initialTargetId = searchParams.get('targetId');
 
+  const { hasAnyRole } = useAuth();
+  const canManageLeads = hasAnyRole([Role.ADMIN, Role.MANAGER, Role.OWNER]);
+
   const [filters, setFilters] = useState<AdvertisementFilters>({
     page: 0,
     limit: 12,
     targetId: initialTargetId ? Number(initialTargetId) : undefined,
   });
+  const [leadAd, setLeadAd] = useState<{ id: number; title?: string } | null>(null);
 
   const { data, error, isLoading, refresh } = useAdvertisements(filters);
 
@@ -50,11 +57,17 @@ function AdsContent() {
           emptyMessage="آگهی‌ای یافت نشد. یک کراول اجرا کنید تا داده‌ها اینجا نمایش داده شوند."
           onRetry={refresh}
         >
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {data?.items?.map((ad) => (
-              <AdCard key={ad.id} ad={ad} />
+              <AdCard
+                key={ad.id}
+                ad={ad}
+                onAddLead={
+                  canManageLeads
+                    ? () => setLeadAd({ id: ad.id, title: ad.title ?? undefined })
+                    : undefined
+                }
+              />
             ))}
           </div>
         </DataView>
@@ -73,6 +86,15 @@ function AdsContent() {
           </div>
         )}
       </div>
+
+      {leadAd && (
+        <QuickLeadModal
+          advertisementId={leadAd.id}
+          listingTitle={leadAd.title}
+          isOpen={true}
+          onClose={() => setLeadAd(null)}
+        />
+      )}
     </div>
   );
 }

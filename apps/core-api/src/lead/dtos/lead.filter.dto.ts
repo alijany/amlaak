@@ -33,6 +33,11 @@ export class LeadFilterDto {
   @IsOptional()
   assignedAgentId?: number;
 
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  advertisementId?: number;
+
   /** Free-text over contact name/phone, tracking code, and listing title. */
   @IsString()
   @IsOptional()

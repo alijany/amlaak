@@ -59,6 +59,7 @@ export interface LeadFilters {
   source?: LeadSource;
   poolId?: number;
   assignedAgentId?: number;
+  advertisementId?: number;
   q?: string;
 }
 

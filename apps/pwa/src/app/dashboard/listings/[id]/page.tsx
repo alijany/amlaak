@@ -11,6 +11,8 @@ import {
   ListingDetailView,
 } from '@/app/listings/listings.component.detail-view';
 import { PublicListing } from '@/app/listings/listings.types';
+import { useLeads } from '@/app/dashboard/leads/leads.api';
+import { LeadRow } from '@/app/dashboard/leads/leads.component.list';
 import { ApiError } from '@/libs/api/api.types.error';
 import { trackingCode } from '@/libs/lead/lead.util.tracking';
 import { Button } from '@/ui/atoms';
@@ -32,7 +34,6 @@ import { MyListing } from '../listings.types';
 
 const WORKER = [Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN];
 
-/** Map an owned listing into the public visitor shape for the preview tab. */
 function toPreview(
   listing: MyListing,
   agency?: { id: number; name: string; slug?: string },
@@ -116,13 +117,44 @@ function ManageView({ listing }: { listing: MyListing }) {
   );
 }
 
+function LeadsTab({ advertisementId, onAddLead }: { advertisementId: number; onAddLead: () => void }) {
+  const { data, error, isLoading, refresh } = useLeads({ advertisementId, limit: 50 });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-slate-500">
+          {data?.meta ? `${data.meta.total.toLocaleString('fa-IR')} سرنخ` : ''}
+        </div>
+        <Button size="sm" variant="secondary" onClick={onAddLead}>
+          <IconUserPlus size={15} className="ml-1" />
+          افزودن سرنخ
+        </Button>
+      </div>
+      <DataView
+        data={data}
+        error={error}
+        isLoading={isLoading}
+        isEmpty={(d) => !d?.items.length}
+        emptyMessage="هنوز سرنخی برای این آگهی ثبت نشده است."
+        onRetry={refresh}
+        className="space-y-2"
+      >
+        {data?.items?.map((lead) => (
+          <LeadRow key={lead.id} lead={lead} />
+        ))}
+      </DataView>
+    </div>
+  );
+}
+
 function ListingDetailContent({ id }: { id: number }) {
   const { selectedRole } = useAuth();
   const router = useRouter();
   const { data, error, isLoading, refresh } = useListing(id);
   const { submit: remove, isLoading: deleting } = useDeleteListing(id);
 
-  const [tab, setTab] = useState<'manage' | 'preview'>('manage');
+  const [tab, setTab] = useState<'leads' | 'manage' | 'preview'>('leads');
   const [editOpen, setEditOpen] = useState(false);
   const [leadOpen, setLeadOpen] = useState(false);
 
@@ -171,10 +203,6 @@ function ListingDetailContent({ id }: { id: number }) {
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Button size="sm" variant="secondary" onClick={() => setLeadOpen(true)}>
-                  <IconUserPlus size={16} className="ml-1" />
-                  افزودن سرنخ
-                </Button>
                 <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
                   <IconEdit size={16} className="ml-1" />
                   ویرایش
@@ -188,27 +216,30 @@ function ListingDetailContent({ id }: { id: number }) {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 w-fit">
-              <button
-                onClick={() => setTab('manage')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  tab === 'manage' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
-                }`}
-              >
-                جزئیات
-              </button>
-              <button
-                onClick={() => setTab('preview')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  tab === 'preview' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
-                }`}
-              >
-                پیش‌نمایش عمومی
-              </button>
+              {(
+                [
+                  { key: 'leads', label: 'سرنخ‌ها' },
+                  { key: 'manage', label: 'جزئیات' },
+                  { key: 'preview', label: 'پیش‌نمایش عمومی' },
+                ] as const
+              ).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    tab === key ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
-            {tab === 'manage' ? (
-              <ManageView listing={data} />
-            ) : (
+            {tab === 'leads' && (
+              <LeadsTab advertisementId={data.id} onAddLead={() => setLeadOpen(true)} />
+            )}
+            {tab === 'manage' && <ManageView listing={data} />}
+            {tab === 'preview' && (
               <div className="rounded-2xl bg-white p-4">
                 <ListingDetailView listing={toPreview(data, selectedRole?.agency ?? undefined)} />
               </div>
@@ -225,6 +256,7 @@ function ListingDetailContent({ id }: { id: number }) {
               listingTitle={data.title}
               isOpen={leadOpen}
               onClose={() => setLeadOpen(false)}
+              onCreated={refresh}
             />
           </div>
         )}
