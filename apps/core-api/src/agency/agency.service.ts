@@ -1,6 +1,10 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { Role } from 'src/roles/roles.constants';
@@ -10,7 +14,11 @@ import { UserEntity } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { AgencyEntity } from './agency.entity';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
-import { CreateAgencyDto, InviteAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
+import {
+  CreateAgencyDto,
+  InviteAgencyDto,
+  UpdateAgencyDto,
+} from './dtos/agency.dto';
 
 @Injectable()
 export class AgencyService extends BaseRepositoryService<AgencyEntity> {

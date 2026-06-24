@@ -15,6 +15,13 @@ export interface AgencyContext {
   activeAgencyId: number | null;
   /** Owner/manager in the active agency, or a platform admin. */
   isManager: boolean;
+  /**
+   * Owner/manager of the *active agency* by their actual role there — does NOT
+   * include platform-admin elevation. Use this when a platform admin acting
+   * inside a specific agency must be treated as that agency role (e.g. lead
+   * visibility), not as a super-user.
+   */
+  isAgencyManager: boolean;
   isPlatformAdmin: boolean;
 }
 
@@ -50,18 +57,29 @@ export class AgencyAccessService {
         throw new ForbiddenException('not a member of this agency');
       }
       activeAgencyId = headerAgencyId;
+    } else if (isPlatformAdmin) {
+      // Platform admin acting in their global role → cross-tenant (see all).
+      activeAgencyId = null;
     } else {
       activeAgencyId = roles[0]?.agency?.id ?? null;
     }
 
-    const isManager =
-      isPlatformAdmin ||
+    const isAgencyManager =
+      activeAgencyId != null &&
       roles.some(
         (r) =>
           r.agency!.id === activeAgencyId && MANAGER_ROLES.includes(r.role),
       );
 
-    return { viewerId: user.id, activeAgencyId, isManager, isPlatformAdmin };
+    const isManager = isPlatformAdmin || isAgencyManager;
+
+    return {
+      viewerId: user.id,
+      activeAgencyId,
+      isManager,
+      isAgencyManager,
+      isPlatformAdmin,
+    };
   }
 
   async assertAgencyConfirmed(

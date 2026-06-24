@@ -41,13 +41,23 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
   }
 
   /**
+   * Whether the viewer sees every lead in scope. Only a platform admin acting
+   * in their global (cross-tenant) role sees all leads. Anyone operating within
+   * an agency — including its owner/manager — is treated as an agent and scoped
+   * to their own + pooled leads.
+   */
+  private canSeeAllLeads(ctx: AgencyContext): boolean {
+    return ctx.activeAgencyId == null && ctx.isPlatformAdmin;
+  }
+
+  /**
    * Agency scope + (for non-managers) only their own leads OR unassigned leads
    * that are in a pool (claimable). Unassigned leads with no pool are invisible
    * to non-managers — they belong to no one and cannot be claimed from a queue.
    */
   private scopeFilter(ctx: AgencyContext): FilterQuery<LeadEntity> {
     const and: FilterQuery<LeadEntity>[] = [this.agencyFilter(ctx)];
-    if (!ctx.isManager) {
+    if (!this.canSeeAllLeads(ctx)) {
       and.push({
         $or: [
           { assignedAgent: ctx.viewerId },
@@ -142,7 +152,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     if (!lead) throw new NotFoundException('lead not found');
 
     this.assertSameAgency(lead, ctx);
-    if (!ctx.isManager) {
+    if (!this.canSeeAllLeads(ctx)) {
       const ownerId = lead.assignedAgent?.id;
       if (ownerId && ownerId !== ctx.viewerId) {
         throw new ForbiddenException('not your lead');

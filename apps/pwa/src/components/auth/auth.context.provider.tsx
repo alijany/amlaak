@@ -2,7 +2,8 @@
 
 import { ApiError } from '@/libs/api/api.types.error';
 import { usePathname, useRouter } from 'next/navigation';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { mutate as globalMutate } from 'swr';
 import { AuthResponse, useProfile, useRequestOtpMutation, useVerifyOtpMutation } from './auth.api.client';
 import { InvitationStatus, Role, RoleType } from './auth.constants.roles';
 import { logout as logoutUtil, storeAuthTokens } from './auth.utils.tokens';
@@ -31,6 +32,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [error, setError] = useState<string | null>(null);
     const [profileChecked, setProfileChecked] = useState(false);
     const [selectedRole, setSelectedRole] = useState<RoleType | null>(null);
+    // Tracks the previously active agency so we only invalidate cached data
+    // when the tenant actually changes (not on the initial role assignment).
+    const prevAgencyRef = useRef<number | null | undefined>(undefined);
 
     const { requestOtp: requestOtpMutation, isLoading: isOtpLoading } = useRequestOtpMutation();
     const { verifyOtp: verifyOtpMutation, isLoading: isVerifyLoading } = useVerifyOtpMutation();
@@ -66,11 +70,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (selectedRole) {
             localStorage.setItem('selected-role', selectedRole.id.toString());
-            if (selectedRole.agency?.id != null) {
-                localStorage.setItem('selected-agency', String(selectedRole.agency.id));
+            const agencyId = selectedRole.agency?.id ?? null;
+            if (agencyId != null) {
+                localStorage.setItem('selected-agency', String(agencyId));
             } else {
                 localStorage.removeItem('selected-agency');
             }
+            // The `x-agency-id` header changes with the active tenant, but SWR
+            // cache keys don't include it — revalidate all cached data when the
+            // tenant actually changes so we don't serve another agency's data.
+            if (prevAgencyRef.current !== undefined && prevAgencyRef.current !== agencyId) {
+                globalMutate(() => true);
+            }
+            prevAgencyRef.current = agencyId;
         }
     }, [selectedRole]);
 
