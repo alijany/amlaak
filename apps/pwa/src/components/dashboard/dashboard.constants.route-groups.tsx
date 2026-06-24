@@ -46,6 +46,12 @@ export const RouteItems = {
     roles: [Role.MEMBER, Role.MANAGER, Role.OWNER, Role.ADMIN],
     icon: <IconPhoneCall className="size-5" />
   },
+  leadPools: {
+    href: "/dashboard/leads/pools",
+    label: "صف‌ها",
+    roles: [Role.ADMIN],
+    icon: <IconList className="size-5" />
+  },
   agency: {
     href: "/dashboard/agency",
     label: "آژانس من",
@@ -86,6 +92,7 @@ export const routeGroups: RouteGroup[] = [
       RouteItems.crawlerAds,
       RouteItems.myListings,
       RouteItems.leads,
+      RouteItems.leadPools,
       RouteItems.agency,
       RouteItems.agencies,
       RouteItems.crawler,

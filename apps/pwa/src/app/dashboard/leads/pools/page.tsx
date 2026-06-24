@@ -60,7 +60,7 @@ function PoolsContent() {
           containerClassName="grow"
         />
         <Button onClick={onCreate} disabled={creating || !name.trim()}>
-          افزودن صف
+          افزودن
         </Button>
       </div>
 
@@ -72,24 +72,27 @@ function PoolsContent() {
           isEmpty={(d) => !d?.items.length}
           emptyMessage="هنوز صفی ساخته نشده است."
           onRetry={refresh}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
         >
-          {data?.items?.map((pool) => (
-            <div
-              key={pool.id}
-              className="rounded-2xl border border-slate-100 bg-white p-4"
-            >
-              <div className="font-semibold text-slate-700">{pool.name}</div>
-              {pool.description && (
-                <div className="text-[12px] text-slate-500 mt-1">
-                  {pool.description}
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+          >
+            {data?.items?.map((pool) => (
+              <div
+                key={pool.id}
+                className="rounded-2xl border border-slate-100 bg-white p-4"
+              >
+                <div className="font-semibold text-slate-700">{pool.name}</div>
+                {pool.description && (
+                  <div className="text-[12px] text-slate-500 mt-1">
+                    {pool.description}
+                  </div>
+                )}
+                <div className="text-[11px] text-slate-400 mt-2">
+                  {pool.isActive ? 'فعال' : 'غیرفعال'}
                 </div>
-              )}
-              <div className="text-[11px] text-slate-400 mt-2">
-                {pool.isActive ? 'فعال' : 'غیرفعال'}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </DataView>
       </div>
     </div>
