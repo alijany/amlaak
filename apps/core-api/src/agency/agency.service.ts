@@ -15,6 +15,7 @@ import { UserService } from 'src/user/user.service';
 import { AgencyEntity } from './agency.entity';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
 import {
+  AgencyFilterDto,
   CreateAgencyDto,
   InviteAgencyDto,
   UpdateAgencyDto,
@@ -116,6 +117,42 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
       invitationStatus: InvitationStatus.PENDING,
     });
     return agency;
+  }
+
+  /** Admin: paginated list of all agencies, optionally filtered by status/search. */
+  async listAgencies(filters: AgencyFilterDto) {
+    const { page = 0, limit = 10, status, search } = filters;
+
+    const where: Record<string, unknown> = {};
+    if (status === 'pending') {
+      where.isConfirmed = false;
+      where.isActive = true;
+    } else if (status === 'active') {
+      where.isConfirmed = true;
+      where.isActive = true;
+    } else if (status === 'inactive') {
+      where.isActive = false;
+    }
+    if (search) {
+      where.name = { $ilike: `%${search}%` };
+    }
+
+    const [items, total] = await this.findAll(where as never, {
+      populate: ['owner'] as never,
+      orderBy: { created_at: 'DESC' },
+      limit,
+      offset: page * limit,
+    });
+
+    return {
+      items,
+      meta: {
+        page,
+        limit,
+        total,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
   }
 
   async listPendingAgencies() {

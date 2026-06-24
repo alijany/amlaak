@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
@@ -20,6 +21,7 @@ import { AgencyAccessService } from './agency-access.service';
 import { AgencyService } from './agency.service';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
 import {
+  AgencyFilterDto,
   CreateAgencyDto,
   InviteAgencyDto,
   UpdateAgencyDto,
@@ -53,6 +55,13 @@ export class AgencyController {
   @Roles(Role.ADMIN)
   pending() {
     return this.agencies.listPendingAgencies();
+  }
+
+  /** Admin: paginated list of all agencies, filterable by status/search. */
+  @Get()
+  @Roles(Role.ADMIN)
+  list(@Query() filters: AgencyFilterDto) {
+    return this.agencies.listAgencies(filters);
   }
 
   /** Any authenticated user can register an agency (becomes its OWNER). */

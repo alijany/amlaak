@@ -1,15 +1,30 @@
 'use client';
 
 import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protected-route';
-import { Role } from '@/components/auth/auth.constants.roles';
+import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
-import { Button } from '@/ui/atoms';
-import { DataView } from '@/ui/molecules';
+import { Button, Input } from '@/ui/atoms';
+import { DataView, Pagination } from '@/ui/molecules';
+import { IconSettings } from '@tabler/icons-react';
+import Link from 'next/link';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { useConfirmAgency, usePendingAgencies, useRejectAgency } from './agencies.api';
-import { PendingAgency } from './agencies.types';
+import {
+  useAgencies,
+  useConfirmAgency,
+  useReactivateAgency,
+  useRejectAgency,
+} from './agencies.api';
+import { AdminAgency, AgencyFilterDto, AgencyStatusFilter } from './agencies.types';
 
-function ownerLabel(agency: PendingAgency): string {
+const STATUS_TABS: { value: AgencyStatusFilter; label: string }[] = [
+  { value: 'all', label: 'همه' },
+  { value: 'pending', label: 'در انتظار تأیید' },
+  { value: 'active', label: 'فعال' },
+  { value: 'inactive', label: 'غیرفعال' },
+];
+
+function ownerLabel(agency: AdminAgency): string {
   const name =
     `${agency.owner?.firstName ?? ''} ${agency.owner?.lastName ?? ''}`.trim();
   return name || agency.owner?.phone || '—';
@@ -20,10 +35,40 @@ function formatDate(iso?: string): string {
   return new Date(iso).toLocaleDateString('fa-IR');
 }
 
-export default function PendingAgenciesPage() {
-  const { data, error, isLoading, refresh } = usePendingAgencies();
+function StatusBadge({ agency }: { agency: AdminAgency }) {
+  if (!agency.isActive) {
+    return (
+      <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-500 text-[11px] font-semibold">
+        غیرفعال
+      </span>
+    );
+  }
+  if (!agency.isConfirmed) {
+    return (
+      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-semibold">
+        در انتظار تأیید
+      </span>
+    );
+  }
+  return (
+    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-semibold">
+      تأیید‌شده
+    </span>
+  );
+}
+
+export default function AgenciesPage() {
+  const [filters, setFilters] = useState<AgencyFilterDto>({
+    status: 'all',
+    page: 0,
+  });
+
+  const { data, error, isLoading, refresh } = useAgencies(filters);
   const { submit: confirm, isLoading: confirming } = useConfirmAgency();
   const { submit: reject, isLoading: rejecting } = useRejectAgency();
+  const { submit: reactivate, isLoading: reactivating } = useReactivateAgency();
+
+  const busy = confirming || rejecting || reactivating;
 
   const handleConfirm = async (id: number) => {
     try {
@@ -45,56 +90,147 @@ export default function PendingAgenciesPage() {
     }
   };
 
-  return (
-    <RoleProtectedRoute allowedRoles={[Role.ADMIN]}>
-      <DashbaordLayout>
-        <div className="space-y-4 grow flex flex-col overflow-auto">
-          <h1 className="font-bold text-slate-800 text-xl">تأیید آژانس‌ها</h1>
+  const handleReactivate = async (id: number) => {
+    try {
+      await reactivate(id);
+      toast.success('آژانس فعال شد');
+      refresh();
+    } catch {
+      toast.error('خطا در فعال‌سازی آژانس');
+    }
+  };
 
-          <div className="rounded-2xl bg-white p-4">
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page: page - 1 }));
+  };
+
+  return (
+    <RoleProtectedRoute allowedRoles={RouteItems.agencies.roles}>
+      <DashbaordLayout>
+        <div className="space-y-3 grow flex flex-col overflow-hidden">
+          <div className="p-4 rounded-2xl bg-white space-y-3">
+            <div className="flex items-center gap-4 justify-between flex-wrap">
+              <div className="font-bold grow">مدیریت آژانس‌ها</div>
+              <div className="w-full sm:w-64">
+                <Input
+                  placeholder="جستجوی نام آژانس..."
+                  value={filters.search ?? ''}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      search: e.target.value || undefined,
+                      page: 0,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {STATUS_TABS.map((tab) => {
+                const active = (filters.status ?? 'all') === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        status: tab.value,
+                        page: 0,
+                      }))
+                    }
+                    className={
+                      active
+                        ? 'px-3 py-1.5 rounded-full bg-slate-800 text-white text-xs font-semibold'
+                        : 'px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold hover:bg-slate-200'
+                    }
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white grow flex flex-col overflow-hidden">
             <DataView
               data={data}
               error={error}
               isLoading={isLoading}
               isEmpty={(d) => !d?.items.length}
-              emptyMessage="هیچ آژانس در انتظار تأییدی وجود ندارد."
+              emptyMessage="هیچ آژانسی یافت نشد."
               onRetry={refresh}
-              variant="inline"
-              className="divide-y divide-slate-100"
+              className="overflow-auto flex flex-col gap-3"
             >
               {data?.items?.map((agency) => (
                 <div
                   key={agency.id}
-                  className="flex items-center justify-between py-3 gap-4"
+                  className="px-3 py-2.5 rounded-2xl border border-slate-100 flex items-center justify-between gap-4 flex-wrap"
                 >
                   <div className="min-w-0 space-y-0.5">
-                    <div className="text-sm font-semibold text-slate-700 truncate">
-                      {agency.name}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-700 truncate">
+                        {agency.name}
+                      </span>
+                      <StatusBadge agency={agency} />
                     </div>
                     <div className="text-xs text-slate-400">
-                      {ownerLabel(agency)} · {agency.phone || '—'} · {formatDate(agency.created_at)}
+                      {ownerLabel(agency)} · {agency.phone || '—'} ·{' '}
+                      {formatDate(agency.created_at)}
                     </div>
                   </div>
 
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      onClick={() => handleConfirm(agency.id)}
-                      disabled={confirming || rejecting}
-                    >
-                      تأیید
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleReject(agency.id)}
-                      disabled={confirming || rejecting}
-                    >
-                      رد
-                    </Button>
+                  <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+                    {agency.isActive && !agency.isConfirmed && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handleConfirm(agency.id)}
+                          disabled={busy}
+                        >
+                          تأیید
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReject(agency.id)}
+                          disabled={busy}
+                        >
+                          رد
+                        </Button>
+                      </>
+                    )}
+                    {!agency.isActive && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleReactivate(agency.id)}
+                        disabled={busy}
+                      >
+                        فعال‌سازی
+                      </Button>
+                    )}
+                    <Link href={`/dashboard/agencies/${agency.id}`}>
+                      <Button size="sm" variant="outline">
+                        <IconSettings size={16} className="ml-1" />
+                        مدیریت
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
+
+              {data?.meta && (
+                <div className="pt-6">
+                  <Pagination
+                    itemPerPage={filters.limit || 10}
+                    page={(filters.page || 0) + 1}
+                    totalCount={data.meta.total}
+                    onNavigate={(page) => {
+                      handlePageChange(page);
+                      return '#';
+                    }}
+                  />
+                </div>
+              )}
             </DataView>
           </div>
         </div>

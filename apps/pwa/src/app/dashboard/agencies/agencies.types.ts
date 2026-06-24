@@ -1,8 +1,16 @@
-export interface PendingAgency {
+export interface AdminAgency {
   id: number;
   name: string;
+  slug?: string;
+  description?: string;
   phone?: string;
+  logo?: string;
+  banner?: string;
+  website?: string;
+  city?: string;
+  address?: string;
   isActive: boolean;
+  isPlatform?: boolean;
   isConfirmed: boolean;
   owner?: {
     id: number;
@@ -11,4 +19,26 @@ export interface PendingAgency {
     phone?: string;
   };
   created_at?: string;
+}
+
+/** Backwards-compatible alias used by the confirm/reject flow. */
+export type PendingAgency = AdminAgency;
+
+export type AgencyStatusFilter = 'all' | 'pending' | 'active' | 'inactive';
+
+export interface AgencyFilterDto {
+  page?: number;
+  limit?: number;
+  status?: AgencyStatusFilter;
+  search?: string;
+}
+
+export interface AgenciesListResponse {
+  items: AdminAgency[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    pageCount: number;
+  };
 }

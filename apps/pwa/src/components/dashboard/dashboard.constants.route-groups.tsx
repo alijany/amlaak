@@ -78,7 +78,7 @@ export const RouteItems = {
   },
   agencies: {
     href: "/dashboard/agencies",
-    label: "تأیید آژانس‌ها",
+    label: "مدیریت آژانس‌ها",
     roles: [Role.ADMIN],
     icon: <IconBuildingCommunity className="size-5" />
   }
