@@ -7,7 +7,7 @@ import { Modal } from '@/ui/atoms/ui.modal';
 import { ResultModal } from '@/ui/molecules/result-modal';
 import { IconX } from '@tabler/icons-react';
 import { useState } from 'react';
-import { useAddUser } from './users.api';
+import { useAddUser, useInviteAgency } from './users.api';
 
 interface AddUserFormProps {
     onSuccess?: () => void;
@@ -60,7 +60,9 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
 
     return (
         <>
+            <div className="flex gap-2">
             <Button onClick={() => setIsOpen(true)}>افزودن کاربر جدید</Button>
+            <InviteAgencyForm /></div>
 
             <Modal
                 isOpen={isOpen}
@@ -154,6 +156,110 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
                 title="افزودن کاربر"
                 successMessage="کاربر با موفقیت به افزوده شد"
                 errorMessage={error?.message || "خطا در افزودن کاربر"}
+            />
+        </>
+    );
+}
+
+function InviteAgencyForm() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [phone, setPhone] = useState('');
+    const [agencyName, setAgencyName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [agencyPhone, setAgencyPhone] = useState('');
+    const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+
+    const { submit, isLoading, error, reset } = useInviteAgency();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await submit({
+                phone,
+                agencyName,
+                firstName: firstName || undefined,
+                lastName: lastName || undefined,
+                agencyPhone: agencyPhone || undefined,
+            });
+            setPhone('');
+            setAgencyName('');
+            setFirstName('');
+            setLastName('');
+            setAgencyPhone('');
+            setIsOpen(false);
+        } catch {
+            // error shown via ResultModal
+        }
+        setIsResultModalOpen(true);
+    };
+
+    return (
+        <>
+            <Button variant="outline" onClick={() => setIsOpen(true)}>دعوت آژانس</Button>
+
+            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className="lg:min-w-[500px] bg-white">
+                <div className="p-6 flex flex-col gap-4">
+                    <div className="flex justify-between items-center">
+                        <div className="font-bold text-lg lg:text-xl text-slate-700">دعوت آژانس جدید</div>
+                        <Button variant="outline" className="!px-2" onClick={() => setIsOpen(false)}>
+                            <IconX className="size-5" />
+                        </Button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <Input
+                            label="نام آژانس"
+                            value={agencyName}
+                            onChange={(e) => setAgencyName(e.target.value)}
+                            placeholder="نام آژانس"
+                            required
+                        />
+                        <Input
+                            label="شماره موبایل مالک"
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="0912-345-6789"
+                            required
+                        />
+                        <Input
+                            label="تلفن آژانس (اختیاری)"
+                            value={agencyPhone}
+                            onChange={(e) => setAgencyPhone(e.target.value)}
+                            placeholder="021-12345678"
+                        />
+                        <Input
+                            label="نام مالک (اختیاری)"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="نام"
+                        />
+                        <Input
+                            label="نام خانوادگی مالک (اختیاری)"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder="نام خانوادگی"
+                        />
+                        <div className="flex gap-4 pt-4">
+                            <Button type="submit" className="flex-1" disabled={isLoading || !phone || !agencyName}>
+                                {isLoading ? 'در حال ارسال...' : 'ارسال دعوت‌نامه'}
+                            </Button>
+                            <Button type="button" variant="ghost" className="flex-1" onClick={() => setIsOpen(false)}>
+                                لغو
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
+
+            <ResultModal
+                isOpen={isResultModalOpen}
+                onClose={() => { setIsResultModalOpen(false); reset(); }}
+                status={error ? 'error' : 'success'}
+                title="دعوت آژانس"
+                successMessage="آژانس با موفقیت ایجاد و دعوت‌نامه ارسال شد"
+                errorMessage={error?.message || 'خطا در ایجاد آژانس'}
             />
         </>
     );

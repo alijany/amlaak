@@ -1,6 +1,7 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import parsePhoneNumberFromString from 'libphonenumber-js';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { Role } from 'src/roles/roles.constants';
 import { InvitationStatus } from 'src/roles/roles.entity';
@@ -9,7 +10,7 @@ import { UserEntity } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { AgencyEntity } from './agency.entity';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
-import { CreateAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
+import { CreateAgencyDto, InviteAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
 
 @Injectable()
 export class AgencyService extends BaseRepositoryService<AgencyEntity> {
@@ -52,19 +53,77 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
   }
 
   async createAgency(dto: CreateAgencyDto, owner: UserEntity) {
-    const agency = await this.create({ ...dto, owner });
-    // Ensure a unique, URL-safe slug for the public profile.
+    const agency = await this.create({ ...dto, owner, isConfirmed: false });
+    if (!agency.slug) {
+      agency.slug = `agency-${agency.id}`;
+      await this.persistAndFlush(agency);
+    }
+    // Upgrade an existing platform USER role to OWNER rather than adding a duplicate.
+    const existingUserRole = await this.roles.findOne({
+      user: owner,
+      role: Role.USER,
+      agency: null,
+    });
+    if (existingUserRole) {
+      existingUserRole.role = Role.OWNER;
+      existingUserRole.agency = agency;
+      existingUserRole.invitationStatus = InvitationStatus.ACCEPTED;
+      await this.roles.persistAndFlush(existingUserRole);
+    } else {
+      await this.roles.create({
+        user: owner,
+        role: Role.OWNER,
+        agency,
+        invitationStatus: InvitationStatus.ACCEPTED,
+      });
+    }
+    return agency;
+  }
+
+  /** Admin-only: pre-create an agency and invite a user as its pending OWNER. */
+  async inviteAgency(dto: InviteAgencyDto) {
+    const validatedPhone = parsePhoneNumberFromString(dto.phone, 'IR');
+    let user = await this.users.findOne({ phone: validatedPhone?.number });
+    if (!user) {
+      user = await this.users.create({
+        phone: validatedPhone.number,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+      });
+    }
+    const agency = await this.create({
+      name: dto.agencyName,
+      phone: dto.agencyPhone,
+      owner: user,
+      isConfirmed: true,
+    });
     if (!agency.slug) {
       agency.slug = `agency-${agency.id}`;
       await this.persistAndFlush(agency);
     }
     await this.roles.create({
-      user: owner,
+      user,
       role: Role.OWNER,
       agency,
-      invitationStatus: InvitationStatus.ACCEPTED,
+      invitationStatus: InvitationStatus.PENDING,
     });
     return agency;
+  }
+
+  async listPendingAgencies() {
+    const [items] = await this.findAll(
+      { isConfirmed: false, isActive: true },
+      { populate: ['owner'] as never },
+    );
+    return { items };
+  }
+
+  async confirmAgency(id: number) {
+    return this.updateOne({ id }, { isConfirmed: true });
+  }
+
+  async rejectAgency(id: number) {
+    return this.updateOne({ id }, { isActive: false });
   }
 
   /** Public lookup by slug (active agencies only). */

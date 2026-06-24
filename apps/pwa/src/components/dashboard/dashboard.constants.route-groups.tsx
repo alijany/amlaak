@@ -69,6 +69,12 @@ export const RouteItems = {
     label: "آگهی‌های گردآوری‌شده",
     roles: [Role.ADMIN],
     icon: <IconList className="size-5" />
+  },
+  agencies: {
+    href: "/dashboard/agencies",
+    label: "تأیید آژانس‌ها",
+    roles: [Role.ADMIN],
+    icon: <IconBuildingCommunity className="size-5" />
   }
 };
 
@@ -82,6 +88,7 @@ export const routeGroups: RouteGroup[] = [
       RouteItems.agency,
       RouteItems.crawler,
       RouteItems.crawlerAds,
+      RouteItems.agencies,
       RouteItems.users,
       RouteItems.profile,
       RouteItems.notifications,

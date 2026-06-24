@@ -13,6 +13,7 @@ export interface Agency {
   address?: string;
   isActive: boolean;
   isPlatform?: boolean;
+  isConfirmed?: boolean;
   created_at?: string;
 }
 

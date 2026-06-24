@@ -1,8 +1,9 @@
 import { fetcher, postFetcher } from "@/libs/api/api.util.fetcher";
 import { useSwrHelper, useSwrMutationHelper } from "@/libs/api/api.hook.use-swr-helper";
 import useSWR from "swr";
-import { AddUserDto, GetUsersResponse, User, UserFilterDto } from "./users.types";
+import { AddUserDto, GetUsersResponse, InviteAgencyDto, User, UserFilterDto } from "./users.types";
 import useSWRMutation from "swr/mutation";
+import { Agency } from "../agency/agency.types";
 
 
 export function useUsers(filters?: UserFilterDto) {
@@ -23,6 +24,14 @@ export function useAddUser() {
   const swrMutation = useSWRMutation(
     '/users',
     postFetcher<AddUserDto, User>
+  );
+  return useSwrMutationHelper(swrMutation);
+}
+
+export function useInviteAgency() {
+  const swrMutation = useSWRMutation(
+    '/agencies/invite',
+    postFetcher<InviteAgencyDto, Agency>
   );
   return useSwrMutationHelper(swrMutation);
 }

@@ -1,5 +1,25 @@
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
+export class InviteAgencyDto {
+  @IsString()
+  agencyName: string;
+
+  @IsString()
+  phone: string;
+
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @IsString()
+  @IsOptional()
+  agencyPhone?: string;
+}
+
 export class CreateAgencyDto {
   @IsString()
   name: string;

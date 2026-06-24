@@ -19,7 +19,7 @@ import { UserEntity } from 'src/user/user.entity';
 import { AgencyAccessService } from './agency-access.service';
 import { AgencyService } from './agency.service';
 import { InviteAgencyMemberDto } from './dtos/agency-member.dto';
-import { CreateAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
+import { CreateAgencyDto, InviteAgencyDto, UpdateAgencyDto } from './dtos/agency.dto';
 
 const MANAGER = [Role.OWNER, Role.MANAGER, Role.ADMIN] as const;
 
@@ -35,6 +35,20 @@ export class AgencyController {
   @Get('mine')
   mine(@CurrentUser() user: UserEntity) {
     return this.agencies.myAgencies(user);
+  }
+
+  /** Admin: pre-create an agency and invite a user as its pending OWNER. */
+  @Post('invite')
+  @Roles(Role.ADMIN)
+  inviteAgency(@Body() dto: InviteAgencyDto) {
+    return this.agencies.inviteAgency(dto);
+  }
+
+  /** Admin: list agencies awaiting confirmation. */
+  @Get('pending')
+  @Roles(Role.ADMIN)
+  pending() {
+    return this.agencies.listPendingAgencies();
   }
 
   /** Any authenticated user can register an agency (becomes its OWNER). */
@@ -90,6 +104,20 @@ export class AgencyController {
   ) {
     this.assertManager(user, id);
     return this.agencies.removeMember(id, roleId);
+  }
+
+  /** Admin: confirm a self-registered agency. */
+  @Patch(':id/confirm')
+  @Roles(Role.ADMIN)
+  confirm(@Param('id', ParseIntPipe) id: number) {
+    return this.agencies.confirmAgency(id);
+  }
+
+  /** Admin: reject/deactivate a self-registered agency. */
+  @Patch(':id/reject')
+  @Roles(Role.ADMIN)
+  reject(@Param('id', ParseIntPipe) id: number) {
+    return this.agencies.rejectAgency(id);
   }
 
   /** Caller must own/manage this specific agency (or be a platform admin). */

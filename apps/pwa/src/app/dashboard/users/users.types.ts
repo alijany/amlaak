@@ -36,3 +36,11 @@ export interface UserFilterDto {
   page?: number;
   limit?: number;
 }
+
+export interface InviteAgencyDto {
+  agencyName: string;
+  phone: string;
+  firstName?: string;
+  lastName?: string;
+  agencyPhone?: string;
+}

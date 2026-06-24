@@ -50,6 +50,10 @@ export class AgencyEntity extends BaseEntity {
   @Property({ default: false })
   isPlatform: boolean = false;
 
+  /** False for self-registered agencies until an admin approves them. */
+  @Property({ default: false })
+  isConfirmed: boolean = false;
+
   @ManyToOne(() => UserEntity, { nullable: true })
   owner?: UserEntity;
 }

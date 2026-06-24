@@ -235,8 +235,10 @@ function AgencyContent({ agencyId }: { agencyId: number }) {
 }
 
 export default function AgencyPage() {
-  const { selectedRole } = useAuth();
-  const agencyId = selectedRole?.agency?.id;
+  const { user } = useAuth();
+  const agencyId = user?.roles.find(
+    (r) => r.role === Role.OWNER && r.agency?.id,
+  )?.agency?.id;
 
   return (
     <RoleProtectedRoute
