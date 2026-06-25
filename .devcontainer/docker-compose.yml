@@ -57,6 +57,18 @@ services:
     volumes:
       - browser-data:/root/.camofox
 
+  # Xray proxy sidecar. Exposes a local SOCKS5 inbound on :1080 (and HTTP on
+  # :1081) that the backend points TELEGRAM_PROXY_URL at (socks5h://xray:1080)
+  # to reach api.telegram.org where it is blocked. Routing sends Telegram (and
+  # everything else) through the `proxy` outbound; edit xray-config.json with
+  # your own VLESS server. Until address/id are real the proxy outbound does
+  # not work — set them, or point the routing rules at the `direct` outbound.
+  # The image's default entrypoint runs `xray run -config /etc/xray/config.json`.
+  xray:
+    image: teddysun/xray:latest
+    volumes:
+      - ./xray-config.json:/etc/xray/config.json:ro
+
 volumes:
   postgres-data:
   minio-data:

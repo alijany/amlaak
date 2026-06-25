@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { RealEstateAdvertisementEntity } from '../advertisement.entity';
 import { RealEstateCategory } from '../real-estate.constants';
+import { telegramRequestConfig } from '../../libs/utils/telegram-http';
 
 const CATEGORY_LABEL: Record<RealEstateCategory, string> = {
   [RealEstateCategory.SALE]: 'فروش',
@@ -58,7 +59,11 @@ export class TelegramListingPublisher {
       payload.text = caption;
     }
 
-    const { data } = await axios.post(url, payload);
+    const { data } = await axios.post(
+      url,
+      payload,
+      telegramRequestConfig(this.config),
+    );
     return { messageId: data?.result?.message_id };
   }
 

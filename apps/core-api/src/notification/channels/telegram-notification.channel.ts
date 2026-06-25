@@ -5,6 +5,7 @@ import { BaseNotificationChannel } from './base-notification.channel';
 import { NotificationEntity } from '../notification.entity';
 import { NotificationType } from '../notification.constants';
 import { NotificationRepository } from '../repositories/notification.repository';
+import { telegramRequestConfig } from '../../libs/utils/telegram-http';
 
 @Injectable()
 export class TelegramNotificationChannel extends BaseNotificationChannel {
@@ -39,11 +40,15 @@ export class TelegramNotificationChannel extends BaseNotificationChannel {
       throw new Error(`No bot token configured for ${notification.type}`);
     }
 
-    await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      chat_id: notification.recipientChatId,
-      text: notification.message,
-      parse_mode: 'Markdown',
-    });
+    await axios.post(
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      {
+        chat_id: notification.recipientChatId,
+        text: notification.message,
+        parse_mode: 'Markdown',
+      },
+      telegramRequestConfig(this.configService),
+    );
   }
 
   private getBotToken(type: NotificationType): string | null {
