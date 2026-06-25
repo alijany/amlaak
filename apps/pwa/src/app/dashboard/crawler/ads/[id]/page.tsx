@@ -556,11 +556,22 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
   return (
     <>
       <div className="bg-white rounded-2xl p-4 mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-slate-500 flex-wrap">
           <span>وضعیت انتشار:</span>
           <PublishStatusPill status={ad.publishStatus} />
           {ad.telegramPostedAt && (
             <span className="text-[11px] text-emerald-600">• ارسال‌شده به تلگرام</span>
+          )}
+          {ad.sourceUrl && (
+            <a
+              href={ad.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[12px] font-medium text-blue-600 hover:text-blue-700 hover:underline bg-blue-50 rounded-full px-2.5 py-0.5 transition-colors"
+            >
+              <IconExternalLink size={12} />
+              مشاهده در دیوار
+            </a>
           )}
         </div>
         {canModerate && (
