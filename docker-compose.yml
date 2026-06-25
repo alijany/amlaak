@@ -107,6 +107,25 @@ services:
   #   security_opt:
   #     - no-new-privileges:true
 
+  # Xray proxy sidecar for reaching api.telegram.org where it is blocked
+  # (optional). The api connects to it on the internal `app` network via
+  # TELEGRAM_PROXY_URL=socks5h://xray:1080 (SOCKS5 inbound; HTTP inbound on
+  # :1081). The config is NOT in the repo — provision it on the server at the
+  # predefined path below and fill in your VLESS server (see the devcontainer's
+  # .devcontainer/xray-config.json for a template):
+  #   sudo mkdir -p /opt/xray && sudo $EDITOR /opt/xray/config.json
+  # Uncomment to enable, then set TELEGRAM_PROXY_URL in .env.
+  # xray:
+  #   container_name: ${PROJECT_NAME}-xray
+  #   image: teddysun/xray:latest
+  #   restart: always
+  #   networks:
+  #     - app
+  #   volumes:
+  #     - /opt/xray/config.json:/etc/xray/config.json:ro
+  #   security_opt:
+  #     - no-new-privileges:true
+
 
 volumes:
   postgres_data:

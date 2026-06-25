@@ -43,7 +43,18 @@ export class TelegramListingPublisher {
     }
 
     const caption = this.buildCaption(ad);
+    // Telegram's sendPhoto-by-URL fetches the image from Telegram's own
+    // servers, so the URL must be publicly reachable. In local/dev the image
+    // lives on an internal host (e.g. MinIO at http://minio:9000) that Telegram
+    // can't reach — sending it yields "wrong HTTP URL specified". Fall back to
+    // text-only there; in prod (public CDN/S3 URL) the photo is included.
     const photo = ad.images?.[0];
+    const usePhoto = !!photo && this.isPubliclyFetchable(photo);
+    if (photo && !usePhoto) {
+      this.logger.debug(
+        `Image URL not publicly fetchable (${photo}); posting text only.`,
+      );
+    }
 
     const base = `https://api.telegram.org/bot${token}`;
     const payload: Record<string, unknown> = {
@@ -51,8 +62,8 @@ export class TelegramListingPublisher {
       parse_mode: 'Markdown',
     };
 
-    const url = photo ? `${base}/sendPhoto` : `${base}/sendMessage`;
-    if (photo) {
+    const url = usePhoto ? `${base}/sendPhoto` : `${base}/sendMessage`;
+    if (usePhoto) {
       payload.photo = photo;
       payload.caption = caption;
     } else {
@@ -65,6 +76,40 @@ export class TelegramListingPublisher {
       telegramRequestConfig(this.config),
     );
     return { messageId: data?.result?.message_id };
+  }
+
+  /**
+   * Whether Telegram's servers could fetch this image URL: an absolute http(s)
+   * URL on a non-local, non-internal host. Internal hosts (localhost, MinIO,
+   * Docker service names) are only reachable from inside our network, so
+   * sendPhoto-by-URL would fail — callers fall back to a text-only post.
+   */
+  private isPubliclyFetchable(rawUrl: string): boolean {
+    let parsed: URL;
+    try {
+      parsed = new URL(rawUrl);
+    } catch {
+      return false; // not an absolute URL (bare key, relative path, etc.)
+    }
+
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+
+    const host = parsed.hostname.toLowerCase();
+    const isLocal =
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '::1' ||
+      host === '0.0.0.0' ||
+      !host.includes('.') || // single-label Docker service names (e.g. "minio")
+      host.endsWith('.local') ||
+      host.endsWith('.internal') ||
+      /^10\./.test(host) ||
+      /^192\.168\./.test(host) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+
+    return !isLocal;
   }
 
   private buildCaption(ad: RealEstateAdvertisementEntity): string {
