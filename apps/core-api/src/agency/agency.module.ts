@@ -1,6 +1,7 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { CityModule } from '../city/city.module';
+import { NotificationModule } from '../notification/notification.module';
 import { RolesModule } from '../roles/roles.module';
 import { UserModule } from '../user/user.module';
 import { AgencyAccessService } from './agency-access.service';
@@ -20,6 +21,7 @@ import { AgencyService } from './agency.service';
     RolesModule,
     UserModule,
     CityModule,
+    NotificationModule,
   ],
   controllers: [AgencyController],
   providers: [AgencyService, AgencyAccessService, AgencyBootstrapService],

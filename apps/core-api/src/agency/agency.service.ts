@@ -3,12 +3,16 @@ import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { CityEntity } from 'src/city/city.entity';
 import { CityService } from 'src/city/city.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
+import { buildNewAgencyMessage } from 'src/notification/admin-notification';
+import { NotificationService } from 'src/notification/services/notification.service';
 import { Role } from 'src/roles/roles.constants';
 import { InvitationStatus } from 'src/roles/roles.entity';
 import { RolesService } from 'src/roles/roles.service';
@@ -25,6 +29,7 @@ import {
 
 @Injectable()
 export class AgencyService extends BaseRepositoryService<AgencyEntity> {
+  private readonly logger = new Logger(AgencyService.name);
   private defaultAgencyId?: number;
 
   constructor(
@@ -33,6 +38,8 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
     private readonly roles: RolesService,
     private readonly users: UserService,
     private readonly cities: CityService,
+    private readonly notifications: NotificationService,
+    private readonly config: ConfigService,
   ) {
     super(repository);
   }
@@ -106,7 +113,28 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
         invitationStatus: InvitationStatus.ACCEPTED,
       });
     }
+    // A self-registered agency starts unconfirmed — alert admins to review it.
+    await this.notifyAdminsOfNewAgency(agency, owner);
     return agency;
+  }
+
+  /** Best-effort: alert operators that a new agency awaits confirmation. */
+  private async notifyAdminsOfNewAgency(
+    agency: AgencyEntity,
+    owner: UserEntity,
+  ): Promise<void> {
+    try {
+      const message = buildNewAgencyMessage(agency, owner, this.config);
+      await this.notifications.notifyAdmins(message, {
+        priority: 'high',
+        metadata: { agencyId: agency.id, kind: 'agency_pending' },
+      });
+    } catch (err) {
+      this.logger.error(
+        `failed to notify admins of new agency ${agency.id}`,
+        err as Error,
+      );
+    }
   }
 
   /** Admin-only: pre-create an agency and invite a user as its pending OWNER. */

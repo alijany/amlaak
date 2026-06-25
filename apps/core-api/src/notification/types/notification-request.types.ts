@@ -36,13 +36,6 @@ export interface AdminNotificationRequest extends BaseNotificationRequest {
 }
 
 /**
- * Log notification request for monitoring and logging systems
- */
-export interface LogNotificationRequest extends BaseNotificationRequest {
-  logLevel: 'info' | 'warn' | 'error';
-}
-
-/**
  * Channel-specific request data
  */
 export interface NotificationChannelRequest {
@@ -58,8 +51,7 @@ export interface NotificationChannelRequest {
 export type NotificationRequest =
   | DirectNotificationRequest
   | UserNotificationRequest
-  | AdminNotificationRequest
-  | LogNotificationRequest;
+  | AdminNotificationRequest;
 /**
  * Type guards for notification requests
  */
@@ -79,10 +71,4 @@ export const isAdminNotificationRequest = (
   req: NotificationRequest,
 ): req is AdminNotificationRequest => {
   return 'sendToAdmins' in req && req.sendToAdmins === true;
-};
-
-export const isLogNotificationRequest = (
-  req: NotificationRequest,
-): req is LogNotificationRequest => {
-  return 'logLevel' in req && ['info', 'warn', 'error'].includes(req.logLevel);
 };

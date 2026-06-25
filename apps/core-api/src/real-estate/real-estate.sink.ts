@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import { RawCrawlItem } from '../crawler/providers/crawler-provider.interface';
 import {
@@ -6,6 +7,8 @@ import {
   CrawlSinkContext,
   CrawlSinkResult,
 } from '../crawler/sink/crawl-sink.interface';
+import { buildCrawlEndedMessage } from '../notification/admin-notification';
+import { NotificationService } from '../notification/services/notification.service';
 import { AdvertisementImageService } from './advertisement-image.service';
 import { AdvertisementService } from './advertisement.service';
 import {
@@ -30,6 +33,8 @@ export class RealEstateSink implements CrawlResultSink {
     private readonly normalization: NormalizationService,
     private readonly advertisements: AdvertisementService,
     private readonly images: AdvertisementImageService,
+    private readonly notifications: NotificationService,
+    private readonly config: ConfigService,
   ) {}
 
   async consume(
@@ -57,7 +62,30 @@ export class RealEstateSink implements CrawlResultSink {
       }
     }
 
+    // Alert operators when a crawl produced new ads that need confirmation.
+    if (result.created > 0) {
+      await this.notifyAdminsOfCrawl(ctx.target, result);
+    }
+
     return result;
+  }
+
+  /** Best-effort: tell operators a crawl finished with new ads to review. */
+  private async notifyAdminsOfCrawl(
+    target: CrawlTargetEntity,
+    result: CrawlSinkResult,
+  ): Promise<void> {
+    try {
+      const message = buildCrawlEndedMessage(target, result, this.config);
+      await this.notifications.notifyAdmins(message, {
+        priority: 'normal',
+        metadata: { targetId: target.id, kind: 'crawl_ended', ...result },
+      });
+    } catch (err: any) {
+      this.logger.warn(
+        `Failed to notify admins of crawl ${target.id}: ${err?.message ?? err}`,
+      );
+    }
   }
 
   /**

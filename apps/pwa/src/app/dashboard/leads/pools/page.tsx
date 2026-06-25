@@ -7,7 +7,7 @@ import { ApiError } from '@/libs/api/api.types.error';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
 import { IconArrowRight, IconPencil, IconPlus, IconX } from '@tabler/icons-react';
-import { useMyAgencies } from '@/app/dashboard/agency/agency.api';
+import { useAllAgencies } from '@/app/dashboard/agency/agency.api';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -217,7 +217,9 @@ function EditPoolModal({
 
 function PoolsContent() {
   const { data, error, isLoading, refresh } = useLeadPools();
-  const { data: agencies } = useMyAgencies();
+  // Pools are admin-managed and may include any agency, so list all of them
+  // (not just the admin's own) — pools route leads across agencies.
+  const { data: agencies } = useAllAgencies();
   const allAgencies = agencies?.items ?? [];
 
   const [createOpen, setCreateOpen] = useState(false);

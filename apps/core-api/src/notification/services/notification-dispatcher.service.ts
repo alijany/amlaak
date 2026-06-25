@@ -9,15 +9,12 @@ import {
   DirectNotificationRequest,
   isAdminNotificationRequest,
   isDirectNotificationRequest,
-  isLogNotificationRequest,
   isUserNotificationRequest,
-  LogNotificationRequest,
   NotificationChannelRequest,
   NotificationRequest,
   UserNotificationRequest,
 } from '../types/notification-request.types';
 import { UserResolverService } from './user-resolver.service';
-import { ConfigService } from '@nestjs/config';
 
 /**
  * Service responsible for dispatching notifications based on different request types
@@ -28,7 +25,6 @@ export class NotificationDispatcherService {
   constructor(
     private notificationRepository: NotificationRepository,
     private userResolver: UserResolverService,
-    private readonly configService: ConfigService,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -48,10 +44,6 @@ export class NotificationDispatcherService {
 
       if (isAdminNotificationRequest(request)) {
         return this.handleAdminRequest(request);
-      }
-
-      if (isLogNotificationRequest(request)) {
-        return this.handleLogNotification(request);
       }
 
       throw new Error('Invalid notification request type');
@@ -186,29 +178,6 @@ export class NotificationDispatcherService {
     }
 
     return allNotifications;
-  }
-
-  /**
-   * Handle log notifications
-   */
-  private async handleLogNotification(
-    request: LogNotificationRequest,
-  ): Promise<NotificationEntity[]> {
-    const logChatId = this.configService.get<number>('BACKUP_CHAT_ID');
-    if (!logChatId) {
-      console.warn('No backup chat ID configured for log notifications');
-      return [];
-    }
-    const notification = await this.createNotification({
-      type: NotificationType.TELEGRAM_BOT,
-      message: request.message,
-      user: request.userId,
-      metadata: request.metadata ?? {},
-      recipientChatId: logChatId,
-      priority: request.priority ?? 'normal',
-    });
-    await this.emitForDelivery(notification);
-    return [notification];
   }
 
   /**

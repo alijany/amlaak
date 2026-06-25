@@ -198,7 +198,34 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     await this.persistAndFlush(lead);
     // Deliver to the owning agency (direct assignment only; pool leads notify on claim).
     if (agencyId != null) await this.notifyAgencyOfLead(lead);
+    // Optionally SMS the listing details to the contact in the same step.
+    if (dto.sendAdSms) await this.trySendAdDetailSms(lead);
     return lead;
+  }
+
+  /**
+   * Best-effort send of the listing summary SMS to the lead's contact. Used by
+   * the one-step "send ad on creation" flow — a failure (or missing phone) must
+   * never roll back lead creation, so it logs instead of throwing.
+   */
+  private async trySendAdDetailSms(lead: LeadEntity): Promise<void> {
+    if (!lead.contactPhone) return;
+    try {
+      const message = buildAdDetailSms(lead, this.config);
+      await this.notifications.sendToChannels(
+        message,
+        [{ type: NotificationType.SMS, recipientPhone: lead.contactPhone }],
+        {
+          priority: 'normal',
+          metadata: { leadId: lead.id, kind: 'ad_detail' },
+        },
+      );
+    } catch (err) {
+      this.logger.error(
+        `failed to send ad-detail SMS for lead ${lead.id}`,
+        err as Error,
+      );
+    }
   }
 
   async search(filter: LeadFilterDto, ctx: AgencyContext) {

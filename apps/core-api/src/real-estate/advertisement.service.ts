@@ -3,14 +3,18 @@ import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AgencyContext } from 'src/agency/agency-access.service';
 import { AgencyEntity } from 'src/agency/agency.entity';
 import { AgencyService } from 'src/agency/agency.service';
 import { CityEntity } from 'src/city/city.entity';
 import { CityService } from 'src/city/city.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
+import { buildNewAdMessage } from 'src/notification/admin-notification';
+import { NotificationService } from 'src/notification/services/notification.service';
 import { UserEntity } from 'src/user/user.entity';
 import { LeadEntity } from '../lead/lead.entity';
 import { decodeTrackingCode } from '../lead/lead.tracking';
@@ -46,6 +50,8 @@ const PUBLIC_ATTRIBUTE_KEYS = [
 
 @Injectable()
 export class AdvertisementService extends BaseRepositoryService<RealEstateAdvertisementEntity> {
+  private readonly logger = new Logger(AdvertisementService.name);
+
   constructor(
     @InjectRepository(RealEstateAdvertisementEntity)
     protected repository: EntityRepository<RealEstateAdvertisementEntity>,
@@ -53,6 +59,8 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     private readonly leads: EntityRepository<LeadEntity>,
     private readonly agencies: AgencyService,
     private readonly cities: CityService,
+    private readonly notifications: NotificationService,
+    private readonly config: ConfigService,
   ) {
     super(repository);
   }
@@ -305,7 +313,28 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       createdBy: this.em.getReference(UserEntity, user.id),
     });
     await this.persistAndFlush(ad);
+    // Agency listings need admin approval — alert operators to review it.
+    await this.notifyAdminsOfNewListing(ad);
     return ad;
+  }
+
+  /** Best-effort: tell operators a new agency listing awaits approval. */
+  private async notifyAdminsOfNewListing(
+    ad: RealEstateAdvertisementEntity,
+  ): Promise<void> {
+    try {
+      await this.em.populate(ad, ['agency', 'city'] as never);
+      const message = buildNewAdMessage(ad, ad.agency, this.config);
+      await this.notifications.notifyAdmins(message, {
+        priority: 'normal',
+        metadata: { advertisementId: ad.id, kind: 'listing_pending' },
+      });
+    } catch (err) {
+      this.logger.error(
+        `failed to notify admins of new listing ${ad.id}`,
+        err as Error,
+      );
+    }
   }
 
   /**

@@ -83,6 +83,8 @@ export interface CreateLeadDto {
   poolId?: number;
   /** Mutually exclusive with poolId. */
   agencyId?: number;
+  /** SMS the listing details to the contact right after creation (needs contactPhone). */
+  sendAdSms?: boolean;
 }
 
 export interface UpdateLeadDto {

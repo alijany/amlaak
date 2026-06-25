@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { LeadSource } from '../lead.constants';
 
 export class CreateLeadDto {
@@ -40,4 +46,13 @@ export class CreateLeadDto {
   @IsInt()
   @IsOptional()
   agencyId?: number;
+
+  /**
+   * When true, SMS the listing summary + public link to the contact right after
+   * the lead is created (one-step alternative to the lead-detail "send ad" button).
+   * Requires a contactPhone; ignored otherwise. Best-effort — never blocks creation.
+   */
+  @IsBoolean()
+  @IsOptional()
+  sendAdSms?: boolean;
 }

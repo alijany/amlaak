@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/components/auth/auth.context.provider';
 import { ApiError } from '@/libs/api/api.types.error';
-import { Button, Input, Modal } from '@/ui/atoms';
+import { Button, Input, Modal, ToggleSwitch } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconX } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -56,6 +56,7 @@ export function QuickLeadModal({
   const [note, setNote] = useState('');
   const [poolId, setPoolId] = useState<number | ''>('');
   const [agencyId, setAgencyId] = useState<number | ''>('');
+  const [sendAdSms, setSendAdSms] = useState(false);
 
   const reset = () => {
     setSource(LeadSource.PHONE_CALL);
@@ -64,6 +65,7 @@ export function QuickLeadModal({
     setNote('');
     setPoolId('');
     setAgencyId('');
+    setSendAdSms(false);
   };
 
   const close = () => {
@@ -85,8 +87,13 @@ export function QuickLeadModal({
           : agencyId === ''
             ? undefined
             : Number(agencyId),
+        sendAdSms: sendAdSms && !!contactPhone.trim(),
       });
-      toast.success('مشتری ثبت شد');
+      toast.success(
+        sendAdSms && contactPhone.trim()
+          ? 'مشتری ثبت و آگهی با پیامک ارسال شد'
+          : 'مشتری ثبت شد',
+      );
       onCreated?.();
       close();
     } catch (e) {
@@ -121,6 +128,23 @@ export function QuickLeadModal({
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
             />
+          </div>
+
+          <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+            <ToggleSwitch
+              label="ارسال آگهی برای مشتری با پیامک"
+              labelPosition="right"
+              className="justify-between"
+              checked={sendAdSms}
+              onChange={setSendAdSms}
+              disabled={!contactPhone.trim()}
+              size="sm"
+            />
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              {contactPhone.trim()
+                ? 'پس از ثبت، جزئیات آگهی و لینک مشاهده برای مشتری پیامک می‌شود.'
+                : 'برای ارسال پیامک، شماره تماس مشتری را وارد کنید.'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

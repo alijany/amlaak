@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EventTypes } from '../../events/types';
 import { NotificationGetDto } from '../dtos/notification.get.dto';
@@ -11,7 +12,6 @@ import { NotificationRepository } from '../repositories/notification.repository'
 import {
   AdminNotificationRequest,
   DirectNotificationRequest,
-  LogNotificationRequest,
   NotificationChannelRequest,
   NotificationRequest,
   UserNotificationRequest,
@@ -20,9 +20,12 @@ import { NotificationDispatcherService } from './notification-dispatcher.service
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     private notificationRepository: NotificationRepository,
     private notificationDispatcher: NotificationDispatcherService,
+    private readonly config: ConfigService,
   ) {}
 
   @OnEvent(EventTypes.SEND_NOTIFICATION, { async: true })
@@ -89,20 +92,45 @@ export class NotificationService {
     return this.notificationDispatcher.dispatch(request);
   }
 
-  async sendToLog(
+  /**
+   * Notify the platform operators on a single Telegram chat the operator runs
+   * (TELEGRAM_ADMIN_CHAT_ID). Best-effort: no-ops when the chat is unconfigured
+   * and never throws, so callers can fire it without guarding the action.
+   * Unlike {@link sendToAdmins} this does not depend on each admin having linked
+   * a personal Telegram chatId — it targets one operator-managed chat.
+   */
+  async notifyAdmins(
     message: string,
-    logLevel: 'info' | 'warn' | 'error',
     options?: {
+      priority?: 'low' | 'normal' | 'high';
       metadata?: Record<string, any>;
     },
   ): Promise<NotificationEntity[]> {
-    const request: LogNotificationRequest = {
-      message,
-      logLevel,
-      metadata: options?.metadata,
-    };
-
-    return this.notificationDispatcher.dispatch(request);
+    const adminChatId = this.config.get<number>('TELEGRAM_ADMIN_CHAT_ID');
+    if (!adminChatId) {
+      this.logger.warn(
+        'Admin chat not configured (TELEGRAM_ADMIN_CHAT_ID); skipping admin notification.',
+      );
+      return [];
+    }
+    try {
+      return await this.sendToChannels(
+        message,
+        [
+          {
+            type: NotificationType.TELEGRAM_BOT,
+            recipientChatId: adminChatId,
+          },
+        ],
+        {
+          priority: options?.priority ?? 'normal',
+          metadata: options?.metadata,
+        },
+      );
+    } catch (error) {
+      this.logger.error('Failed to notify admins', error as Error);
+      return [];
+    }
   }
 
   async sendToChannels(
