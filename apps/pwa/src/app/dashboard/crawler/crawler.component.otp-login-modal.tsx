@@ -45,13 +45,23 @@ export function OtpLoginModal({
     }
   }, [isOpen]);
 
+  // Clear stale hint when the step changes (e.g. backend flips ERROR→phone step
+  // while hint still shows the OTP-sent success message).
+  useEffect(() => {
+    setHint(undefined);
+  }, [step]);
+
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     setHint(undefined);
     try {
-      await startLogin.submit({ phone });
-      setHint('کد تایید ارسال شد. کد دریافتی را وارد کنید.');
+      const result = await startLogin.submit({ phone });
       onChanged?.();
+      if (result.authStatus === CrawlerAuthStatus.LOGGED_IN) {
+        onClose();
+      } else {
+        setHint('کد تایید ارسال شد. کد دریافتی را وارد کنید.');
+      }
     } catch {
       setHint('خطا در شروع فرآیند ورود.');
     }

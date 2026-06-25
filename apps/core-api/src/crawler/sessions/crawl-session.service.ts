@@ -55,22 +55,36 @@ export class CrawlSessionService extends BaseRepositoryService<CrawlSessionEntit
     const session = await this.getOrCreate(targetId);
     let changed = await this.applyExpiry(session);
 
-    if (session.authStatus === CrawlerAuthStatus.LOGGED_IN) {
-      const target = await this.targetService.getByIdOrThrow(targetId);
-      const auth = this.registry.get(target.siteKey).getAuthProvider();
-      try {
-        const status = await auth.checkSession(session.sessionData ?? {});
-        if (status !== CrawlerAuthStatus.LOGGED_IN) {
-          this.expire(session, 'Session is no longer valid');
-          changed = true;
-        }
-      } catch (err: any) {
-        this.logger.warn(
-          `Session reconcile failed for target ${targetId}: ${
-            err?.message ?? err
-          }`,
-        );
+    const target = await this.targetService.getByIdOrThrow(targetId);
+    const auth = this.registry.get(target.siteKey).getAuthProvider();
+    try {
+      const status = await auth.checkSession(session.sessionData ?? {});
+      if (
+        status === CrawlerAuthStatus.LOGGED_IN &&
+        session.authStatus !== CrawlerAuthStatus.LOGGED_IN
+      ) {
+        // Browser has an active session the DB didn't know about — adopt it.
+        session.authStatus = CrawlerAuthStatus.LOGGED_IN;
+        session.sessionData = session.sessionData ?? {
+          provider: target.siteKey,
+          userId: this.sessionKey(targetId),
+        };
+        session.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        session.lastError = undefined;
+        changed = true;
+      } else if (
+        status !== CrawlerAuthStatus.LOGGED_IN &&
+        session.authStatus === CrawlerAuthStatus.LOGGED_IN
+      ) {
+        this.expire(session, 'Session is no longer valid');
+        changed = true;
       }
+    } catch (err: any) {
+      this.logger.warn(
+        `Session reconcile failed for target ${targetId}: ${
+          err?.message ?? err
+        }`,
+      );
     }
 
     if (changed) await this.persistAndFlush(session);
@@ -112,9 +126,21 @@ export class CrawlSessionService extends BaseRepositoryService<CrawlSessionEntit
         phone,
       });
       session.phone = phone;
-      session.challengeRef = challenge.challengeRef;
-      session.authStatus = CrawlerAuthStatus.OTP_PENDING;
       session.lastError = undefined;
+      if (challenge.alreadyLoggedIn) {
+        // Provider detected an active browser session — no OTP step needed.
+        session.authStatus = CrawlerAuthStatus.LOGGED_IN;
+        session.challengeRef = undefined;
+        session.sessionData = {
+          provider: 'divar',
+          userId: this.sessionKey(targetId),
+          phone,
+        };
+        session.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      } else {
+        session.challengeRef = challenge.challengeRef;
+        session.authStatus = CrawlerAuthStatus.OTP_PENDING;
+      }
       await this.persistAndFlush(session);
       return session;
     } catch (err: any) {

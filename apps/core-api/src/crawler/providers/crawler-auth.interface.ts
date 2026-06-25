@@ -10,9 +10,14 @@ export type AuthSessionData = Record<string, unknown>;
 /** Result of starting a login — the OTP has (conceptually) been sent. */
 export interface AuthChallenge {
   /** Opaque handle correlating start -> verify (e.g. a sidecar tab id). */
-  challengeRef: string;
+  challengeRef?: string;
   /** Optional human-facing hint, e.g. "code sent to ****1234". */
   message?: string;
+  /**
+   * True when the provider detected an active session already — no OTP needed.
+   * The session service will mark the session LOGGED_IN directly.
+   */
+  alreadyLoggedIn?: boolean;
 }
 
 export interface StartLoginInput {

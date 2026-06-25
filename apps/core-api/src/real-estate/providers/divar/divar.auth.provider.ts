@@ -68,7 +68,16 @@ export class DivarAuthProvider implements CrawlerAuthProvider {
       DIVAR_ANCHORS.phonePlaceholder,
     );
     if (!phoneRef) {
+      // If the login button is also absent the profile is already authenticated —
+      // treat this as a successful session rather than an error.
+      const stillGuest = !!findRef(snapshot.text, {
+        role: 'button',
+        nameIncludes: DIVAR_ANCHORS.loginButton,
+      });
       await this.browser.closeTab(tab.id).catch(() => undefined);
+      if (!stillGuest) {
+        return { alreadyLoggedIn: true };
+      }
       throw new Error('Divar login: phone-number field not found.');
     }
     await this.browser.type(tab.id, phoneRef, input.phone);

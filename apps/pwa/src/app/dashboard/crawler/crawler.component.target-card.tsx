@@ -38,7 +38,6 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
   const authStatus = auth?.authStatus ?? CrawlerAuthStatus.LOGIN_REQUIRED;
   const needsLogin =
     target.requiresAuth && authStatus !== CrawlerAuthStatus.LOGGED_IN;
-  const loggedIn = authStatus === CrawlerAuthStatus.LOGGED_IN;
 
   const handleReconcile = async () => {
     setMessage(undefined);
@@ -108,13 +107,13 @@ export function TargetCard({ target, onRefresh }: TargetCardProps) {
           زمان‌بندی
         </Button>
 
-        {loggedIn && (
+        {target.requiresAuth && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleReconcile}
             disabled={reconcile.isLoading}
-            title="بررسی اعتبار نشست"
+            title="بررسی اعتبار نشست در مرورگر"
           >
             <IconRefresh className="size-4 ml-1" />
             {reconcile.isLoading ? 'در حال بررسی...' : 'بررسی نشست'}
