@@ -92,7 +92,7 @@ function ManageView({ listing }: { listing: MyListing }) {
         <Row label="طبقه" value={listing.floor != null ? listing.floor.toLocaleString('fa-IR') : undefined} />
         <Row
           label="موقعیت"
-          value={[listing.province, listing.city, listing.district].filter(Boolean).join(' · ') || undefined}
+          value={[listing.province, listing.city?.nameFa, listing.district].filter(Boolean).join(' · ') || undefined}
         />
         <Row label="تاریخ ثبت" value={created} />
       </div>

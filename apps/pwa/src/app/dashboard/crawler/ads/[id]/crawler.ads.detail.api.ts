@@ -20,7 +20,7 @@ export interface UpdateAdvertisementDto {
   yearBuilt?: number;
   floor?: number;
   province?: string;
-  city?: string;
+  cityId?: number;
   district?: string;
   images?: string[];
   sourceUrl?: string;

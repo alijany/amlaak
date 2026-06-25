@@ -33,7 +33,14 @@ export class PublicAgencyController {
         logo: agency.logo,
         banner: agency.banner,
         website: agency.website,
-        city: agency.city,
+        city: agency.city
+          ? {
+              id: agency.city.id,
+              slug: agency.city.slug,
+              nameFa: agency.city.nameFa,
+              nameEn: agency.city.nameEn,
+            }
+          : undefined,
         address: agency.address,
       },
       listings,

@@ -15,7 +15,7 @@ function ListingsContent() {
     page: 0,
     limit: 12,
     q: searchParams.get('q') || undefined,
-    city: searchParams.get('city') || undefined,
+    citySlug: searchParams.get('city') || undefined,
     category: (searchParams.get('category') as RealEstateCategory) || undefined,
   });
 

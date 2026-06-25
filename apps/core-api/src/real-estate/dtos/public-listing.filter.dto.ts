@@ -25,9 +25,10 @@ export class PublicListingFilterDto {
   @IsOptional()
   agencyId?: number;
 
+  /** City slug (CityEntity.slug). */
   @IsString()
   @IsOptional()
-  city?: string;
+  citySlug?: string;
 
   @IsString()
   @IsOptional()

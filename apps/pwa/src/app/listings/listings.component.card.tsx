@@ -53,7 +53,9 @@ export function ListingCard({ listing }: { listing: PublicListing }) {
         {(listing.city || listing.district) && (
           <div className="flex items-center gap-1 text-[12px] text-slate-500">
             <IconMapPin size={13} className="text-slate-400" />
-            {[listing.city, listing.district].filter(Boolean).join(' · ')}
+            {[listing.city?.nameFa, listing.district]
+              .filter(Boolean)
+              .join(' · ')}
           </div>
         )}
 

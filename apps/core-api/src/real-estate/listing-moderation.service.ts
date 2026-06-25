@@ -18,7 +18,10 @@ export class ListingModerationService {
   ) {}
 
   async approve(id: number): Promise<RealEstateAdvertisementEntity> {
-    const ad = await this.advertisements.findOne({ id });
+    const ad = await this.advertisements.findOne(
+      { id },
+      { populate: ['city'] as never },
+    );
     if (!ad) throw new NotFoundException('listing not found');
 
     const alreadyPublished = ad.publishStatus === PublishStatus.PUBLISHED;

@@ -1,3 +1,4 @@
+import { City } from '@/libs/city/city.types';
 import { PublishStatus, RealEstateCategory } from '../crawler/crawler.types';
 
 export { PublishStatus, RealEstateCategory };
@@ -16,7 +17,7 @@ export interface MyListing {
   yearBuilt?: number;
   floor?: number;
   province?: string;
-  city?: string;
+  city?: City;
   district?: string;
   images?: string[];
   attributes?: Record<string, unknown>;
@@ -42,7 +43,7 @@ export interface ListingFormDto {
   yearBuilt?: number;
   floor?: number;
   province?: string;
-  city?: string;
+  cityId?: number;
   district?: string;
   images?: string[];
   attributes?: Record<string, unknown>;

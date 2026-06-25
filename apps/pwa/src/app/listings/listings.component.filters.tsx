@@ -1,8 +1,11 @@
 'use client';
 
+import { CitySelect } from '@/libs/city/city.component.select';
+import { City } from '@/libs/city/city.types';
 import { Input } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconSearch } from '@tabler/icons-react';
+import { useState } from 'react';
 import { PublicListingFilters, RealEstateCategory } from './listings.types';
 
 const CATEGORY_ITEMS: { label: string; value: RealEstateCategory | '' }[] = [
@@ -18,6 +21,7 @@ interface ListingsFiltersProps {
 }
 
 export function ListingsFilters({ filters, onChange }: ListingsFiltersProps) {
+  const [city, setCity] = useState<City | null>(null);
   return (
     <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
       <div className="w-full lg:max-w-sm">
@@ -30,12 +34,13 @@ export function ListingsFilters({ filters, onChange }: ListingsFiltersProps) {
       </div>
       <div className="flex items-center gap-2">
         <div className="w-40">
-          <Input
-            placeholder="شهر"
-            value={filters.city || ''}
-            onChange={(e) =>
-              onChange({ city: e.target.value || undefined, page: 0 })
-            }
+          <CitySelect
+            label=""
+            value={city}
+            onChange={(c) => {
+              setCity(c);
+              onChange({ citySlug: c?.slug || undefined, page: 0 });
+            }}
           />
         </div>
         <div className="w-44">

@@ -35,6 +35,116 @@
           "length": 6,
           "mappedType": "datetime"
         },
+        "name_fa": {
+          "name": "name_fa",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "name_en": {
+          "name": "name_en",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "order": {
+          "name": "order",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "0",
+          "mappedType": "integer"
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "true",
+          "mappedType": "boolean"
+        }
+      },
+      "name": "city_entity",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "slug"
+          ],
+          "composite": false,
+          "keyName": "city_entity_slug_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "city_entity_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "unsigned": false,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
         "site_key": {
           "name": "site_key",
           "type": "varchar(255)",
@@ -1456,15 +1566,14 @@
           "length": 255,
           "mappedType": "string"
         },
-        "city": {
-          "name": "city",
-          "type": "varchar(255)",
+        "city_id": {
+          "name": "city_id",
+          "type": "int",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "length": 255,
-          "mappedType": "string"
+          "mappedType": "integer"
         },
         "address": {
           "name": "address",
@@ -1540,6 +1649,16 @@
           "unique": true
         },
         {
+          "columnNames": [
+            "city_id"
+          ],
+          "composite": false,
+          "keyName": "agency_entity_city_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "agency_entity_pkey",
           "columnNames": [
             "id"
@@ -1552,6 +1671,19 @@
       ],
       "checks": [],
       "foreignKeys": {
+        "agency_entity_city_id_foreign": {
+          "constraintName": "agency_entity_city_id_foreign",
+          "columnNames": [
+            "city_id"
+          ],
+          "localTableName": "public.agency_entity",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.city_entity",
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        },
         "agency_entity_owner_id_foreign": {
           "constraintName": "agency_entity_owner_id_foreign",
           "columnNames": [
@@ -1932,15 +2064,14 @@
           "length": 255,
           "mappedType": "string"
         },
-        "city": {
-          "name": "city",
-          "type": "varchar(255)",
+        "city_id": {
+          "name": "city_id",
+          "type": "int",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "length": 255,
-          "mappedType": "string"
+          "mappedType": "integer"
         },
         "district": {
           "name": "district",
@@ -2097,10 +2228,10 @@
         },
         {
           "columnNames": [
-            "city"
+            "city_id"
           ],
           "composite": false,
-          "keyName": "real_estate_advertisement_entity_city_index",
+          "keyName": "real_estate_advertisement_entity_city_id_index",
           "constraint": false,
           "primary": false,
           "unique": false
@@ -2188,6 +2319,19 @@
             "id"
           ],
           "referencedTableName": "public.crawl_job_entity",
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        },
+        "real_estate_advertisement_entity_city_id_foreign": {
+          "constraintName": "real_estate_advertisement_entity_city_id_foreign",
+          "columnNames": [
+            "city_id"
+          ],
+          "localTableName": "public.real_estate_advertisement_entity",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.city_entity",
           "deleteRule": "set null",
           "updateRule": "cascade"
         }

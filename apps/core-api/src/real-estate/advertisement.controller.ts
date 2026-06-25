@@ -39,7 +39,7 @@ export class AdvertisementController {
   get(@Param('id', ParseIntPipe) id: number) {
     return this.advertisements.findOne(
       { id },
-      { populate: ['target'] as never },
+      { populate: ['target', 'city'] as never },
     );
   }
 

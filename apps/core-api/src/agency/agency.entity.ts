@@ -1,4 +1,5 @@
 import { Entity, Index, ManyToOne, Property, Unique } from '@mikro-orm/core';
+import { CityEntity } from 'src/city/city.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { UserEntity } from 'src/user/user.entity';
 
@@ -37,8 +38,9 @@ export class AgencyEntity extends BaseEntity {
   @Property({ nullable: true })
   website?: string;
 
-  @Property({ nullable: true })
-  city?: string;
+  @ManyToOne(() => CityEntity, { nullable: true })
+  @Index()
+  city?: CityEntity;
 
   @Property({ nullable: true })
   address?: string;

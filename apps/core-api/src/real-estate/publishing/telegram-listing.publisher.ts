@@ -69,7 +69,9 @@ export class TelegramListingPublisher {
 
     lines.push(`*${ad.title ?? 'آگهی ملک'}*`);
 
-    const loc = [ad.province, ad.city, ad.district].filter(Boolean).join(' · ');
+    const loc = [ad.province, ad.city?.nameFa, ad.district]
+      .filter(Boolean)
+      .join(' · ');
     if (loc) lines.push(`📍 ${loc}`);
 
     lines.push(`🏷️ ${CATEGORY_LABEL[ad.category]}`);

@@ -20,6 +20,7 @@ export interface NormalizedAdvertisement {
   yearBuilt?: number;
   floor?: number;
   province?: string;
+  /** Free-text city as scraped; resolved to a CityEntity at upsert time. */
   city?: string;
   district?: string;
   lat?: number;

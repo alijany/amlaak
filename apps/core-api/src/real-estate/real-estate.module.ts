@@ -1,6 +1,7 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { AgencyModule } from '../agency/agency.module';
+import { CityModule } from '../city/city.module';
 import { CrawlerModule } from '../crawler/crawler.module';
 import { S3StorageModule } from '../storage/s3-storage.module';
 import { AdvertisementController } from './advertisement.controller';
@@ -32,6 +33,7 @@ import { RealEstateSink } from './real-estate.sink';
     CrawlerModule,
     S3StorageModule,
     AgencyModule,
+    CityModule,
     MikroOrmModule.forFeature([RealEstateAdvertisementEntity]),
   ],
   controllers: [

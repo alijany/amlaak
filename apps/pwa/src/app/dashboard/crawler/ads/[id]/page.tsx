@@ -6,6 +6,8 @@ import { Role } from '@/components/auth/auth.constants.roles';
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { ApiError } from '@/libs/api/api.types.error';
+import { CitySelect } from '@/libs/city/city.component.select';
+import { City } from '@/libs/city/city.types';
 import { trackingCode } from '@/libs/lead/lead.util.tracking';
 import { QuickLeadModal } from '@/app/dashboard/listings/listings.component.lead-modal';
 import { useLeads } from '@/app/dashboard/leads/leads.api';
@@ -83,12 +85,13 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
     yearBuilt: ad.yearBuilt,
     floor: ad.floor,
     province: ad.province ?? '',
-    city: ad.city ?? '',
+    cityId: ad.city?.id,
     district: ad.district ?? '',
     sourceUrl: ad.sourceUrl ?? '',
     images: ad.images ?? [],
     attributes: ad.attributes ?? {},
   });
+  const [city, setCity] = useState<City | null>(ad.city ?? null);
 
   const set = <K extends keyof UpdateAdvertisementDto>(key: K, value: UpdateAdvertisementDto[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -132,6 +135,8 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
     );
     // keep empty arrays (user cleared all images intentionally)
     if (Array.isArray(form.images)) clean.images = form.images.filter(Boolean);
+    // send cityId explicitly so clearing the city persists (null clears the FK)
+    clean.cityId = city?.id ?? undefined;
     try {
       await submit(clean);
       toast.success('اطلاعات آگهی به‌روز شد');
@@ -177,7 +182,16 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">موقعیت</h3>
         <div className="grid grid-cols-3 gap-3">
           {strField('province', 'استان')}
-          {strField('city', 'شهر')}
+          <Field label="شهر">
+            <CitySelect
+              label=""
+              value={city}
+              onChange={(c) => {
+                setCity(c);
+                set('cityId', c?.id);
+              }}
+            />
+          </Field>
           {strField('district', 'منطقه / محله')}
         </div>
       </section>
@@ -379,7 +393,7 @@ function StructuredView({ ad }: { ad: Advertisement }) {
         <div className="flex items-start gap-2 text-sm text-slate-600">
           <IconMapPin size={15} className="text-slate-400 flex-shrink-0 mt-0.5" />
           <span>
-            {[ad.province, ad.city, ad.district].filter(Boolean).join(' · ')}
+            {[ad.province, ad.city?.nameFa, ad.district].filter(Boolean).join(' · ')}
             {street && <span className="text-slate-400"> · {street}</span>}
           </span>
         </div>

@@ -1,3 +1,5 @@
+import { City } from '@/libs/city/city.types';
+
 export interface AdminAgency {
   id: number;
   name: string;
@@ -7,7 +9,7 @@ export interface AdminAgency {
   logo?: string;
   banner?: string;
   website?: string;
-  city?: string;
+  city?: City;
   address?: string;
   isActive: boolean;
   isPlatform?: boolean;

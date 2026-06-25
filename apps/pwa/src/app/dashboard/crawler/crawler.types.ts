@@ -1,5 +1,6 @@
 // Mirror of the backend crawler enums/contracts (apps/core-api/src/crawler).
 // Kept in the domain per the frontend's domain-driven convention.
+import { City } from '@/libs/city/city.types';
 
 export enum CrawlTargetStatus {
   READY = 'ready',
@@ -166,7 +167,7 @@ export interface Advertisement {
   yearBuilt?: number;
   floor?: number;
   province?: string;
-  city?: string;
+  city?: City;
   district?: string;
   images?: string[];
   attributes?: Record<string, unknown>;
@@ -190,7 +191,7 @@ export interface AdvertisementFilters {
   targetId?: number;
   category?: RealEstateCategory;
   publishStatus?: PublishStatus;
-  city?: string;
+  citySlug?: string;
   district?: string;
   rooms?: number;
   minPrice?: number;

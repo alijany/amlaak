@@ -5,6 +5,7 @@ import { PublicListing } from '@/app/listings/listings.types';
 import { RootLayout } from '@/components/layout/layout.component.root';
 import { useSwrHelper } from '@/libs/api/api.hook.use-swr-helper';
 import { fetcher } from '@/libs/api/api.util.fetcher';
+import { City } from '@/libs/city/city.types';
 import { DataView } from '@/ui/molecules';
 import {
   IconBuildingCommunity,
@@ -25,7 +26,7 @@ interface AgencyProfile {
     logo?: string;
     banner?: string;
     website?: string;
-    city?: string;
+    city?: City;
     address?: string;
   };
   listings: {
@@ -43,13 +44,13 @@ function SeoJsonLd({ agency }: { agency: AgencyProfile['agency'] }) {
     logo: agency.logo || undefined,
     telephone: agency.phone || undefined,
     url: typeof window !== 'undefined' ? window.location.href : undefined,
-    areaServed: agency.city || undefined,
+    areaServed: agency.city?.nameFa || undefined,
     description: agency.description || undefined,
     address: agency.address
       ? {
           '@type': 'PostalAddress',
           streetAddress: agency.address,
-          addressLocality: agency.city,
+          addressLocality: agency.city?.nameFa,
         }
       : undefined,
   };
@@ -108,7 +109,7 @@ function AgencyContent({ slug }: { slug: string }) {
                 {(data.agency.city || data.agency.address) && (
                   <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
                     <IconMapPin size={14} className="text-slate-400" />
-                    {[data.agency.city, data.agency.address].filter(Boolean).join(' · ')}
+                    {[data.agency.city?.nameFa, data.agency.address].filter(Boolean).join(' · ')}
                   </div>
                 )}
               </div>

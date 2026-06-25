@@ -80,9 +80,10 @@ export class CreateAgencyDto {
   @IsOptional()
   website?: string;
 
-  @IsString()
   @IsOptional()
-  city?: string;
+  @Type(() => Number)
+  @IsNumber()
+  cityId?: number;
 
   @IsString()
   @IsOptional()
@@ -118,9 +119,10 @@ export class UpdateAgencyDto {
   @IsOptional()
   website?: string;
 
-  @IsString()
   @IsOptional()
-  city?: string;
+  @Type(() => Number)
+  @IsNumber()
+  cityId?: number;
 
   @IsString()
   @IsOptional()

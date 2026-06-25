@@ -32,9 +32,10 @@ export class AdvertisementFilterDto {
   @IsOptional()
   publishStatus?: PublishStatus;
 
+  /** City slug (CityEntity.slug). */
   @IsString()
   @IsOptional()
-  city?: string;
+  citySlug?: string;
 
   @IsString()
   @IsOptional()

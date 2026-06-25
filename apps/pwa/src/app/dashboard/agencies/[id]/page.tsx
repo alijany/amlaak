@@ -6,6 +6,8 @@ import { getRoleName, Role } from '@/components/auth/auth.constants.roles';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { ImageUploader } from '@/components/upload/upload.component.image';
 import { ApiError } from '@/libs/api/api.types.error';
+import { CitySelect } from '@/libs/city/city.component.select';
+import { City } from '@/libs/city/city.types';
 import { Button, Input } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
 import { IconArrowRight, IconPlus, IconTrash } from '@tabler/icons-react';
@@ -48,7 +50,7 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
   const [website, setWebsite] = useState('');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState<City | null>(null);
   const [address, setAddress] = useState('');
   const [logo, setLogo] = useState<string[]>([]);
   const [banner, setBanner] = useState<string[]>([]);
@@ -60,7 +62,7 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
       setPhone(agency.phone ?? '');
       setDescription(agency.description ?? '');
       setWebsite(agency.website ?? '');
-      setCity(agency.city ?? '');
+      setCity(agency.city ?? null);
       setAddress(agency.address ?? '');
       setLogo(agency.logo ? [agency.logo] : []);
       setBanner(agency.banner ? [agency.banner] : []);
@@ -74,7 +76,7 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
         phone: phone || undefined,
         description: description || undefined,
         website: website || undefined,
-        city: city || undefined,
+        cityId: city?.id,
         address: address || undefined,
         logo: logo[0] ?? '',
         banner: banner[0] ?? '',
@@ -209,7 +211,7 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
               <Input label="نام آژانس" value={name} onChange={(e) => setName(e.target.value)} />
               <Input label="تلفن" value={phone} onChange={(e) => setPhone(e.target.value)} />
               <Input label="وب‌سایت" value={website} onChange={(e) => setWebsite(e.target.value)} />
-              <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
+              <CitySelect value={city} onChange={setCity} />
             </div>
             <Input label="آدرس" value={address} onChange={(e) => setAddress(e.target.value)} />
             <Input

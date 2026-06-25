@@ -1,4 +1,5 @@
 import { InvitationStatus, Role } from '@/components/auth/auth.constants.roles';
+import { City } from '@/libs/city/city.types';
 
 export interface Agency {
   id: number;
@@ -9,7 +10,7 @@ export interface Agency {
   logo?: string;
   banner?: string;
   website?: string;
-  city?: string;
+  city?: City;
   address?: string;
   isActive: boolean;
   isPlatform?: boolean;
@@ -24,7 +25,7 @@ export interface CreateAgencyDto {
   logo?: string;
   banner?: string;
   website?: string;
-  city?: string;
+  cityId?: number;
   address?: string;
 }
 
@@ -49,7 +50,7 @@ export interface UpdateAgencyDto {
   logo?: string;
   banner?: string;
   website?: string;
-  city?: string;
+  cityId?: number;
   address?: string;
 }
 

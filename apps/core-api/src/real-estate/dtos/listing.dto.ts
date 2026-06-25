@@ -65,9 +65,10 @@ export class CreateListingDto {
   @IsOptional()
   province?: string;
 
-  @IsString()
+  @Type(() => Number)
+  @IsInt()
   @IsOptional()
-  city?: string;
+  cityId?: number;
 
   @IsString()
   @IsOptional()

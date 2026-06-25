@@ -119,7 +119,7 @@ export function ListingDetailView({ listing }: { listing: PublicListing }) {
           {(listing.city || listing.district) && (
             <span className="flex items-center gap-1 text-sm text-slate-500">
               <IconMapPin size={14} className="text-slate-400" />
-              {[listing.province, listing.city, listing.district]
+              {[listing.province, listing.city?.nameFa, listing.district]
                 .filter(Boolean)
                 .join(' · ')}
             </span>

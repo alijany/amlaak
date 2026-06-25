@@ -1,3 +1,4 @@
+import { City } from '@/libs/city/city.types';
 import { RealEstateCategory } from '../dashboard/crawler/crawler.types';
 
 export { RealEstateCategory };
@@ -18,7 +19,7 @@ export interface PublicListing {
   yearBuilt?: number;
   floor?: number;
   province?: string;
-  city?: string;
+  city?: City;
   district?: string;
   images?: string[];
   attributes?: Record<string, unknown>;
@@ -35,7 +36,7 @@ export interface PublicListingFilters {
   page?: number;
   limit?: number;
   category?: RealEstateCategory;
-  city?: string;
+  citySlug?: string;
   district?: string;
   rooms?: number;
   minPrice?: number;

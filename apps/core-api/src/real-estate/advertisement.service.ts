@@ -8,6 +8,8 @@ import {
 import { AgencyContext } from 'src/agency/agency-access.service';
 import { AgencyEntity } from 'src/agency/agency.entity';
 import { AgencyService } from 'src/agency/agency.service';
+import { CityEntity } from 'src/city/city.entity';
+import { CityService } from 'src/city/city.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { UserEntity } from 'src/user/user.entity';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
@@ -46,8 +48,22 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     @InjectRepository(RealEstateAdvertisementEntity)
     protected repository: EntityRepository<RealEstateAdvertisementEntity>,
     private readonly agencies: AgencyService,
+    private readonly cities: CityService,
   ) {
     super(repository);
+  }
+
+  /**
+   * Translate a DTO's `cityId` into the `city` relation MikroORM expects.
+   * `cityId: null` clears the relation; omitted leaves it untouched.
+   */
+  private withCity<T extends { cityId?: number | null }>(dto: T) {
+    const { cityId, ...rest } = dto;
+    if (cityId === undefined) return rest;
+    return {
+      ...rest,
+      city: cityId === null ? null : this.em.getReference(CityEntity, cityId),
+    };
   }
 
   /**
@@ -64,8 +80,12 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       externalId: data.externalId,
     });
 
+    // Resolve the scraped free-text city to a curated CityEntity (null if no match).
+    const { city: cityText, ...fields } = data;
+    const city = await this.cities.resolveCity(cityText);
+
     if (existing) {
-      this.em.assign(existing, { ...data, target, job });
+      this.em.assign(existing, { ...fields, city, target, job });
       await this.persistAndFlush(existing);
       return { created: false };
     }
@@ -73,7 +93,8 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     // Crawled listings are owned by the platform agency (tenant).
     const defaultAgencyId = await this.agencies.getDefaultAgencyId();
     const entity = this.repository.create({
-      ...data,
+      ...fields,
+      city,
       target,
       job,
       agency: defaultAgencyId
@@ -93,7 +114,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     if (rest.source) where.source = rest.source;
     if (rest.category) where.category = rest.category;
     if (rest.publishStatus) where.publishStatus = rest.publishStatus;
-    if (rest.city) where.city = rest.city;
+    if (rest.citySlug) where.city = { slug: rest.citySlug };
     if (rest.district) where.district = rest.district;
     if (rest.rooms != null) where.rooms = rest.rooms;
     if (rest.minPrice != null || rest.maxPrice != null) {
@@ -113,7 +134,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       orderBy: { crawledAt: 'DESC', id: 'DESC' },
       limit,
       offset: page * limit,
-      populate: ['target'] as never,
+      populate: ['target', 'city'] as never,
     });
 
     return {
@@ -136,7 +157,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
 
     if (rest.category) where.category = rest.category;
     if (rest.agencyId) where.agency = rest.agencyId;
-    if (rest.city) where.city = rest.city;
+    if (rest.citySlug) where.city = { slug: rest.citySlug };
     if (rest.district) where.district = rest.district;
     if (rest.rooms != null) where.rooms = rest.rooms;
     if (rest.minPrice != null || rest.maxPrice != null) {
@@ -156,7 +177,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       orderBy: { publishedAt: 'DESC', id: 'DESC' },
       limit,
       offset: page * limit,
-      populate: ['agency'] as never,
+      populate: ['agency', 'city'] as never,
     });
 
     return {
@@ -172,7 +193,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
         id,
         publishStatus: PublishStatus.PUBLISHED,
       },
-      { populate: ['agency'] as never },
+      { populate: ['agency', 'city'] as never },
     );
     return ad ? this.toPublic(ad) : null;
   }
@@ -182,7 +203,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     const ad = await this.findOne({ id });
     if (!ad) throw new NotFoundException('advertisement not found');
     const clean = Object.fromEntries(
-      Object.entries(dto).filter(([, v]) => v !== undefined),
+      Object.entries(this.withCity(dto)).filter(([, v]) => v !== undefined),
     );
     this.em.assign(ad, clean);
     await this.persistAndFlush(ad);
@@ -224,7 +245,14 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       yearBuilt: ad.yearBuilt,
       floor: ad.floor,
       province: ad.province,
-      city: ad.city,
+      city: ad.city
+        ? {
+            id: ad.city.id,
+            slug: ad.city.slug,
+            nameFa: ad.city.nameFa,
+            nameEn: ad.city.nameEn,
+          }
+        : undefined,
       district: ad.district,
       images: ad.images,
       attributes,
@@ -259,7 +287,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     user: UserEntity,
   ) {
     const ad = this.repository.create({
-      ...dto,
+      ...this.withCity(dto),
       source: AdvertisementSource.USER,
       publishStatus: PublishStatus.PENDING,
       agency: ctx.activeAgencyId
@@ -273,7 +301,10 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
 
   /** A single own (agency-scoped) listing — any publish status. */
   async myListing(id: number, ctx: AgencyContext) {
-    const ad = await this.findOne({ id }, { populate: ['agency'] as never });
+    const ad = await this.findOne(
+      { id },
+      { populate: ['agency', 'city'] as never },
+    );
     if (!ad) throw new NotFoundException('listing not found');
     this.assertOwnAgency(ad, ctx);
     return ad;
@@ -293,6 +324,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       orderBy: { created_at: 'DESC', id: 'DESC' },
       limit,
       offset: page * limit,
+      populate: ['city'] as never,
     });
     return {
       items,
@@ -309,7 +341,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     if (!ad) throw new NotFoundException('listing not found');
     this.assertOwnAgency(ad, ctx);
     const clean = Object.fromEntries(
-      Object.entries(dto).filter(([, v]) => v !== undefined),
+      Object.entries(this.withCity(dto)).filter(([, v]) => v !== undefined),
     );
     this.em.assign(ad, clean);
     await this.persistAndFlush(ad);

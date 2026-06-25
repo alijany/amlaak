@@ -111,7 +111,7 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
         {(ad?.city || ad?.district || ad?.province) && (
           <div className="flex items-center gap-1.5 text-sm text-slate-500">
             <IconMapPin size={14} className="text-slate-400" />
-            {[ad?.province, ad?.city, ad?.district].filter(Boolean).join(' · ')}
+            {[ad?.province, ad?.city?.nameFa, ad?.district].filter(Boolean).join(' · ')}
           </div>
         )}
         {price && <div className="font-bold text-slate-800 text-sm">{price}</div>}

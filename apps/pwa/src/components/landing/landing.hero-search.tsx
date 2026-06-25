@@ -1,6 +1,7 @@
 'use client';
 
 import { usePublicListings } from '@/app/listings/listings.api';
+import { useCities } from '@/libs/city/city.api';
 import { brand } from '@/config/brand.config';
 import { cn } from '@/libs/style/style.util.helpers';
 import { Button, Input } from '@/ui/atoms';
@@ -18,6 +19,14 @@ export function LandingHeroSearch() {
   const [q, setQ] = useState('');
   // Lightweight trust signal: total published listings.
   const total = usePublicListings({ limit: 1 }).data?.meta?.total;
+  // Resolve the curated popular-city names to real cities (for slug links).
+  const { data: cityData } = useCities({ limit: 100 });
+  const cityBySlugName = new Map(
+    (cityData?.items ?? []).map((c) => [c.nameFa, c]),
+  );
+  const popular = popularCities
+    .map((name) => cityBySlugName.get(name))
+    .filter((c): c is NonNullable<typeof c> => c != null);
 
   const search = () => {
     const params = new URLSearchParams();
@@ -93,14 +102,14 @@ export function LandingHeroSearch() {
 
         {/* Popular cities */}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {popularCities.map((city) => (
+          {popular.map((city) => (
             <Link
-              key={city}
-              href={`/listings?city=${encodeURIComponent(city)}`}
+              key={city.id}
+              href={`/listings?city=${encodeURIComponent(city.slug)}`}
               className="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs text-white/90 hover:bg-white/20 transition-colors"
             >
               <IconMapPin size={13} />
-              {city}
+              {city.nameFa}
             </Link>
           ))}
         </div>

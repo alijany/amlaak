@@ -8,6 +8,7 @@ import {
   Unique,
 } from '@mikro-orm/core';
 import { AgencyEntity } from '../agency/agency.entity';
+import { CityEntity } from '../city/city.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
@@ -101,9 +102,9 @@ export class RealEstateAdvertisementEntity extends BaseEntity {
   @Property({ nullable: true })
   province?: string;
 
-  @Property({ nullable: true })
+  @ManyToOne(() => CityEntity, { nullable: true })
   @Index()
-  city?: string;
+  city?: CityEntity;
 
   @Property({ nullable: true })
   district?: string;

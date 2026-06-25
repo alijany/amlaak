@@ -2,6 +2,8 @@
 
 import { ImageUploader } from '@/components/upload/upload.component.image';
 import { ApiError } from '@/libs/api/api.types.error';
+import { CitySelect } from '@/libs/city/city.component.select';
+import { City } from '@/libs/city/city.types';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconX } from '@tabler/icons-react';
@@ -66,7 +68,7 @@ export function ListingFormModal({
   const [yearBuilt, setYearBuilt] = useState('');
   const [floor, setFloor] = useState('');
   const [province, setProvince] = useState('');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState<City | null>(null);
   const [district, setDistrict] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -87,7 +89,7 @@ export function ListingFormModal({
       setYearBuilt(editing?.yearBuilt?.toString() ?? '');
       setFloor(editing?.floor?.toString() ?? '');
       setProvince(editing?.province ?? '');
-      setCity(editing?.city ?? '');
+      setCity(editing?.city ?? null);
       setDistrict(editing?.district ?? '');
       setDescription(editing?.description ?? '');
       setImages(editing?.images ?? []);
@@ -122,7 +124,7 @@ export function ListingFormModal({
       yearBuilt: land ? undefined : numOrUndef(yearBuilt),
       floor: land ? undefined : numOrUndef(floor),
       province: province || undefined,
-      city: city || undefined,
+      cityId: city?.id,
       district: district || undefined,
       description: description || undefined,
       images,
@@ -208,7 +210,7 @@ export function ListingFormModal({
               <Input label="طبقه" type="number" min="0" value={floor} onChange={(e) => setFloor(e.target.value)} />
             )}
             <Input label="استان" value={province} onChange={(e) => setProvince(e.target.value)} />
-            <Input label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
+            <CitySelect value={city} onChange={setCity} />
             <Input label="محله" value={district} onChange={(e) => setDistrict(e.target.value)} />
           </div>
 

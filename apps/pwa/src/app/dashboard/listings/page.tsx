@@ -47,7 +47,7 @@ function ListingRow({
           {listing.title ?? 'بدون عنوان'}
         </div>
         <div className="text-[12px] text-slate-400">
-          {[listing.city, listing.district].filter(Boolean).join(' · ')}
+          {[listing.city?.nameFa, listing.district].filter(Boolean).join(' · ')}
           {listing.totalPrice != null &&
             ` · ${listing.totalPrice.toLocaleString('fa-IR')} تومان`}
         </div>

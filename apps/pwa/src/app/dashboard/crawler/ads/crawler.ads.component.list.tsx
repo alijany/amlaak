@@ -71,7 +71,7 @@ export function AdCard({
           </h3>
 
           <div className="text-[12px] text-slate-500">
-            {[ad.city, ad.district].filter(Boolean).join(' · ')}
+            {[ad.city?.nameFa, ad.district].filter(Boolean).join(' · ')}
           </div>
 
           <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-slate-500">

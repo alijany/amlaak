@@ -148,7 +148,7 @@ export function CreateLeadModal({
                 <span className="truncate">
                   {resolved.advertisement.title ?? 'آگهی'} ·{' '}
                   {[
-                    resolved.advertisement.city,
+                    resolved.advertisement.city?.nameFa,
                     resolved.advertisement.district,
                   ]
                     .filter(Boolean)

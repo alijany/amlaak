@@ -6,6 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import parsePhoneNumberFromString from 'libphonenumber-js';
+import { CityEntity } from 'src/city/city.entity';
+import { CityService } from 'src/city/city.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { Role } from 'src/roles/roles.constants';
 import { InvitationStatus } from 'src/roles/roles.entity';
@@ -30,8 +32,22 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
     protected repository: EntityRepository<AgencyEntity>,
     private readonly roles: RolesService,
     private readonly users: UserService,
+    private readonly cities: CityService,
   ) {
     super(repository);
+  }
+
+  /**
+   * Translate a DTO's `cityId` into the `city` relation MikroORM expects.
+   * `cityId: null` clears the relation; omitted leaves it untouched.
+   */
+  private withCity<T extends { cityId?: number | null }>(dto: T) {
+    const { cityId, ...rest } = dto;
+    if (cityId === undefined) return rest;
+    return {
+      ...rest,
+      city: cityId === null ? null : this.em.getReference(CityEntity, cityId),
+    };
   }
 
   /** The single operator-owned (platform) agency that owns crawled/legacy data. */
@@ -62,7 +78,11 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
   }
 
   async createAgency(dto: CreateAgencyDto, owner: UserEntity) {
-    const agency = await this.create({ ...dto, owner, isConfirmed: false });
+    const agency = await this.create({
+      ...this.withCity(dto),
+      owner,
+      isConfirmed: false,
+    });
     if (!agency.slug) {
       agency.slug = `agency-${agency.id}`;
       await this.persistAndFlush(agency);
@@ -138,7 +158,7 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
     }
 
     const [items, total] = await this.findAll(where as never, {
-      populate: ['owner'] as never,
+      populate: ['owner', 'city'] as never,
       orderBy: { created_at: 'DESC' },
       limit,
       offset: page * limit,
@@ -173,11 +193,14 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
 
   /** Public lookup by slug (active agencies only). */
   async findBySlug(slug: string) {
-    return this.findOne({ slug, isActive: true });
+    return this.findOne(
+      { slug, isActive: true },
+      { populate: ['city'] as never },
+    );
   }
 
   async updateAgency(id: number, dto: UpdateAgencyDto) {
-    return this.updateOne({ id }, dto);
+    return this.updateOne({ id }, this.withCity(dto));
   }
 
   async listMembers(agencyId: number) {
@@ -209,7 +232,10 @@ export class AgencyService extends BaseRepositoryService<AgencyEntity> {
 
   /** Reads a single agency the viewer may access (membership checked by caller). */
   async getAgency(id: number): Promise<AgencyEntity> {
-    const agency = await this.findOne({ id }, { populate: ['owner'] as never });
+    const agency = await this.findOne(
+      { id },
+      { populate: ['owner', 'city'] as never },
+    );
     if (!agency) throw new NotFoundException('agency not found');
     return agency;
   }
