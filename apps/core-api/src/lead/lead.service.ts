@@ -78,8 +78,18 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
     dto: CreateLeadDto,
     ctx: AgencyContext,
   ): Promise<LeadEntity> {
-    const ad = await this.advertisements.findOne({ id: dto.advertisementId });
+    const ad = await this.advertisements.findOne(
+      { id: dto.advertisementId },
+      { populate: ['agency'] as never },
+    );
     if (!ad) throw new NotFoundException('listing not found');
+
+    // A crawled/platform-owned ad is freely shareable (any agency or pool).
+    // An agency-owned ad must stay with its owner: it may only be assigned to
+    // that agency, never to another agency and never to a shared pool (which
+    // would leak it to other agencies).
+    const ownerAgencyId = ad.agency?.id ?? null;
+    const isShareable = !ad.agency || ad.agency.isPlatform === true;
 
     // A lead targets exactly one of: a single agency, or a shared pool.
     let agencyId: number | null;
@@ -90,8 +100,20 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       // cross-agency assignment is not allowed from this context.
       agencyId = ctx.activeAgencyId;
       poolId = null;
+    } else if (!isShareable) {
+      // Platform admin assigning an agency-owned ad: forced to the owner.
+      if (
+        (dto.agencyId != null && dto.agencyId !== ownerAgencyId) ||
+        dto.poolId != null
+      ) {
+        throw new BadRequestException(
+          'این آگهی متعلق به یک آژانس است و فقط می‌تواند به همان آژانس واگذار شود',
+        );
+      }
+      agencyId = ownerAgencyId;
+      poolId = null;
     } else {
-      // Platform admin: choose exactly one of agency or pool.
+      // Platform admin with a shareable ad: choose exactly one of agency or pool.
       agencyId = dto.agencyId ?? null;
       poolId = dto.poolId ?? null;
       if (Number(!!poolId) + Number(!!agencyId) !== 1) {

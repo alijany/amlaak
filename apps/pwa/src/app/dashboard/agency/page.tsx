@@ -55,7 +55,7 @@ function CreateAgency() {
   };
 
   return (
-    <div className="max-w-lg mx-auto rounded-2xl bg-white p-6 space-y-4 overflow-auto">
+    <div className="mx-auto rounded-2xl bg-white p-6 space-y-4 overflow-auto">
       <div className="font-bold text-slate-700">ساخت آژانس جدید</div>
       <p className="text-[13px] text-slate-500">
         با ساخت آژانس، می‌توانید آگهی ثبت کنید، اعضا را دعوت کنید و مشتری‌ها را مدیریت کنید.

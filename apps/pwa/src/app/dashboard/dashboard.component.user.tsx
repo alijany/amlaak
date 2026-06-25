@@ -20,7 +20,7 @@ export function UserDashboard() {
     <div className="space-y-4 grow flex flex-col overflow-auto">
       <Greeting subtitle="برای شروع، یک آژانس بسازید یا به آژانس خود بپیوندید" />
 
-      <div className="rounded-2xl bg-white p-8 text-center max-w-lg mx-auto w-full space-y-4">
+      <div className="rounded-2xl bg-white p-8 text-center mx-auto w-full space-y-4">
         <div className="rounded-2xl bg-slate-50 p-3 text-slate-500 inline-flex">
           <IconBuildingCommunity size={28} />
         </div>
@@ -31,7 +31,7 @@ export function UserDashboard() {
           برای ثبت آگهی و دریافت مشتری، آژانس خود را بسازید یا با دعوت‌نامه به یک
           آژانس بپیوندید.
         </p>
-        <Link href={RouteItems.agency.href}>
+        <Link href={RouteItems.agency.href} className='block'>
           <Button size="sm">
             <IconPlus size={16} className="ml-1" />
             ساخت آژانس

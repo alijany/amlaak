@@ -23,6 +23,14 @@ export function useMyAgencies() {
   return useSwrHelper(swr);
 }
 
+export function useAllAgencies() {
+  const swr = useSWR<{ items: Agency[]; total: number }>(
+    '/agencies?limit=200&status=active',
+    fetcher,
+  );
+  return useSwrHelper(swr);
+}
+
 export function useCreateAgency() {
   const swr = useSWRMutation('/agencies', postFetcher<CreateAgencyDto, Agency>);
   return useSwrMutationHelper(swr);

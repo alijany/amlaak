@@ -36,7 +36,11 @@ function AdsContent() {
     source: AdvertisementSource.CRAWLER,
     targetId: initialTargetId ? Number(initialTargetId) : undefined,
   });
-  const [leadAd, setLeadAd] = useState<{ id: number; title?: string } | null>(null);
+  const [leadAd, setLeadAd] = useState<{
+    id: number;
+    title?: string;
+    agency?: { id: number; name: string; isPlatform?: boolean };
+  } | null>(null);
 
   const { data, error, isLoading, refresh } = useAdvertisements(filters);
 
@@ -109,7 +113,12 @@ function AdsContent() {
                 ad={ad}
                 onAddLead={
                   canManageLeads
-                    ? () => setLeadAd({ id: ad.id, title: ad.title ?? undefined })
+                    ? () =>
+                        setLeadAd({
+                          id: ad.id,
+                          title: ad.title ?? undefined,
+                          agency: ad.agency,
+                        })
                     : undefined
                 }
               />
@@ -136,6 +145,7 @@ function AdsContent() {
         <QuickLeadModal
           advertisementId={leadAd.id}
           listingTitle={leadAd.title}
+          adAgency={leadAd.agency}
           isOpen={true}
           onClose={() => setLeadAd(null)}
         />

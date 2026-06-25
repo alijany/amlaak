@@ -672,6 +672,7 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
       <QuickLeadModal
         advertisementId={ad.id}
         listingTitle={ad.title ?? undefined}
+        adAgency={ad.agency}
         isOpen={leadOpen}
         onClose={() => setLeadOpen(false)}
       />

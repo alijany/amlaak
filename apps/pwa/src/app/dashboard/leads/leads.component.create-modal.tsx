@@ -8,7 +8,7 @@ import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconCheck, IconSearch, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { useMyAgencies } from '../agency/agency.api';
+import { useAllAgencies, useMyAgencies } from '../agency/agency.api';
 import { useCreateLead, useLeadPools } from './leads.api';
 import { LEAD_SOURCE_LABEL } from './leads.constants';
 import { LeadSource, LookupResponse } from './leads.types';
@@ -31,11 +31,9 @@ export function CreateLeadModal({
 }: CreateLeadModalProps) {
   const { submit, isLoading } = useCreateLead();
   const { selectedRole } = useAuth();
-  // When acting as an agency role, the lead is locked to that agency: no pool /
-  // cross-agency choice. Only a platform admin (no agency on the role) picks.
-  const lockedAgency = selectedRole?.agency ?? null;
   const { data: pools } = useLeadPools();
-  const { data: agencies } = useMyAgencies();
+  const { data: myAgencies } = useMyAgencies();
+  const { data: allAgencies } = useAllAgencies();
 
   const [code, setCode] = useState('');
   const [resolved, setResolved] = useState<LookupResponse | null>(null);
@@ -48,6 +46,18 @@ export function CreateLeadModal({
   const [note, setNote] = useState('');
   const [poolId, setPoolId] = useState<number | ''>('');
   const [agencyId, setAgencyId] = useState<number | ''>('');
+
+  // The lead is locked to a single agency when either: the user is acting as an
+  // agency role, or the resolved ad is owned by a (non-platform) agency — an
+  // agency-owned ad's leads must stay with its owner, never another agency or a
+  // shared pool. The ad owner is only known after a successful lookup.
+  const adAgency = resolved?.advertisement.agency ?? null;
+  const lockedAgency =
+    selectedRole?.agency ??
+    (adAgency && !adAgency.isPlatform
+      ? { id: adAgency.id, name: adAgency.name }
+      : null);
+  const agencies = lockedAgency ? myAgencies : allAgencies;
 
   const reset = () => {
     setCode('');

@@ -58,7 +58,7 @@ export class LeadController {
     const ad = id
       ? await this.advertisements.findOne(
           { id },
-          { populate: ['target'] as never },
+          { populate: ['target', 'agency'] as never },
         )
       : null;
     if (!ad) throw new NotFoundException('no listing for that code');

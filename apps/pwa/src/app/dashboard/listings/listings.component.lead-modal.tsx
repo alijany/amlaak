@@ -7,7 +7,7 @@ import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { useMyAgencies } from '../agency/agency.api';
+import { useAllAgencies, useMyAgencies } from '../agency/agency.api';
 import { useCreateLead, useLeadPools } from '../leads/leads.api';
 import { LEAD_SOURCE_LABEL } from '../leads/leads.constants';
 import { LeadSource } from '../leads/leads.types';
@@ -20,6 +20,8 @@ const SOURCE_ITEMS = Object.values(LeadSource).map((s) => ({
 interface QuickLeadModalProps {
   advertisementId: number;
   listingTitle?: string;
+  /** Owning agency of the ad. Crawled ads belong to the platform agency. */
+  adAgency?: { id: number; name: string; isPlatform?: boolean } | null;
   isOpen: boolean;
   onClose: () => void;
   onCreated?: () => void;
@@ -28,16 +30,25 @@ interface QuickLeadModalProps {
 export function QuickLeadModal({
   advertisementId,
   listingTitle,
+  adAgency,
   isOpen,
   onClose,
   onCreated,
 }: QuickLeadModalProps) {
   const { submit, isLoading } = useCreateLead();
   const { selectedRole } = useAuth();
-  // Acting as an agency role → lead is locked to that agency (no pool choice).
-  const lockedAgency = selectedRole?.agency ?? null;
+  // The lead is locked to a single agency when either: the user is acting as an
+  // agency role, or the ad is owned by a (non-platform) agency — an agency-owned
+  // ad's leads must stay with its owner, never another agency or a shared pool.
+  const lockedAgency =
+    selectedRole?.agency ??
+    (adAgency && !adAgency.isPlatform
+      ? { id: adAgency.id, name: adAgency.name }
+      : null);
   const { data: pools } = useLeadPools();
-  const { data: agencies } = useMyAgencies();
+  const { data: myAgencies } = useMyAgencies();
+  const { data: allAgencies } = useAllAgencies();
+  const agencies = lockedAgency ? myAgencies : allAgencies;
 
   const [source, setSource] = useState<LeadSource>(LeadSource.PHONE_CALL);
   const [contactName, setContactName] = useState('');

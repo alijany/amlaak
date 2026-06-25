@@ -12,6 +12,7 @@ import { CityEntity } from 'src/city/city.entity';
 import { CityService } from 'src/city/city.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { UserEntity } from 'src/user/user.entity';
+import { LeadEntity } from '../lead/lead.entity';
 import { decodeTrackingCode } from '../lead/lead.tracking';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
@@ -48,6 +49,8 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
   constructor(
     @InjectRepository(RealEstateAdvertisementEntity)
     protected repository: EntityRepository<RealEstateAdvertisementEntity>,
+    @InjectRepository(LeadEntity)
+    private readonly leads: EntityRepository<LeadEntity>,
     private readonly agencies: AgencyService,
     private readonly cities: CityService,
   ) {
@@ -140,7 +143,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       orderBy: { crawledAt: 'DESC', id: 'DESC' },
       limit,
       offset: page * limit,
-      populate: ['target', 'city'] as never,
+      populate: ['target', 'city', 'agency'] as never,
     });
 
     return {
@@ -305,15 +308,42 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     return ad;
   }
 
-  /** A single own (agency-scoped) listing — any publish status. */
+  /**
+   * Whether the active agency has a lead for this ad — either one directly
+   * assigned to them, or an unclaimed lead in a shared pool they belong to.
+   * Mirrors the visibility shape in {@link LeadService.scopeFilter}.
+   */
+  private async hasLeadForAd(adId: number, agencyId: number): Promise<boolean> {
+    const count = await this.leads.count({
+      advertisement: adId,
+      $or: [
+        { agency: agencyId },
+        { agency: null, pool: { agencies: { agency: agencyId } } },
+      ],
+    } as FilterQuery<LeadEntity>);
+    return count > 0;
+  }
+
+  /**
+   * A single listing — any publish status. Readable by the owning agency, a
+   * platform admin, or an agency that has a lead for this ad (so the agency
+   * handling an assigned lead can open the ad it was crawled/created elsewhere).
+   */
   async myListing(id: number, ctx: AgencyContext) {
     const ad = await this.findOne(
       { id },
       { populate: ['agency', 'city'] as never },
     );
     if (!ad) throw new NotFoundException('listing not found');
-    this.assertOwnAgency(ad, ctx);
-    return ad;
+    if (ctx.isPlatformAdmin) return ad;
+    if (ad.agency?.id === ctx.activeAgencyId) return ad;
+    if (
+      ctx.activeAgencyId != null &&
+      (await this.hasLeadForAd(id, ctx.activeAgencyId))
+    ) {
+      return ad;
+    }
+    throw new ForbiddenException('listing belongs to another agency');
   }
 
   /** The active agency's own (user-created) listings. */

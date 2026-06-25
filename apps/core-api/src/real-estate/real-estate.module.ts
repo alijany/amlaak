@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AgencyModule } from '../agency/agency.module';
 import { CityModule } from '../city/city.module';
 import { CrawlerModule } from '../crawler/crawler.module';
+import { LeadEntity } from '../lead/lead.entity';
 import { S3StorageModule } from '../storage/s3-storage.module';
 import { AdvertisementController } from './advertisement.controller';
 import { AdvertisementImageService } from './advertisement-image.service';
@@ -34,7 +35,7 @@ import { RealEstateSink } from './real-estate.sink';
     S3StorageModule,
     AgencyModule,
     CityModule,
-    MikroOrmModule.forFeature([RealEstateAdvertisementEntity]),
+    MikroOrmModule.forFeature([RealEstateAdvertisementEntity, LeadEntity]),
   ],
   controllers: [
     AdvertisementController,

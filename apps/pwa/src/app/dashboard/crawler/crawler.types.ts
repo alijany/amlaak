@@ -153,6 +153,8 @@ export interface Advertisement {
   id: number;
   source: AdvertisementSource;
   target?: CrawlTarget;
+  /** Owning agency. Crawled ads belong to the platform agency (isPlatform). */
+  agency?: { id: number; name: string; isPlatform?: boolean };
   externalId?: string;
   sourceUrl?: string;
   title?: string;
