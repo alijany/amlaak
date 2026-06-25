@@ -627,9 +627,12 @@ function AdDetailContent({ id }: { id: number }) {
               <h1 className="font-bold text-slate-700 truncate">
                 {ad.title ?? 'آگهی بدون عنوان'}
               </h1>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                   {CATEGORY_LABEL[ad.category]}
+                </span>
+                <span className="font-mono text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5 tracking-wide">
+                  {trackingCode(ad.id)}
                 </span>
                 {typeof ad.attributes?.propertySubtype === 'string' && (
                   <span className="text-[11px] text-slate-500 bg-blue-50 rounded-full px-2 py-0.5">

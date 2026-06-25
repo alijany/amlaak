@@ -12,6 +12,7 @@ import { CityEntity } from 'src/city/city.entity';
 import { CityService } from 'src/city/city.service';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { UserEntity } from 'src/user/user.entity';
+import { decodeTrackingCode } from '../lead/lead.tracking';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import { RealEstateAdvertisementEntity } from './advertisement.entity';
@@ -124,10 +125,15 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
       };
     }
     if (q) {
-      where.$or = [
-        { title: { $ilike: `%${q}%` } },
-        { description: { $ilike: `%${q}%` } },
-      ];
+      const decodedId = decodeTrackingCode(q);
+      if (decodedId !== null) {
+        where.id = decodedId;
+      } else {
+        where.$or = [
+          { title: { $ilike: `%${q}%` } },
+          { description: { $ilike: `%${q}%` } },
+        ];
+      }
     }
 
     const [items, total] = await this.findAll(where, {

@@ -30,7 +30,7 @@ export function AdsFilters({ filters, onChange }: AdsFiltersProps) {
     <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
       <div className="w-full lg:max-w-sm">
         <Input
-          placeholder="جستجو در عنوان و توضیحات"
+          placeholder="جستجو در عنوان، توضیحات یا کد (NV-...)"
           icon={<IconSearch size={18} />}
           value={filters.q || ''}
           onChange={(e) => onChange({ q: e.target.value || undefined, page: 0 })}

@@ -2,6 +2,7 @@
 
 import { IconUserPlus } from '@tabler/icons-react';
 import Link from 'next/link';
+import { trackingCode } from '@/libs/lead/lead.util.tracking';
 import { PublishStatusPill } from '../crawler.component.status-pill';
 import { Advertisement, AdvertisementSource, RealEstateCategory } from '../crawler.types';
 
@@ -86,6 +87,10 @@ export function AdCard({
           {price && (
             <div className="font-bold text-slate-800 text-sm">{price}</div>
           )}
+
+          <div className="font-mono text-[11px] text-slate-400 tracking-wide">
+            {trackingCode(ad.id)}
+          </div>
         </div>
       </Link>
 
