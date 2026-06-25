@@ -64,6 +64,14 @@ export function useClaimLead(id: number) {
   return useSwrMutationHelper(swr);
 }
 
+export function useSendAdDetailSms(id: number) {
+  const swr = useSWRMutation(
+    `/leads/${id}/send-ad-sms`,
+    postFetcher<undefined, { success: boolean }>,
+  );
+  return useSwrMutationHelper(swr);
+}
+
 export function useCreateLeadPool() {
   const swr = useSWRMutation(
     '/leads/pools',

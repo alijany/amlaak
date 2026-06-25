@@ -1,4 +1,5 @@
 import { City } from '@/libs/city/city.types';
+import { LeadDelivery } from '../agency/agency.types';
 
 export interface AdminAgency {
   id: number;
@@ -14,6 +15,8 @@ export interface AdminAgency {
   isActive: boolean;
   isPlatform?: boolean;
   isConfirmed: boolean;
+  telegramGroupId?: number;
+  leadDelivery?: LeadDelivery;
   owner?: {
     id: number;
     firstName?: string;

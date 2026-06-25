@@ -4,30 +4,89 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AgencyContext } from 'src/agency/agency-access.service';
+import { LeadDelivery } from 'src/agency/agency.constants';
 import { AgencyEntity } from 'src/agency/agency.entity';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
+import { NotificationType } from '../notification/notification.constants';
+import { NotificationService } from '../notification/services/notification.service';
 import { AdvertisementService } from '../real-estate/advertisement.service';
 import { CreateLeadDto } from './dtos/create-lead.dto';
 import { LeadFilterDto } from './dtos/lead.filter.dto';
 import { UpdateLeadDto } from './dtos/update-lead.dto';
+import { buildAdDetailSms, buildLeadMessage } from './lead.notification';
 import { LeadPoolEntity } from './lead-pool.entity';
 import { LeadStatus } from './lead.constants';
 import { LeadEntity } from './lead.entity';
 import { advertisementTrackingCode } from './lead.tracking';
 
-const POPULATE = ['advertisement', 'pool', 'pool.agencies', 'agency'] as never;
+const POPULATE = [
+  'advertisement',
+  'advertisement.city',
+  'pool',
+  'pool.agencies',
+  'agency',
+] as never;
 
 @Injectable()
 export class LeadService extends BaseRepositoryService<LeadEntity> {
+  private readonly logger = new Logger(LeadService.name);
+
   constructor(
     @InjectRepository(LeadEntity)
     protected repository: EntityRepository<LeadEntity>,
     private readonly advertisements: AdvertisementService,
+    private readonly notifications: NotificationService,
+    private readonly config: ConfigService,
   ) {
     super(repository);
+  }
+
+  /**
+   * Best-effort delivery of a just-assigned lead to its owning agency, per the
+   * agency's configured channel (Telegram group / SMS / disabled). Never throws
+   * — a delivery failure must not roll back lead creation/claim.
+   */
+  private async notifyAgencyOfLead(lead: LeadEntity): Promise<void> {
+    try {
+      const agencyId = lead.agency?.id;
+      if (agencyId == null) return;
+      const agency = await this.em.findOne(AgencyEntity, agencyId);
+      if (!agency) return;
+
+      const message = buildLeadMessage(lead, agency, this.config);
+
+      if (
+        agency.leadDelivery === LeadDelivery.TELEGRAM &&
+        agency.telegramGroupId != null
+      ) {
+        await this.notifications.sendToChannels(
+          message,
+          [
+            {
+              type: NotificationType.TELEGRAM_BOT,
+              recipientChatId: agency.telegramGroupId,
+            },
+          ],
+          { priority: 'high', metadata: { leadId: lead.id, agencyId } },
+        );
+      } else if (agency.leadDelivery === LeadDelivery.SMS && agency.phone) {
+        await this.notifications.sendToChannels(
+          message,
+          [{ type: NotificationType.SMS, recipientPhone: agency.phone }],
+          { priority: 'high', metadata: { leadId: lead.id, agencyId } },
+        );
+      }
+    } catch (err) {
+      this.logger.error(
+        `failed to deliver lead ${lead.id} to its agency`,
+        err as Error,
+      );
+    }
   }
 
   private canSeeAllLeads(ctx: AgencyContext): boolean {
@@ -80,7 +139,7 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
   ): Promise<LeadEntity> {
     const ad = await this.advertisements.findOne(
       { id: dto.advertisementId },
-      { populate: ['agency'] as never },
+      { populate: ['agency', 'city'] as never },
     );
     if (!ad) throw new NotFoundException('listing not found');
 
@@ -137,6 +196,8 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       pool: poolId ? this.em.getReference(LeadPoolEntity, poolId) : undefined,
     });
     await this.persistAndFlush(lead);
+    // Deliver to the owning agency (direct assignment only; pool leads notify on claim).
+    if (agencyId != null) await this.notifyAgencyOfLead(lead);
     return lead;
   }
 
@@ -236,7 +297,29 @@ export class LeadService extends BaseRepositoryService<LeadEntity> {
       pool: undefined,
     });
     await this.persistAndFlush(lead);
+    await this.notifyAgencyOfLead(lead);
     return lead;
+  }
+
+  /**
+   * Agency action: SMS the listing summary + public link to the lead's contact.
+   * Access is the same as viewing the lead (owns it, or is a pool member).
+   */
+  async sendAdDetailSms(
+    id: number,
+    ctx: AgencyContext,
+  ): Promise<{ success: boolean }> {
+    const lead = await this.findOneScoped(id, ctx);
+    if (!lead.contactPhone) {
+      throw new BadRequestException('این لید شماره تماس ندارد');
+    }
+    const message = buildAdDetailSms(lead, this.config);
+    await this.notifications.sendToChannels(
+      message,
+      [{ type: NotificationType.SMS, recipientPhone: lead.contactPhone }],
+      { priority: 'normal', metadata: { leadId: lead.id, kind: 'ad_detail' } },
+    );
+    return { success: true };
   }
 
   /** Status funnel for the dashboard, scoped to what the active agency can see. */

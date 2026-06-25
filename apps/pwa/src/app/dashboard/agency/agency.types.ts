@@ -1,6 +1,9 @@
 import { InvitationStatus, Role } from '@/components/auth/auth.constants.roles';
 import { City } from '@/libs/city/city.types';
 
+/** How an agency receives a newly assigned lead (admin-configured). */
+export type LeadDelivery = 'telegram' | 'sms' | 'disabled';
+
 export interface Agency {
   id: number;
   name: string;
@@ -15,6 +18,10 @@ export interface Agency {
   isActive: boolean;
   isPlatform?: boolean;
   isConfirmed?: boolean;
+  /** Admin-only. Telegram group chat id (e.g. -1001234567890). */
+  telegramGroupId?: number;
+  /** Admin-only. Lead delivery channel. */
+  leadDelivery?: LeadDelivery;
   created_at?: string;
 }
 
@@ -52,6 +59,10 @@ export interface UpdateAgencyDto {
   website?: string;
   cityId?: number;
   address?: string;
+  /** Admin-only. `null` clears the linked group. */
+  telegramGroupId?: number | null;
+  /** Admin-only. */
+  leadDelivery?: LeadDelivery;
 }
 
 export interface InviteAgencyMemberDto {

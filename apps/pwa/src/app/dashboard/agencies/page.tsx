@@ -57,6 +57,25 @@ function StatusBadge({ agency }: { agency: AdminAgency }) {
   );
 }
 
+function DeliveryBadge({ agency }: { agency: AdminAgency }) {
+  const mode = agency.leadDelivery ?? 'disabled';
+  if (mode === 'telegram') {
+    return (
+      <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 text-[11px] font-semibold">
+        تلگرام
+      </span>
+    );
+  }
+  if (mode === 'sms') {
+    return (
+      <span className="px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 text-[11px] font-semibold">
+        پیامک
+      </span>
+    );
+  }
+  return null;
+}
+
 export default function AgenciesPage() {
   const [filters, setFilters] = useState<AgencyFilterDto>({
     status: 'all',
@@ -172,6 +191,7 @@ export default function AgenciesPage() {
                         {agency.name}
                       </span>
                       <StatusBadge agency={agency} />
+                      <DeliveryBadge agency={agency} />
                     </div>
                     <div className="text-xs text-slate-400">
                       {ownerLabel(agency)} · {agency.phone || '—'} ·{' '}

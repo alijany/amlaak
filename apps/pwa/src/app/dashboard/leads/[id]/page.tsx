@@ -14,6 +14,7 @@ import {
   IconBuildingEstate,
   IconExternalLink,
   IconMapPin,
+  IconMessage,
   IconPhone,
   IconUser,
 } from '@tabler/icons-react';
@@ -24,6 +25,7 @@ import {
   useClaimLead,
   useLead,
   useLeadPools,
+  useSendAdDetailSms,
   useUpdateLead,
 } from '../leads.api';
 import { LEAD_STATUS_LABEL, LEAD_STATUS_ORDER } from '../leads.constants';
@@ -44,6 +46,9 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
 
   const { submit: updateLead, isLoading: updating } = useUpdateLead(lead.id);
   const { submit: claimLead, isLoading: claiming } = useClaimLead(lead.id);
+  const { submit: sendAdSms, isLoading: sendingSms } = useSendAdDetailSms(
+    lead.id,
+  );
   const { data: pools } = useLeadPools();
 
   const [note, setNote] = useState(lead.note ?? '');
@@ -83,6 +88,15 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
       refresh();
     } catch (e) {
       toast.error((e as ApiError).message || 'خطا در تصاحب لید');
+    }
+  };
+
+  const onSendAdSms = async () => {
+    try {
+      await sendAdSms();
+      toast.success('آگهی با پیامک ارسال شد');
+    } catch (e) {
+      toast.error((e as ApiError).message || 'خطا در ارسال پیامک');
     }
   };
 
@@ -171,6 +185,23 @@ function LeadDetail({ lead, refresh }: { lead: Lead; refresh: () => void }) {
             : lead.pool
               ? `در صف: ${lead.pool.name}`
               : 'واگذار نشده'}
+        </div>
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-[12px] text-slate-400">
+            ارسال جزئیات آگهی برای مشتری از طریق پیامک
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onSendAdSms}
+            disabled={sendingSms || !lead.contactPhone}
+            title={
+              lead.contactPhone ? undefined : 'این لید شماره تماس ندارد'
+            }
+          >
+            <IconMessage size={15} className="ml-1" />
+            ارسال آگهی با پیامک
+          </Button>
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import { ApiError } from '@/libs/api/api.types.error';
 import { CitySelect } from '@/libs/city/city.component.select';
 import { City } from '@/libs/city/city.types';
 import { Button, Input } from '@/ui/atoms';
+import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { DataView } from '@/ui/molecules';
 import { IconArrowRight, IconPlus, IconTrash } from '@tabler/icons-react';
 import Link from 'next/link';
@@ -22,12 +23,18 @@ import {
   useUpdateAgency,
 } from '../../agency/agency.api';
 import { InviteMemberModal } from '../../agency/agency.component.invite-modal';
-import { AgencyMember } from '../../agency/agency.types';
+import { AgencyMember, LeadDelivery } from '../../agency/agency.types';
 import {
   useConfirmAgency,
   useReactivateAgency,
   useRejectAgency,
 } from '../agencies.api';
+
+const LEAD_DELIVERY_ITEMS: { label: string; value: LeadDelivery }[] = [
+  { label: 'غیرفعال', value: 'disabled' },
+  { label: 'گروه تلگرام', value: 'telegram' },
+  { label: 'پیامک', value: 'sms' },
+];
 
 function memberName(m: AgencyMember): string {
   const full = `${m.user?.firstName ?? ''} ${m.user?.lastName ?? ''}`.trim();
@@ -56,6 +63,10 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
   const [banner, setBanner] = useState<string[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
 
+  // Admin-only lead-delivery config (Telegram group + delivery channel).
+  const [telegramGroupId, setTelegramGroupId] = useState('');
+  const [leadDelivery, setLeadDelivery] = useState<LeadDelivery>('disabled');
+
   useEffect(() => {
     if (agency) {
       setName(agency.name ?? '');
@@ -66,6 +77,10 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
       setAddress(agency.address ?? '');
       setLogo(agency.logo ? [agency.logo] : []);
       setBanner(agency.banner ? [agency.banner] : []);
+      setTelegramGroupId(
+        agency.telegramGroupId != null ? String(agency.telegramGroupId) : '',
+      );
+      setLeadDelivery(agency.leadDelivery ?? 'disabled');
     }
   }, [agency]);
 
@@ -82,6 +97,28 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
         banner: banner[0] ?? '',
       });
       toast.success('اطلاعات آژانس ذخیره شد');
+      refresh();
+    } catch (e) {
+      toast.error((e as ApiError).message || 'ذخیره ناموفق بود');
+    }
+  };
+
+  const onSaveDelivery = async () => {
+    const trimmed = telegramGroupId.trim();
+    if (trimmed && !/^-?\d+$/.test(trimmed)) {
+      toast.error('شناسه گروه تلگرام باید یک عدد باشد');
+      return;
+    }
+    if (leadDelivery === 'telegram' && !trimmed) {
+      toast.error('برای ارسال تلگرامی، شناسه گروه تلگرام را وارد کنید');
+      return;
+    }
+    try {
+      await update({
+        telegramGroupId: trimmed ? Number(trimmed) : null,
+        leadDelivery,
+      });
+      toast.success('تنظیمات ارسال لید ذخیره شد');
       refresh();
     } catch (e) {
       toast.error((e as ApiError).message || 'ذخیره ناموفق بود');
@@ -227,6 +264,55 @@ function AgencyAdminContent({ agencyId }: { agencyId: number }) {
             </div>
             <div className="flex justify-end">
               <Button onClick={onSave} disabled={saving}>
+                ذخیره
+              </Button>
+            </div>
+          </div>
+        </DataView>
+      </div>
+
+      {/* Lead delivery (admin-only) */}
+      <div className="rounded-2xl bg-white p-4 space-y-3">
+        <div className="font-bold text-slate-700">ارسال لید و گروه تلگرام</div>
+        <p className="text-[12px] text-slate-400">
+          هنگام واگذاری لید به این آژانس، لید به‌صورت خودکار از طریق کانال
+          انتخاب‌شده ارسال می‌شود.
+        </p>
+        <DataView
+          data={agency}
+          error={error}
+          isLoading={isLoading}
+          onRetry={refresh}
+          variant="inline"
+        >
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="font-medium mb-2 block text-slate-700">
+                  روش ارسال لید
+                </label>
+                <Dropdown<LeadDelivery>
+                  items={LEAD_DELIVERY_ITEMS}
+                  value={leadDelivery}
+                  onChange={(v) => {
+                    if (v) setLeadDelivery(v);
+                  }}
+                  variant="outline"
+                />
+              </div>
+              <Input
+                label="شناسه گروه تلگرام"
+                placeholder="مثلاً -1001234567890"
+                value={telegramGroupId}
+                onChange={(e) => setTelegramGroupId(e.target.value)}
+              />
+            </div>
+            <p className="text-[11px] text-slate-400">
+              ربات باید عضو گروه باشد. شناسه گروه عددی است (معمولاً با - شروع
+              می‌شود).
+            </p>
+            <div className="flex justify-end">
+              <Button onClick={onSaveDelivery} disabled={saving}>
                 ذخیره
               </Button>
             </div>

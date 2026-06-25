@@ -7,6 +7,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { LeadDelivery } from '../agency.constants';
 
 export type AgencyStatusFilter = 'pending' | 'active' | 'inactive' | 'all';
 
@@ -131,4 +132,18 @@ export class UpdateAgencyDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  /**
+   * Admin-only. The agency's Telegram group chat id (e.g. -1001234567890).
+   * `null` clears it. Non-admin callers have this stripped in the controller.
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  telegramGroupId?: number | null;
+
+  /** Admin-only. How newly assigned leads are delivered to this agency. */
+  @IsOptional()
+  @IsIn(Object.values(LeadDelivery))
+  leadDelivery?: LeadDelivery;
 }

@@ -1,7 +1,16 @@
-import { Entity, Index, ManyToOne, Property, Unique } from '@mikro-orm/core';
+import {
+  Entity,
+  Enum,
+  Index,
+  ManyToOne,
+  Property,
+  Unique,
+  types,
+} from '@mikro-orm/core';
 import { CityEntity } from 'src/city/city.entity';
 import { BaseEntity } from 'src/libs/orm/orm.entity.base';
 import { UserEntity } from 'src/user/user.entity';
+import { LeadDelivery } from './agency.constants';
 
 /**
  * An Agency is the multi-tenant organization unit. Agency-scoped roles
@@ -55,6 +64,17 @@ export class AgencyEntity extends BaseEntity {
   /** False for self-registered agencies until an admin approves them. */
   @Property({ default: false })
   isConfirmed: boolean = false;
+
+  /**
+   * Telegram group chat id the operator runs for this agency (e.g.
+   * -1001234567890). Admin-managed; required for {@link LeadDelivery.TELEGRAM}.
+   */
+  @Property({ nullable: true, type: types.bigint })
+  telegramGroupId?: number;
+
+  /** How newly assigned leads are pushed to this agency. Admin-managed. */
+  @Enum({ items: () => LeadDelivery, default: LeadDelivery.DISABLED })
+  leadDelivery: LeadDelivery = LeadDelivery.DISABLED;
 
   @ManyToOne(() => UserEntity, { nullable: true })
   owner?: UserEntity;

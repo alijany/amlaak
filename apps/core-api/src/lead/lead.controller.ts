@@ -152,4 +152,15 @@ export class LeadController {
   ) {
     return this.leads.claim(id, this.access.resolve(user, agencyId));
   }
+
+  /** SMS the listing summary + public link to this lead's contact phone. */
+  @Post(':id/send-ad-sms')
+  @Roles(...WORKER)
+  sendAdSms(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: UserEntity,
+    @CurrentAgencyId() agencyId?: number,
+  ) {
+    return this.leads.sendAdDetailSms(id, this.access.resolve(user, agencyId));
+  }
 }

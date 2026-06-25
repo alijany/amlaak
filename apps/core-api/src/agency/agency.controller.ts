@@ -83,7 +83,16 @@ export class AgencyController {
     @Body() dto: UpdateAgencyDto,
     @CurrentUser() user: UserEntity,
   ) {
-    this.assertManager(user, id);
+    const ctx = this.access.resolve(user, id);
+    if (!ctx.isManager) {
+      throw new ForbiddenException('agency manager access required');
+    }
+    // Telegram group + lead-delivery config are operator settings: only a
+    // platform admin may change them. Strip them for agency owners/managers.
+    if (!ctx.isPlatformAdmin) {
+      delete dto.telegramGroupId;
+      delete dto.leadDelivery;
+    }
     return this.agencies.updateAgency(id, dto);
   }
 
