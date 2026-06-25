@@ -52,4 +52,21 @@ export class ListingModerationService {
     await this.advertisements.setPublishStatus(ad, PublishStatus.REJECTED);
     return ad;
   }
+
+  /** Re-post an already-published listing to Telegram (e.g. after editing). */
+  async resendTelegram(id: number): Promise<RealEstateAdvertisementEntity> {
+    const ad = await this.advertisements.findOne(
+      { id },
+      { populate: ['city'] as never },
+    );
+    if (!ad) throw new NotFoundException('listing not found');
+
+    const result = await this.telegram.publish(ad);
+    if (result) {
+      ad.telegramPostedAt = new Date();
+      ad.telegramMessageId = result.messageId;
+      await this.advertisements.persistAndFlush(ad);
+    }
+    return ad;
+  }
 }

@@ -58,3 +58,11 @@ export function useRejectListing(id: number) {
   );
   return useSwrMutationHelper(swr);
 }
+
+export function useResendTelegram(id: number) {
+  const swr = useSWRMutation(
+    `/real-estate/advertisements/${id}/telegram/resend`,
+    patchFetcher<undefined, Advertisement>,
+  );
+  return useSwrMutationHelper(swr);
+}

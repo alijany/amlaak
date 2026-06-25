@@ -177,6 +177,7 @@ export interface Advertisement {
   publishStatus?: PublishStatus;
   publishedAt?: string;
   telegramPostedAt?: string;
+  telegramMessageId?: number;
 }
 
 export interface AdvertisementsResponse {

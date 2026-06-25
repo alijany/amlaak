@@ -12,21 +12,24 @@ import { trackingCode } from '@/libs/lead/lead.util.tracking';
 import { QuickLeadModal } from '@/app/dashboard/listings/listings.component.lead-modal';
 import { useLeads } from '@/app/dashboard/leads/leads.api';
 import { LeadRow } from '@/app/dashboard/leads/leads.component.list';
-import { Button, JsonViewer } from '@/ui/atoms';
+import { ImageUploader } from '@/components/upload/upload.component.image';
+import { Button, JsonViewer, Modal } from '@/ui/atoms';
 import { DataView } from '@/ui/molecules';
 import { toast } from 'react-toastify';
 import { PublishStatusPill } from '../../crawler.component.status-pill';
 import {
   IconArrowRight,
+  IconBrandTelegram,
   IconBuildingEstate,
   IconChevronLeft,
   IconChevronRight,
-  IconCirclePlus,
   IconExternalLink,
   IconMapPin,
+  IconPhoto,
   IconPhone,
-  IconTrash,
+  IconRefresh,
   IconUserPlus,
+  IconX,
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
@@ -36,6 +39,7 @@ import {
   useAdvertisement,
   useApproveListing,
   useRejectListing,
+  useResendTelegram,
   useUpdateAdvertisement,
 } from './crawler.ads.detail.api';
 
@@ -69,8 +73,42 @@ const inputCls =
 
 // ── Admin edit form ───────────────────────────────────────────────────────────
 
+function ImageManagerModal({
+  images,
+  onChange,
+  isOpen,
+  onClose,
+}: {
+  images: string[];
+  onChange: (urls: string[]) => void;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100" dir="rtl">
+        <h2 className="font-bold text-slate-700">مدیریت تصاویر</h2>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <IconX size={18} />
+        </button>
+      </div>
+      <div className="p-5 overflow-y-auto max-h-[70vh]" dir="rtl">
+        <ImageUploader
+          value={images}
+          onChange={onChange}
+          previewClassName="h-28 w-28"
+        />
+      </div>
+      <div className="px-5 pb-5 flex justify-end" dir="rtl">
+        <Button size="sm" onClick={onClose}>بستن</Button>
+      </div>
+    </Modal>
+  );
+}
+
 function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void }) {
   const { submit, isLoading } = useUpdateAdvertisement(ad.id);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   const [form, setForm] = useState<UpdateAdvertisementDto>({
     title: ad.title ?? '',
@@ -121,12 +159,6 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
     </Field>
   );
 
-  // image url list helpers
-  const setImage = (i: number, val: string) =>
-    set('images', (form.images ?? []).map((u, j) => (j === i ? val : u)));
-  const addImage = () => set('images', [...(form.images ?? []), '']);
-  const removeImage = (i: number) =>
-    set('images', (form.images ?? []).filter((_, j) => j !== i));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,36 +267,33 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
 
       {/* Images */}
       <section className="bg-white rounded-2xl p-4 space-y-3">
-        <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">تصاویر</h3>
-        <div className="space-y-2">
-          {(form.images ?? []).map((url, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                type="url"
-                className={inputCls}
-                placeholder="https://..."
-                value={url}
-                onChange={(e) => setImage(i, e.target.value)}
-                dir="ltr"
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(i)}
-                className="text-slate-400 hover:text-red-500 flex-shrink-0 transition-colors"
-              >
-                <IconTrash size={16} />
-              </button>
-            </div>
-          ))}
+        <div className="flex items-center justify-between">
+          <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">تصاویر</h3>
+          <button
+            type="button"
+            onClick={() => setImageModalOpen(true)}
+            className="flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-3 py-1.5 transition-colors"
+          >
+            <IconPhoto size={14} />
+            مدیریت تصاویر
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={addImage}
-          className="flex items-center gap-1.5 text-[12px] text-blue-500 hover:text-blue-600 font-medium transition-colors"
-        >
-          <IconCirclePlus size={15} />
-          افزودن تصویر
-        </button>
+        {(form.images ?? []).length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {(form.images ?? []).map((url) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={url} src={url} alt="" className="h-20 w-20 rounded-xl object-cover border border-slate-200" />
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12px] text-slate-400">تصویری ثبت نشده</p>
+        )}
+        <ImageManagerModal
+          images={form.images ?? []}
+          onChange={(urls) => set('images', urls)}
+          isOpen={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+        />
       </section>
 
       {/* Attributes JSON */}
@@ -532,6 +561,7 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
   const [leadOpen, setLeadOpen] = useState(false);
   const { submit: approve, isLoading: approving } = useApproveListing(ad.id);
   const { submit: reject, isLoading: rejecting } = useRejectListing(ad.id);
+  const { submit: resend, isLoading: resending } = useResendTelegram(ad.id);
 
   const onApprove = async () => {
     try {
@@ -553,15 +583,23 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
     }
   };
 
+  const onResend = async () => {
+    try {
+      await resend();
+      toast.success('پیام تلگرام مجدداً ارسال شد');
+      refresh();
+    } catch (e) {
+      toast.error((e as ApiError).message || 'ارسال مجدد ناموفق بود');
+    }
+  };
+
   return (
     <>
+      {/* ── Publish status + actions ────────────────────────────────────── */}
       <div className="bg-white rounded-2xl p-4 mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-slate-500 flex-wrap">
           <span>وضعیت انتشار:</span>
           <PublishStatusPill status={ad.publishStatus} />
-          {ad.telegramPostedAt && (
-            <span className="text-[11px] text-emerald-600">• ارسال‌شده به تلگرام</span>
-          )}
           {ad.sourceUrl && (
             <a
               href={ad.sourceUrl}
@@ -593,6 +631,44 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
           </div>
         )}
       </div>
+
+      {/* ── Telegram status card ────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl p-4 mb-3 flex items-center justify-between gap-3" dir="rtl">
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${ad.telegramPostedAt ? 'bg-sky-100 text-sky-600' : 'bg-slate-100 text-slate-400'}`}>
+            <IconBrandTelegram size={18} />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-slate-700">تلگرام</div>
+            {ad.telegramPostedAt ? (
+              <div className="text-[11px] text-emerald-600">
+                ارسال‌شده ·{' '}
+                {new Date(ad.telegramPostedAt).toLocaleDateString('fa-IR', {
+                  year: 'numeric', month: 'long', day: 'numeric',
+                })}
+                {ad.telegramMessageId && (
+                  <span className="text-slate-400 font-mono mr-1">#{ad.telegramMessageId}</span>
+                )}
+              </div>
+            ) : (
+              <div className="text-[11px] text-slate-400">
+                {ad.publishStatus === PublishStatus.PUBLISHED ? 'ارسال نشده' : 'در انتظار انتشار'}
+              </div>
+            )}
+          </div>
+        </div>
+        {canModerate && ad.publishStatus === PublishStatus.PUBLISHED && (
+          <button
+            onClick={onResend}
+            disabled={resending}
+            className="flex items-center gap-1.5 text-[12px] font-medium text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 rounded-xl px-3 py-1.5 transition-colors disabled:opacity-50"
+          >
+            <IconRefresh size={14} className={resending ? 'animate-spin' : ''} />
+            {resending ? 'در حال ارسال…' : 'ارسال مجدد'}
+          </button>
+        )}
+      </div>
+
       <QuickLeadModal
         advertisementId={ad.id}
         listingTitle={ad.title ?? undefined}

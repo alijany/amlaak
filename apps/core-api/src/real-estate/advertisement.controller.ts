@@ -62,4 +62,11 @@ export class AdvertisementController {
   reject(@Param('id', ParseIntPipe) id: number) {
     return this.moderation.reject(id);
   }
+
+  /** Re-post a published listing to Telegram (e.g. after editing images/content). */
+  @Patch(':id/telegram/resend')
+  @Roles(...MANAGER)
+  resendTelegram(@Param('id', ParseIntPipe) id: number) {
+    return this.moderation.resendTelegram(id);
+  }
 }
