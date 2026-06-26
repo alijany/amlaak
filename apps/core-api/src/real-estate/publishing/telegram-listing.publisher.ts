@@ -138,7 +138,7 @@ export class TelegramListingPublisher {
     ].filter(Boolean);
     if (specs.length) lines.push(`📐 ${specs.join(' · ')}`);
 
-    const webUrl = this.config.get<string>('PUBLIC_WEB_URL');
+    const webUrl = this.config.get<string>('DOMAIN');
     if (webUrl) lines.push(`🔗 ${webUrl}/listings/${ad.id}`);
 
     lines.push(`کد رهگیری: NV-${ad.id.toString(36).toUpperCase()}`);

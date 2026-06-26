@@ -85,7 +85,7 @@ A PM review of the customer-facing flows produced a prioritized backlog (full te
   status pill + publish-status filter on the crawled-ads views
 - ✅ Telegram channel publisher (`real-estate/publishing/telegram-listing.publisher.ts`):
   posts photo+caption on approval; config-driven (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHANNEL_ID`/
-  `PUBLIC_WEB_URL` in `.env.example`), no-ops when unset
+  `DOMAIN` in `.env.example`), no-ops when unset
 - ✅ Public website: `GET /public/listings` + `/public/listings/:id` (published-only, trimmed
   public shape — source contact stripped); public `/listings` index + `/listings/[id]` detail
   with contact CTA + tracking code; "آگهی‌ها" link in the public navbar

@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
  */
 
 function dashboardLink(config: ConfigService, path: string): string | null {
-  const webUrl = config.get<string>('PUBLIC_WEB_URL');
+  const webUrl = config.get<string>('DOMAIN');
   return webUrl ? `🔗 ${webUrl}${path}` : null;
 }
 

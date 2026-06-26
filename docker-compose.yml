@@ -94,18 +94,18 @@ services:
   # Uncomment to enable real browser automation. The Mock crawler target works
   # without it. The api reads CAMOFOX_BASE_URL=http://camofox:9377.
   # See docs/crawler/developer/browser-gateway-camofox.md
-  # camofox:
-  #   container_name: ${PROJECT_NAME}-camofox
-  #   image: ghcr.io/jo-inc/camofox-browser:latest
-  #   restart: always
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - app
-  #   volumes:
-  #     - browser_data:/root/.camofox
-  #   security_opt:
-  #     - no-new-privileges:true
+  camofox:
+    container_name: ${PROJECT_NAME}-camofox
+    image: ghcr.io/jo-inc/camofox-browser:latest
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - app
+    volumes:
+      - browser_data:/root/.camofox
+    security_opt:
+      - no-new-privileges:true
 
   # Xray proxy sidecar for reaching api.telegram.org where it is blocked
   # (optional). The api connects to it on the internal `app` network via
@@ -115,16 +115,16 @@ services:
   # .devcontainer/xray-config.json for a template):
   #   sudo mkdir -p /opt/xray && sudo $EDITOR /opt/xray/config.json
   # Uncomment to enable, then set TELEGRAM_PROXY_URL in .env.
-  # xray:
-  #   container_name: ${PROJECT_NAME}-xray
-  #   image: teddysun/xray:latest
-  #   restart: always
-  #   networks:
-  #     - app
-  #   volumes:
-  #     - /opt/xray/config.json:/etc/xray/config.json:ro
-  #   security_opt:
-  #     - no-new-privileges:true
+  xray:
+    container_name: ${PROJECT_NAME}-xray
+    image: teddysun/xray:latest
+    restart: always
+    networks:
+      - app
+    volumes:
+      - /opt/xray/config.json:/etc/xray/config.json:ro
+    security_opt:
+      - no-new-privileges:true
 
 
 volumes:

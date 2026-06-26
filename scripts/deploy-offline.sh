@@ -114,8 +114,23 @@ build() {
     -t "$PWA_IMAGE" \
     -f apps/pwa/Dockerfile .
 
+  # Collect any third-party images referenced in compose (camofox, xray, etc.)
+  # that are not built by this script. Pull them locally so they can be bundled.
+  EXTRA_IMAGES=()
+  while IFS= read -r img; do
+    case "$img" in
+      "${PROJECT_NAME}-"*) ;;  # skip our own built images
+      "")                  ;;
+      *)
+        log "Pulling third-party image: $img"
+        docker pull --platform "$PLATFORM" "$img" || warn "Could not pull $img — skipping."
+        EXTRA_IMAGES+=("$img")
+        ;;
+    esac
+  done < <(docker compose config --images 2>/dev/null | sort -u)
+
   log "Saving images to $BUNDLE"
-  docker save "$API_IMAGE" "$PWA_IMAGE" | gzip > "$BUNDLE_PATH"
+  docker save "$API_IMAGE" "$PWA_IMAGE" "${EXTRA_IMAGES[@]}" | gzip > "$BUNDLE_PATH"
   log "Bundle ready: $BUNDLE_PATH ($(du -h "$BUNDLE_PATH" | cut -f1))"
 }
 
@@ -192,8 +207,8 @@ cd '$REMOTE_DIR'
 echo '--> Loading images...'
 gunzip -c '$BUNDLE' | docker load
 
-echo '--> Starting/updating containers...'
-docker compose up -d --no-build --force-recreate api pwa db
+echo '--> Starting all containers...'
+docker compose up -d --no-build --force-recreate
 
 echo '--> Pruning dangling images...'
 docker image prune -f
@@ -233,8 +248,11 @@ cd '$REMOTE_DIR'
 echo '--> Loading images...'
 gunzip -c '$BUNDLE' | docker load
 
-echo '--> Restarting api and pwa...'
-docker compose up -d --no-build --force-recreate api pwa
+echo '--> Restarting app services (db left untouched)...'
+# Collect all services defined in compose, then exclude db so its data is preserved.
+services=$(docker compose config --services | grep -v '^db$' | tr '\n' ' ')
+# shellcheck disable=SC2086
+docker compose up -d --no-build --force-recreate $services
 
 echo '--> Pruning dangling images...'
 docker image prune -f

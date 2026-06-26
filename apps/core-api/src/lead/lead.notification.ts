@@ -58,7 +58,7 @@ export function buildLeadMessage(
 
   if (lead.trackingCode) lines.push(`کد رهگیری: ${lead.trackingCode}`);
 
-  const webUrl = config.get<string>('PUBLIC_WEB_URL');
+  const webUrl = config.get<string>('DOMAIN');
   if (webUrl && ad?.id) lines.push(`🔗 ${webUrl}/dashboard/leads/${lead.id}`);
 
   return lines.join('\n');
@@ -91,7 +91,7 @@ export function buildAdDetailSms(
     if (ad?.rent != null) lines.push(`🗓️ اجاره: ${fa(ad.rent)} تومان`);
   }
 
-  const webUrl = config.get<string>('PUBLIC_WEB_URL');
+  const webUrl = config.get<string>('DOMAIN');
   if (webUrl && ad?.id) lines.push(`مشاهده: ${webUrl}/listings/${ad.id}`);
 
   return lines.join('\n');
