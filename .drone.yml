@@ -30,16 +30,19 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
+      - name: environments
+        path: /environments
       - name: docker-cache
         path: /var/lib/docker
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
-      PROJECT_NAME:
-        from_secret: project_name
     commands:
-      - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg PROJECT_NAME=${PROJECT_NAME} --target dependencies -t ${PROJECT_NAME}-base:dependencies -f docker/base.Dockerfile .
-      - docker tag ${PROJECT_NAME}-base:dependencies ${PROJECT_NAME}-base
+      - cp -r /environments/. ./
+      - set -a; . ./.env; set +a
+      - echo "Building base image for project=$PROJECT_NAME"
+      - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg PROJECT_NAME=$PROJECT_NAME --target dependencies -t $PROJECT_NAME-base:dependencies -f docker/base.Dockerfile .
+      - docker tag $PROJECT_NAME-base:dependencies $PROJECT_NAME-base
     when:
       branch:
         - prd
@@ -57,15 +60,14 @@ steps:
     environment:
       DOCKER_BUILDKIT: 1
       COMPOSE_DOCKER_CLI_BUILD: 1
-      PROJECT_NAME:
-        from_secret: project_name
     commands:
       - cp -r /environments/. ./
-      # - docker compose build --parallel ${PROJECT_NAME}-pwa ${PROJECT_NAME}-api
-      - docker compose up -d --no-build
+      # docker compose auto-loads PROJECT_NAME from the copied .env
+      - docker compose up -d
       - docker image prune -f
     depends_on:
       - build base
+
 
   # - name: notify-success
   #   image: appleboy/drone-telegram
@@ -123,7 +125,10 @@ volumes:
       path: /var/run/docker.sock
   - name: environments
     host:
-      path: /root/${PROJECT_NAME}-env
+      # NOTE: Drone does NOT interpolate secrets (project_name) in volume host
+      # paths — only step `environment`/`commands` see the secret. Hardcode the
+      # actual project name here to match PROJECT_NAME / the project_name secret.
+      path: /root/app-env
   - name: docker-cache
     host:
       path: /var/lib/docker/cache

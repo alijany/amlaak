@@ -10,7 +10,7 @@ networks:
     external: true
     name: traefik-public
   app:
-    external: true
+    # external: true
     name: ${PROJECT_NAME}
 
 services:
