@@ -6,6 +6,7 @@
 	"service": "app",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"features": {
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/devcontainers-community/npm-features/typescript:1": {},
 		"ghcr.io/devcontainers-extra/features/pnpm:2": {}
 	},

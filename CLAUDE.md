@@ -30,7 +30,7 @@ pnpm --filter core-api lint           # lint backend
 pnpm --filter pwa lint                # lint frontend
 ```
 
-Tests (`pnpm test`, `pnpm test:e2e`) are currently unstable. Use `lint` + `build` as the verification loop.
+Tests (`pnpm test`, `pnpm test:e2e`) are currently unstable. Use `lint` (which also type-checks) as the verification loop — no need to run `build`.
 
 ## Dev Environment Setup
 
@@ -154,5 +154,5 @@ See `apps/core-api/AGENTS.md` and `apps/pwa/AGENTS.md` for detailed patterns and
 
 - Do not commit `.env` files — only `.env.example` files are committed
 - Do not add code to the monorepo root — shared code belongs in `apps/*/src/libs/`
-- Do not rely on test results — tests are currently unstable; use `build` + `lint` instead
+- Do not rely on test results — tests are currently unstable; use `lint` instead (no need to run `build`)
 - Do not hardcode the project name in Dockerfiles or compose files — always use `${PROJECT_NAME}` / `${PROJECT_NAME}`
