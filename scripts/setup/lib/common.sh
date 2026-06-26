@@ -65,6 +65,27 @@ prompt_yes_no() {
   printf '%s\n' "$choice"
 }
 
+# Ensure the shared traefik-public network exists (idempotent).
+# Services attach to this network so Traefik's docker provider can route to them.
+ensure_traefik_network() {
+  if ! exec_cmd "docker network ls --format '{{.Name}}' | grep -q '^traefik-public\$'"; then
+    exec_cmd "docker network create traefik-public >/dev/null"
+  fi
+}
+
+# Build the docker-run flags that expose a container through Traefik.
+# Attaches it to traefik-public and adds an HTTPS router with Let's Encrypt.
+# Usage: traefik_labels <router_name> <domain> <internal_port>
+traefik_labels() {
+  local name="$1" domain="$2" port="$3"
+  printf '%s' \
+    " --label 'traefik.enable=true'" \
+    " --label 'traefik.http.routers.${name}.rule=Host(\`${domain}\`)'" \
+    " --label 'traefik.http.routers.${name}.entrypoints=websecure'" \
+    " --label 'traefik.http.routers.${name}.tls.certresolver=letsencrypt'" \
+    " --label 'traefik.http.services.${name}.loadbalancer.server.port=${port}'"
+}
+
 container_exists() {
   local name="$1"
   if [[ "${DEPLOY_TARGET:-local}" == "local" ]]; then

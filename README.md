@@ -39,7 +39,7 @@ scripts/
 - **Database**: PostgreSQL + MikroORM — type-safe operations, migrations
 - **Cache & Queues**: Redis + BullMQ
 - **Authentication**: Passport.js + JWT with OTP support, role-based access control
-- **File Storage**: S3-compatible (MinIO for dev, AWS S3 / Arvan Cloud for production)
+- **File Storage**: S3-compatible (RustFS for dev, AWS S3 / Arvan Cloud for production)
 
 ### Frontend (PWA)
 

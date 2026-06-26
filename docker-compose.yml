@@ -4,7 +4,7 @@ name: ${PROJECT_NAME}
 # Networks:
 # - traefik-public: External network managed by standalone Traefik container
 #   (created via init.sh or manually with: docker network create traefik-public)
-# - app: Internal network for service-to-service communication (shared with standalone redis/minio)
+# - app: Internal network for service-to-service communication (shared with standalone redis/rustfs)
 networks:
   traefik-public:
     external: true
@@ -26,7 +26,7 @@ services:
       - .env
     networks:
       - traefik-public  # For external access via Traefik
-      - app             # For internal communication with db, redis, minio
+      - app             # For internal communication with db, redis, rustfs
     depends_on:
       db:
         condition: service_healthy

@@ -59,7 +59,7 @@ run_setup_wizard() {
   print_info "Updating package index on $DEPLOY_TARGET system..."
   exec_cmd "sudo apt update"
 
-  local install_dns install_docker configure_docker_registry configure_docker_user install_drone install_portainer install_traefik install_cloudflared install_redis install_minio
+  local clean_install install_dns install_docker configure_docker_registry configure_docker_user install_drone install_portainer install_traefik install_cloudflared install_redis install_rustfs
 
   install_dns="$(prompt_yes_no "Configure DNS (resolvconf)?" "n")"
 
@@ -70,6 +70,12 @@ run_setup_wizard() {
   else
     print_info "Docker is not installed on $DEPLOY_TARGET"
     install_docker="$(prompt_yes_no "Install Docker?" "y")"
+  fi
+
+  # Offer a clean install only when Docker already exists (nothing to clean otherwise).
+  clean_install="n"
+  if [[ "$install_docker" != "y" ]]; then
+    clean_install="$(prompt_yes_no "Clean install (remove all containers, keep images)?" "n")"
   fi
 
   if [[ "$install_docker" == "y" ]] || exec_cmd "command -v docker >/dev/null 2>&1"; then
@@ -85,7 +91,7 @@ run_setup_wizard() {
   install_traefik="$(prompt_yes_no "Install Traefik reverse proxy?" "y")"
   install_cloudflared="$(prompt_yes_no "Install Cloudflare Tunnel (cloudflared)?" "n")"
   install_redis="$(prompt_yes_no "Install Redis?" "y")"
-  install_minio="$(prompt_yes_no "Install Minio (S3-compatible storage)?" "y")"
+  install_rustfs="$(prompt_yes_no "Install RustFS (S3-compatible storage)?" "y")"
 
   echo
   echo "========================================"
@@ -95,6 +101,7 @@ run_setup_wizard() {
   echo "Target:  $DEPLOY_TARGET"
   [[ "$DEPLOY_TARGET" == "remote" ]] && echo "Remote:  $REMOTE_USER@$REMOTE_HOST:$REMOTE_PORT"
   echo "----------------------------------------"
+  [[ "$clean_install" == "y" ]] && echo "✓ Clean Install (remove all containers)" || echo "○ Clean Install (remove all containers)"
   [[ "$install_dns" == "y" ]] && echo "✓ DNS Configuration" || echo "○ DNS Configuration"
   [[ "$install_docker" == "y" ]] && echo "✓ Docker Installation" || echo "○ Docker Installation"
   [[ "$configure_docker_registry" == "y" ]] && echo "✓ Docker Registry Mirror" || echo "○ Docker Registry Mirror"
@@ -104,7 +111,7 @@ run_setup_wizard() {
   [[ "$install_traefik" == "y" ]] && echo "✓ Traefik Reverse Proxy" || echo "○ Traefik Reverse Proxy"
   [[ "$install_cloudflared" == "y" ]] && echo "✓ Cloudflare Tunnel" || echo "○ Cloudflare Tunnel"
   [[ "$install_redis" == "y" ]] && echo "✓ Redis" || echo "○ Redis"
-  [[ "$install_minio" == "y" ]] && echo "✓ Minio" || echo "○ Minio"
+  [[ "$install_rustfs" == "y" ]] && echo "✓ RustFS" || echo "○ RustFS"
   echo "========================================"
 
   confirm_or_exit "Proceed with installation? (y/n): "
@@ -117,14 +124,19 @@ run_setup_wizard() {
     exit 1
   fi
 
+  # Clean slate before configuring/installing anything else.
+  [[ "$clean_install" == "y" ]] && module_clean_install
+
   [[ "$configure_docker_registry" == "y" ]] && module_docker_configure_registry
   [[ "$configure_docker_user" == "y" ]] && module_docker_configure_user
+  # Traefik first: it owns the traefik-public network and must front the
+  # services below when they are exposed via a subdomain.
+  [[ "$install_traefik" == "y" ]] && module_traefik_install
   [[ "$install_drone" == "y" ]] && module_drone_install
   [[ "$install_portainer" == "y" ]] && module_portainer_install
-  [[ "$install_traefik" == "y" ]] && module_traefik_install
   [[ "$install_cloudflared" == "y" ]] && module_cloudflared_install
   [[ "$install_redis" == "y" ]] && module_redis_install
-  [[ "$install_minio" == "y" ]] && module_minio_install
+  [[ "$install_rustfs" == "y" ]] && module_rustfs_install
 
   print_success "Server setup completed on $DEPLOY_TARGET"
   [[ "$DEPLOY_TARGET" == "remote" ]] && print_info "Remote server: $REMOTE_USER@$REMOTE_HOST"

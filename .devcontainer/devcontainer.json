@@ -19,7 +19,7 @@
 	// Port 80 is nginx — it reverse-proxies all internal services so they are
 	// accessible as a single forwarded port in GitHub Codespaces.
 	// Routes: / → pwa:8000, /api/v1/ → core-api:4000,
-	//         /minio/ → minio:9000, /minio-console/ → minio:9001
+	//         /rustfs/ → rustfs:9000
 	"forwardPorts": [80],
 
 	"customizations": {

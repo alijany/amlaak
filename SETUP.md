@@ -44,7 +44,7 @@ Run the interactive setup wizard on the target server (local or remote via SSH):
 ./scripts/setup/main.sh setup
 ```
 
-The wizard installs: Docker, Traefik (reverse proxy + SSL), Redis, MinIO (S3-compatible storage), Drone CI, and Portainer. Choose which components to install interactively.
+The wizard installs: Docker, Traefik (reverse proxy + SSL), Redis, RustFS (S3-compatible storage), Drone CI, and Portainer. Choose which components to install interactively.
 
 ## 5. Deploy to Production
 

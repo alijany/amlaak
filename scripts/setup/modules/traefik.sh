@@ -18,9 +18,7 @@ module_traefik_install() {
     exec_cmd "docker rm -f traefik"
   fi
 
-  if ! exec_cmd "docker network ls --format '{{.Name}}' | grep -q '^traefik-public\$'"; then
-    exec_cmd "docker network create traefik-public >/dev/null"
-  fi
+  ensure_traefik_network
 
   local http_port https_port email dashboard_domain enable_redirect dashboard_user dashboard_pass dashboard_hash traefik_image
   http_port="$(prompt_default "Enter HTTP port for Traefik" "8080")"
@@ -94,7 +92,7 @@ YAML"
       dashboard_hash="$(exec_cmd "docker run --rm httpd:alpine htpasswd -nbB $_u $_p")"
     fi
 
-    docker_cmd+=" --label 'traefik.enable=true' --label 'traefik.http.routers.dashboard.rule=Host(\\\`$dashboard_domain\\\`)' --label 'traefik.http.routers.dashboard.service=api@internal' --label 'traefik.http.routers.dashboard.entrypoints=websecure' --label 'traefik.http.routers.dashboard.tls.certresolver=letsencrypt' --label 'traefik.http.routers.dashboard.middlewares=dashboard-auth' --label 'traefik.http.middlewares.dashboard-auth.basicauth.users=$dashboard_hash'"
+    docker_cmd+=" --label 'traefik.enable=true' --label 'traefik.http.routers.dashboard.rule=Host(\`$dashboard_domain\`)' --label 'traefik.http.routers.dashboard.service=api@internal' --label 'traefik.http.routers.dashboard.entrypoints=websecure' --label 'traefik.http.routers.dashboard.tls.certresolver=letsencrypt' --label 'traefik.http.routers.dashboard.middlewares=dashboard-auth' --label 'traefik.http.middlewares.dashboard-auth.basicauth.users=$dashboard_hash'"
   fi
 
   docker_cmd+=" $traefik_image >/dev/null"

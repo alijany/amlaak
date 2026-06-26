@@ -11,7 +11,7 @@ apps/
 docker/
   base.Dockerfile shared pnpm dependency layer for both app images
 scripts/
-  setup/          interactive server provisioning wizard (Docker, Traefik, Redis, MinIO, Drone)
+  setup/          interactive server provisioning wizard (Docker, Traefik, Redis, RustFS, Drone)
 .devcontainer/    VS Code Dev Container config (preferred dev environment)
 .drone.yml        CI/CD pipeline — triggers on prd branch push
 docker-compose.yml production service definitions (api, pwa, postgis)
