@@ -27,7 +27,7 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-4 grow flex flex-col overflow-auto">
-      <Greeting subtitle="نمای کلی فعالیت پلتفرم نوا املاک" />
+      <Greeting subtitle="نمای کلی فعالیت پلتفرم نوا ملک" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi

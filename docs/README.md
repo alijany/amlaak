@@ -1,6 +1,6 @@
-# Nava Amlak — Project Documentation
+# Navamelk — Project Documentation
 
-**Nava Amlak (نوا املاک)** is a real-estate **lead-generation** platform. It aggregates
+**Navamelk (نوا ملک)** is a real-estate **lead-generation** platform. It aggregates
 property listings from external sources (Divar first), publishes them to a website and
 Telegram, lets the marketing team promote selected listings on social media, and tracks
 inbound inquiries per listing so agents can follow up and convert leads. It is built to
@@ -47,7 +47,7 @@ own listings.
 | **Web + Telegram listing publishing** | ❌ todo (M2) | — |
 | **Public listing pages** | ❌ todo (M3) | — |
 | **Dashboard home** (`/dashboard`) | ❌ empty | [`apps/pwa/src/app/dashboard/page.tsx`](../apps/pwa/src/app/dashboard/page.tsx) |
-| **Rebrand** (example "مونو/Monno" → Nava Amlak) | ❌ todo | [`apps/pwa/src/config/brand.config.ts`](../apps/pwa/src/config/brand.config.ts) |
+| **Rebrand** (example "مونو/Monno" → Navamelk) | ❌ todo | [`apps/pwa/src/config/brand.config.ts`](../apps/pwa/src/config/brand.config.ts) |
 
 ## How to continue (conventions & verification)
 

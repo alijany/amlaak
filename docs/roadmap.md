@@ -1,6 +1,6 @@
 # Product Roadmap
 
-Product **milestones** for Nava Amlak, ordered by dependency. These sit *above* the crawler
+Product **milestones** for Navamelk, ordered by dependency. These sit *above* the crawler
 **phases** (1–7, already done through Phase 5 — see [`crawler/roadmap.md`](./crawler/roadmap.md)),
 which provide the ingestion layer everything else reuses. Each milestone names what already
 exists, what's missing, and what to reuse so a new contributor can start without re-discovery.

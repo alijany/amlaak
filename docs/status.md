@@ -6,7 +6,7 @@
 ## Current focus
 
 Phase 1 milestones **M1–M4** are **built** (lead tracking, distribution/publishing, agency
-multi-tenancy, and the self-service marketplace), the app is **rebranded to Nava Amlak**, and
+multi-tenancy, and the self-service marketplace), the app is **rebranded to Navamelk**, and
 a **B2C polish pass (P0)** has landed. All verified by lint + build. Next: **live e2e against a
 DB**, and the B2C P1/P2 backlog (see below).
 
@@ -124,15 +124,15 @@ A PM review of the customer-facing flows produced a prioritized backlog (full te
 - ⬜ Live e2e against a DB (create listing → approve → appears on public site + agency profile)
 - ⬜ Listing image upload (currently image URLs pasted; reuse S3 upload like profile picture)
 
-## Rebrand — Nava Amlak
+## Rebrand — Navamelk
 
-- ✅ `apps/pwa/src/config/brand.config.ts` rewritten (نوا املاک / Nava Amlak, real-estate copy)
+- ✅ `apps/pwa/src/config/brand.config.ts` rewritten (نوا ملک / Navamelk, real-estate copy)
   — landing/nav/footer all read from it; root `README.md` + `.env.example` header updated
 - ⬜ `CLAUDE.md` still describes the generic boilerplate (left as the dev guide)
 
 ## Cross-cutting TODOs
 
-- ✅ **Rebrand** "مونو / Monno" → **Nava Amlak** (brand.config + README + .env.example);
+- ✅ **Rebrand** "مونو / Monno" → **Navamelk** (brand.config + README + .env.example);
   `CLAUDE.md` intentionally left as the generic boilerplate dev guide
 - ⬜ Review/moderation + dedupe of collected ads (also in
   [`crawler/roadmap.md`](./crawler/roadmap.md) backlog)

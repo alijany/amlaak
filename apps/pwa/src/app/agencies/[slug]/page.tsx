@@ -67,7 +67,7 @@ function AgencyContent({ slug }: { slug: string }) {
   const { data, error, isLoading, refresh } = useSwrHelper(swr);
 
   useEffect(() => {
-    if (data?.agency?.name) document.title = `${data.agency.name} | نوا املاک`;
+    if (data?.agency?.name) document.title = `${data.agency.name} | نوا ملک`;
   }, [data]);
 
   return (

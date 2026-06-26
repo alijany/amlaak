@@ -2,7 +2,7 @@
 
 ## Mission
 
-Nava Amlak turns aggregated real-estate supply into **inbound leads** and gives agents the
+Navamelk turns aggregated real-estate supply into **inbound leads** and gives agents the
 tools to convert those leads into transactions — then grows into a public marketplace where
 end users publish and manage their own listings.
 
