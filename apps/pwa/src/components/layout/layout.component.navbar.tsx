@@ -4,7 +4,7 @@ import { brand } from '@/config/brand.config';
 import { cn } from '@/libs/style/style.util.helpers';
 import { Button } from '@/ui/atoms';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import { IconBuildingEstate, IconCancel, IconMenu, IconPhone, IconUser } from '@tabler/icons-react';
+import { IconBuildingEstate, IconMenu, IconPhone, IconUser, IconX } from '@tabler/icons-react';
 import Link from 'next/link';
 import { Fragment, useEffect, useState } from 'react';
 import { useAuth } from '../auth/auth.context.provider';
@@ -136,7 +136,7 @@ export function Navbar({ transparent }: { transparent?: boolean }) {
                   className='p-2'
                   onClick={() => setIsOpen(false)}
                 >
-                  <IconCancel className="size-4" />
+                  <IconX className="size-4" />
                 </Button>
               </div>
 

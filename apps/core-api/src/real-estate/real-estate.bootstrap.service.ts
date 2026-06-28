@@ -25,16 +25,22 @@ export class RealEstateBootstrapService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     const fork = this.em.fork();
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const defaults: Partial<CrawlTargetEntity>[] = [
-      {
-        siteKey: SiteKey.MOCK,
-        name: 'Mock (reference crawler)',
-        baseUrl: 'https://example.com',
-        startPath: '/mock/real-estate',
-        status: CrawlTargetStatus.READY,
-        accessibility: TargetAccessibility.ONLINE,
-        requiresAuth: false,
-      },
+      ...(!isProduction
+        ? [
+            {
+              siteKey: SiteKey.MOCK,
+              name: 'Mock (reference crawler)',
+              baseUrl: 'https://example.com',
+              startPath: '/mock/real-estate',
+              status: CrawlTargetStatus.READY,
+              accessibility: TargetAccessibility.ONLINE,
+              requiresAuth: false,
+            },
+          ]
+        : []),
       {
         siteKey: SiteKey.DIVAR,
         name: 'Divar (real-estate)',

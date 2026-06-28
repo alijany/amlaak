@@ -15,8 +15,8 @@ import { AdsFilters } from './crawler.ads.component.filters';
 import { AdCard } from './crawler.ads.component.list';
 
 const TABS: { label: string; source: AdvertisementSource }[] = [
-  { label: 'آگهی‌های گردآوری‌شده', source: AdvertisementSource.CRAWLER },
-  { label: 'آگهی‌های آژانس', source: AdvertisementSource.USER },
+  { label: 'گردآوری‌شده', source: AdvertisementSource.CRAWLER },
+  { label: 'آژانس', source: AdvertisementSource.USER },
 ];
 
 function AdsContent() {
