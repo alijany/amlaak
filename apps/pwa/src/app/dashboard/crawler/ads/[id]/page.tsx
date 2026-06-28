@@ -182,7 +182,7 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
     <form onSubmit={handleSubmit} className="space-y-5 pb-6" dir="rtl">
 
       {/* Identity */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">اطلاعات اصلی</h3>
         {strField('title', 'عنوان')}
         <Field label="دسته‌بندی">
@@ -210,9 +210,9 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
       </section>
 
       {/* Location */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">موقعیت</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {strField('province', 'استان')}
           <Field label="شهر">
             <CitySelect
@@ -229,7 +229,7 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
       </section>
 
       {/* Specs */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">مشخصات</h3>
         <div className="grid grid-cols-2 gap-3">
           {numField('area', 'متراژ (م²)')}
@@ -240,7 +240,7 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
       </section>
 
       {/* Pricing — fields depend on category */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">قیمت‌گذاری (تومان)</h3>
         <div className="grid grid-cols-2 gap-3">
           {(form.category === RealEstateCategory.SALE || form.category === RealEstateCategory.UNKNOWN) && (
@@ -256,7 +256,7 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
       </section>
 
       {/* Description */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">توضیحات</h3>
         <textarea
           className={`${inputCls} min-h-[120px] resize-y`}
@@ -266,7 +266,7 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
       </section>
 
       {/* Images */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">تصاویر</h3>
           <button
@@ -297,7 +297,7 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
       </section>
 
       {/* Attributes JSON */}
-      <section className="bg-white rounded-2xl p-4 space-y-3">
+      <section className="bg-white rounded-2xl p-3 sm:p-4 space-y-3">
         <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">ویژگی‌های اضافه (JSON)</h3>
         <textarea
           className={`${inputCls} min-h-[120px] resize-y font-mono text-[12px]`}
@@ -313,8 +313,8 @@ function EditInfoForm({ ad, onSaved }: { ad: Advertisement; onSaved: () => void 
         />
       </section>
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
+      <div className="flex justify-stretch sm:justify-end">
+        <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
           {isLoading ? 'در حال ذخیره…' : 'ذخیره تغییرات'}
         </Button>
       </div>
@@ -331,7 +331,7 @@ function ImageGallery({ images, title }: { images: string[]; title?: string }) {
   return (
     <div className="relative rounded-2xl overflow-hidden bg-slate-100 select-none">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={images[idx]} alt={title ?? ''} className="w-full h-64 object-cover" loading="lazy" />
+      <img src={images[idx]} alt={title ?? ''} className="w-full h-40 sm:h-52 md:h-64 object-cover" loading="lazy" />
       {images.length > 1 && (
         <>
           <button
@@ -596,7 +596,7 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
   return (
     <>
       {/* ── Publish status + actions ────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl p-4 mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 mb-2.5 sm:mb-3 flex flex-col md:flex-row md:flex-wrap md:items-center md:justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-slate-500 flex-wrap">
           <span>وضعیت انتشار:</span>
           <PublishStatusPill status={ad.publishStatus} />
@@ -613,18 +613,18 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
           )}
         </div>
         {canModerate && (
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setLeadOpen(true)}>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" className="flex-1 md:flex-none" onClick={() => setLeadOpen(true)}>
               <IconUserPlus size={15} className="ml-1" />
               افزودن مشتری
             </Button>
             {ad.publishStatus !== PublishStatus.PUBLISHED && (
-              <Button size="sm" onClick={onApprove} disabled={approving}>
+              <Button size="sm" className="flex-1 md:flex-none" onClick={onApprove} disabled={approving}>
                 تأیید و انتشار
               </Button>
             )}
             {ad.publishStatus !== PublishStatus.REJECTED && (
-              <Button size="sm" variant="outline" onClick={onReject} disabled={rejecting}>
+              <Button size="sm" variant="outline" className="flex-1 md:flex-none" onClick={onReject} disabled={rejecting}>
                 رد
               </Button>
             )}
@@ -633,7 +633,7 @@ function ModerationBar({ ad, refresh }: { ad: Advertisement; refresh: () => void
       </div>
 
       {/* ── Telegram status card ────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl p-4 mb-3 flex items-center justify-between gap-3" dir="rtl">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 mb-2.5 sm:mb-3 flex items-center justify-between gap-3" dir="rtl">
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${ad.telegramPostedAt ? 'bg-sky-100 text-sky-600' : 'bg-slate-100 text-slate-400'}`}>
             <IconBrandTelegram size={18} />
@@ -689,35 +689,37 @@ function AdDetailContent({ id }: { id: number }) {
   return (
     <div className="flex flex-col grow overflow-hidden">
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl p-4 mb-3 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="bg-white rounded-2xl p-2.5 sm:p-4 mb-2.5 sm:mb-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             href="/dashboard/crawler/ads"
+            aria-label="بازگشت"
             className="flex items-center gap-1 text-slate-400 hover:text-slate-700 text-sm flex-shrink-0 transition-colors"
           >
-            <IconArrowRight size={16} />
-            بازگشت
+            <IconArrowRight size={18} />
+            <span className="hidden sm:inline">بازگشت</span>
           </Link>
-          <div className="w-px h-5 bg-slate-200 flex-shrink-0" />
+          <div className="w-px h-5 bg-slate-200 flex-shrink-0 hidden sm:block" />
           {ad && (
-            <div className="min-w-0">
-              <h1 className="font-bold text-slate-700 truncate">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-bold text-slate-700 truncate text-sm sm:text-base leading-tight">
                 {ad.title ?? 'آگهی بدون عنوان'}
               </h1>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+              {/* chips — single scrollable row, no wrapping (keeps header short) */}
+              <div className="flex items-center gap-1.5 mt-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <span className="flex-shrink-0 whitespace-nowrap inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                   {CATEGORY_LABEL[ad.category]}
                 </span>
-                <span className="font-mono text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5 tracking-wide">
+                <span className="flex-shrink-0 whitespace-nowrap font-mono text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5 tracking-wide">
                   {trackingCode(ad.id)}
                 </span>
                 {typeof ad.attributes?.propertySubtype === 'string' && (
-                  <span className="text-[11px] text-slate-500 bg-blue-50 rounded-full px-2 py-0.5">
+                  <span className="flex-shrink-0 whitespace-nowrap text-[11px] text-slate-500 bg-blue-50 rounded-full px-2 py-0.5">
                     {ad.attributes.propertySubtype}
                   </span>
                 )}
                 {ad.target?.name && (
-                  <span className="text-[11px] text-slate-400">{ad.target.name}</span>
+                  <span className="flex-shrink-0 whitespace-nowrap text-[11px] text-slate-400">{ad.target.name}</span>
                 )}
               </div>
             </div>
@@ -727,31 +729,31 @@ function AdDetailContent({ id }: { id: number }) {
           )}
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex items-center bg-slate-100 rounded-xl p-1 flex-shrink-0">
+        {/* Tab switcher — full-width segmented control on mobile */}
+        <div className="flex items-center bg-slate-100 rounded-xl p-0.5 sm:p-1 w-full md:w-auto flex-shrink-0">
           {([
             { id: 'info', label: 'اطلاعات ملک', icon: <IconBuildingEstate size={14} /> },
-            { id: 'leads', label: 'مشتری‌ها', icon: null },
+            { id: 'leads', label: 'مشتری‌ها', icon: <IconUserPlus size={14} /> },
             { id: 'debug', label: 'داده‌های خام', icon: <span className="font-mono text-[11px]">{'{}'}</span> },
           ] as { id: Tab; label: string; icon: React.ReactNode }[]).map(({ id: t, label, icon }) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
+              className={`flex flex-1 md:flex-none items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
                 tab === t ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {icon}
-              {label}
+              <span className="truncate">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {ad && <ModerationBar ad={ad} refresh={refresh} />}
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="grow overflow-auto">
+        {ad && <ModerationBar ad={ad} refresh={refresh} />}
         <DataView
           data={ad}
           error={error}
