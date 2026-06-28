@@ -55,10 +55,18 @@ export class CrawlJobService extends BaseRepositoryService<CrawlJobEntity> {
       status: CrawlJobStatus.PENDING,
     });
 
-    await this.queue.add(
-      { jobId: job.id, maxItems: dto.maxItems },
-      { removeOnComplete: 100, removeOnFail: 100 },
-    );
+    try {
+      await this.queue.add(
+        { jobId: job.id, maxItems: dto.maxItems },
+        { removeOnComplete: 100, removeOnFail: 100 },
+      );
+    } catch (err) {
+      job.status = CrawlJobStatus.FAILED;
+      job.error = `Failed to enqueue: ${err instanceof Error ? err.message : String(err)}`;
+      job.finishedAt = new Date();
+      await this.persistAndFlush(job);
+      throw err;
+    }
 
     job.status = CrawlJobStatus.QUEUED;
     await this.persistAndFlush(job);
