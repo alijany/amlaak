@@ -96,7 +96,9 @@ services:
   # See docs/crawler/developer/browser-gateway-camofox.md
   camofox:
     container_name: ${PROJECT_NAME}-camofox
-    image: ghcr.io/jo-inc/camofox-browser:1.11
+    build:
+      context: .
+      dockerfile: docker/camofox.Dockerfile
     restart: always
     env_file:
       - .env
