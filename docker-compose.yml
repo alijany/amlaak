@@ -1,17 +1,21 @@
 version: "3.8"
 name: ${PROJECT_NAME}
 
+
 # Networks:
 # - traefik-public: External network managed by standalone Traefik container
 #   (created via init.sh or manually with: docker network create traefik-public)
-# - app: Internal network for service-to-service communication (shared with standalone redis/rustfs)
+# - app: Internal network for this project's services (db, api)
+# - shared: External network for shared infrastructure (redis, rustfs) — name set by SHARED_NETWORK env var
 networks:
   traefik-public:
     external: true
     name: traefik-public
   app:
-    # external: true
     name: ${PROJECT_NAME}
+  shared:
+    external: true
+    name: ${SHARED_NETWORK}
 
 services:
   api:
@@ -26,7 +30,8 @@ services:
       - .env
     networks:
       - traefik-public  # For external access via Traefik
-      - app             # For internal communication with db, redis, rustfs
+      - app             # For internal communication with db
+      - shared          # For shared infrastructure: redis, rustfs
     depends_on:
       db:
         condition: service_healthy
