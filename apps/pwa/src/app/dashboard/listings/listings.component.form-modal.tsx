@@ -12,13 +12,14 @@ import { toast } from 'react-toastify';
 import { useCreateListing, useUpdateListing } from './listings.api';
 import { ListingFormDto, MyListing, RealEstateCategory } from './listings.types';
 
+const FIXED_PROVINCE = 'گیلان';
+
 const CATEGORY_ITEMS = [
   { label: 'فروش', value: RealEstateCategory.SALE },
   { label: 'رهن و اجاره', value: RealEstateCategory.RENT },
   { label: 'رهن کامل', value: RealEstateCategory.MORTGAGE },
 ];
 
-/** Property type stored in `attributes.propertySubtype` (value === display label). */
 const PROPERTY_TYPE_ITEMS = [
   { label: 'آپارتمان', value: 'آپارتمان' },
   { label: 'ویلایی', value: 'ویلایی' },
@@ -27,14 +28,12 @@ const PROPERTY_TYPE_ITEMS = [
   { label: 'دفتر کار', value: 'دفتر کار' },
 ];
 
-/** Which financial fields make sense for each deal type. */
 const PRICE_FIELDS: Record<string, ('totalPrice' | 'pricePerMeter' | 'deposit' | 'rent')[]> = {
   [RealEstateCategory.SALE]: ['totalPrice', 'pricePerMeter'],
   [RealEstateCategory.RENT]: ['deposit', 'rent'],
   [RealEstateCategory.MORTGAGE]: ['deposit'],
 };
 
-/** Land has no rooms/floor; everything else is a building. */
 const isLand = (subtype: string) => subtype === 'زمین';
 
 interface ListingFormModalProps {
@@ -44,7 +43,17 @@ interface ListingFormModalProps {
   onSaved: () => void;
 }
 
-const numOrUndef = (v: string) => (v.trim() ? Number(v) : undefined);
+const stripCommas = (v: string) => v.replace(/,/g, '');
+const numOrUndef = (v: string) => {
+  const s = stripCommas(v).trim();
+  return s ? Number(s) : undefined;
+};
+const parseNum = (v: string) => parseFloat(stripCommas(v));
+const fmtPrice = (v: string): string => {
+  const digits = stripCommas(v).replace(/\D/g, '');
+  return digits ? Number(digits).toLocaleString('en-US') : '';
+};
+const fmtRound = (n: number) => Math.round(n).toLocaleString('en-US');
 
 export function ListingFormModal({
   isOpen,
@@ -67,11 +76,14 @@ export function ListingFormModal({
   const [rooms, setRooms] = useState('');
   const [yearBuilt, setYearBuilt] = useState('');
   const [floor, setFloor] = useState('');
-  const [province, setProvince] = useState('');
   const [city, setCity] = useState<City | null>(null);
   const [district, setDistrict] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
+
+  // Tracks which price field was last derived (not manually edited) so we
+  // can show a visual hint.
+  const [derived, setDerived] = useState<'totalPrice' | 'pricePerMeter' | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -80,24 +92,22 @@ export function ListingFormModal({
       setPropertyType(
         (editing?.attributes?.propertySubtype as string) ?? 'آپارتمان',
       );
-      setTotalPrice(editing?.totalPrice?.toString() ?? '');
-      setPricePerMeter(editing?.pricePerMeter?.toString() ?? '');
-      setDeposit(editing?.deposit?.toString() ?? '');
-      setRent(editing?.rent?.toString() ?? '');
+      setTotalPrice(editing?.totalPrice ? fmtPrice(String(editing.totalPrice)) : '');
+      setPricePerMeter(editing?.pricePerMeter ? fmtPrice(String(editing.pricePerMeter)) : '');
+      setDeposit(editing?.deposit ? fmtPrice(String(editing.deposit)) : '');
+      setRent(editing?.rent ? fmtPrice(String(editing.rent)) : '');
       setArea(editing?.area?.toString() ?? '');
       setRooms(editing?.rooms?.toString() ?? '');
       setYearBuilt(editing?.yearBuilt?.toString() ?? '');
       setFloor(editing?.floor?.toString() ?? '');
-      setProvince(editing?.province ?? '');
       setCity(editing?.city ?? null);
       setDistrict(editing?.district ?? '');
       setDescription(editing?.description ?? '');
       setImages(editing?.images ?? []);
+      setDerived(null);
     }
   }, [isOpen, editing]);
 
-  // When the deal type changes, clear financial fields that no longer apply so
-  // stale values aren't submitted.
   const onCategoryChange = (next: RealEstateCategory) => {
     setCategory(next);
     const allowed = PRICE_FIELDS[next] ?? [];
@@ -105,10 +115,48 @@ export function ListingFormModal({
     if (!allowed.includes('pricePerMeter')) setPricePerMeter('');
     if (!allowed.includes('deposit')) setDeposit('');
     if (!allowed.includes('rent')) setRent('');
+    setDerived(null);
+  };
+
+  // Auto-calculation handlers
+  const handleAreaChange = (v: string) => {
+    setArea(v);
+    const a = parseFloat(v);
+    const ppm = parseNum(pricePerMeter);
+    if (a > 0 && ppm > 0) {
+      setTotalPrice(fmtRound(a * ppm));
+      setDerived('totalPrice');
+    } else if (a > 0 && parseNum(totalPrice) > 0) {
+      setPricePerMeter(fmtRound(parseNum(totalPrice) / a));
+      setDerived('pricePerMeter');
+    }
+  };
+
+  const handlePricePerMeterChange = (v: string) => {
+    setPricePerMeter(fmtPrice(v));
+    setDerived(null);
+    const ppm = parseNum(v);
+    const a = parseFloat(area);
+    if (ppm > 0 && a > 0) {
+      setTotalPrice(fmtRound(a * ppm));
+      setDerived('totalPrice');
+    }
+  };
+
+  const handleTotalPriceChange = (v: string) => {
+    setTotalPrice(fmtPrice(v));
+    setDerived(null);
+    const tp = parseNum(v);
+    const a = parseFloat(area);
+    if (tp > 0 && a > 0) {
+      setPricePerMeter(fmtRound(tp / a));
+      setDerived('pricePerMeter');
+    }
   };
 
   const priceFields = PRICE_FIELDS[category] ?? [];
   const land = isLand(propertyType);
+  const showPriceCalc = priceFields.includes('totalPrice') && priceFields.includes('pricePerMeter');
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
@@ -123,7 +171,7 @@ export function ListingFormModal({
       rooms: land ? undefined : numOrUndef(rooms),
       yearBuilt: land ? undefined : numOrUndef(yearBuilt),
       floor: land ? undefined : numOrUndef(floor),
-      province: province || undefined,
+      province: FIXED_PROVINCE,
       cityId: city?.id,
       district: district || undefined,
       description: description || undefined,
@@ -162,9 +210,7 @@ export function ListingFormModal({
               <Dropdown<RealEstateCategory>
                 items={CATEGORY_ITEMS}
                 value={category}
-                onChange={(v) => {
-                  if (v) onCategoryChange(v);
-                }}
+                onChange={(v) => { if (v) onCategoryChange(v); }}
                 variant="outline"
               />
             </div>
@@ -173,33 +219,33 @@ export function ListingFormModal({
               <Dropdown<string>
                 items={PROPERTY_TYPE_ITEMS}
                 value={propertyType}
-                onChange={(v) => {
-                  if (v) setPropertyType(v);
-                }}
+                onChange={(v) => { if (v) setPropertyType(v); }}
                 variant="outline"
               />
             </div>
           </div>
 
-          {/* Financial fields — depend on the deal type */}
+          {/* Financial fields */}
           <div className="grid grid-cols-2 gap-3">
-            {priceFields.includes('totalPrice') && (
-              <Input label="قیمت کل (تومان)" type="number" min="0" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} />
-            )}
-            {priceFields.includes('pricePerMeter') && (
-              <Input label="قیمت هر متر (تومان)" type="number" min="0" value={pricePerMeter} onChange={(e) => setPricePerMeter(e.target.value)} />
-            )}
             {priceFields.includes('deposit') && (
-              <Input label="ودیعه (تومان)" type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+              <Input label="ودیعه (تومان)" inputMode="numeric" value={deposit} onChange={(e) => setDeposit(fmtPrice(e.target.value))} />
             )}
             {priceFields.includes('rent') && (
-              <Input label="اجاره ماهیانه (تومان)" type="number" min="0" value={rent} onChange={(e) => setRent(e.target.value)} />
+              <Input label="اجاره ماهیانه (تومان)" inputMode="numeric" value={rent} onChange={(e) => setRent(fmtPrice(e.target.value))} />
             )}
           </div>
 
-          {/* Specs — depend on the property type */}
+          {/* Specs */}
           <div className="grid grid-cols-2 gap-3">
-            <Input label="متراژ" type="number" min="0" value={area} onChange={(e) => setArea(e.target.value)} />
+            <div>
+              <Input
+                label="متراژ (متر مربع)"
+                type="number"
+                min="0"
+                value={area}
+                onChange={(e) => showPriceCalc ? handleAreaChange(e.target.value) : setArea(e.target.value)}
+              />
+            </div>
             {!land && (
               <Input label="تعداد خواب" type="number" min="0" value={rooms} onChange={(e) => setRooms(e.target.value)} />
             )}
@@ -209,7 +255,41 @@ export function ListingFormModal({
             {!land && (
               <Input label="طبقه" type="number" min="0" value={floor} onChange={(e) => setFloor(e.target.value)} />
             )}
-            <Input label="استان" value={province} onChange={(e) => setProvince(e.target.value)} />
+          </div>
+
+          {/* Sale price trio — area × pricePerMeter = totalPrice */}
+          {showPriceCalc && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+              <div className="grid md:grid-cols-2 gap-3">
+                <div>
+                  <Input
+                    label="قیمت هر متر (تومان)"
+                    inputMode="numeric"
+                    value={pricePerMeter}
+                    onChange={(e) => handlePricePerMeterChange(e.target.value)}
+                  />
+                  {derived === 'pricePerMeter' && (
+                    <p className="mt-1 text-xs text-blue-500">محاسبه خودکار</p>
+                  )}
+                </div>
+                <div>
+                  <Input
+                    label="قیمت کل (تومان)"
+                    inputMode="numeric"
+                    value={totalPrice}
+                    onChange={(e) => handleTotalPriceChange(e.target.value)}
+                  />
+                  {derived === 'totalPrice' && (
+                    <p className="mt-1 text-xs text-blue-500">محاسبه خودکار</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Location */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="استان" value={FIXED_PROVINCE} disabled />
             <CitySelect value={city} onChange={setCity} />
             <Input label="محله" value={district} onChange={(e) => setDistrict(e.target.value)} />
           </div>

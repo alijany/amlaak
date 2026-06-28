@@ -83,36 +83,34 @@ function AgencyContent({ slug }: { slug: string }) {
         <article>
           <SeoJsonLd agency={data.agency} />
 
-          {/* Banner with agency identity overlaid */}
-          <div className="relative">
-            <div
-              className="h-36 md:h-48 w-full bg-slate-800 bg-cover bg-center"
-              style={{
-                backgroundImage: data.agency.banner
-                  ? `linear-gradient(to top, rgba(15,23,42,0.82) 40%, rgba(15,23,42,0.15)), url(${data.agency.banner})`
-                  : 'linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%)',
-              }}
-            />
-            {/* Name + address overlaid on banner bottom */}
-            <div className="absolute inset-x-0 bottom-0 pb-3 px-4">
-              <div className="container max-w-6xl mx-auto">
-                <h1 className="font-black text-xl md:text-2xl text-white drop-shadow-sm leading-snug">
-                  {data.agency.name}
-                </h1>
-                {(data.agency.city || data.agency.address) && (
-                  <div className="flex items-center gap-1 text-xs text-white/75 mt-0.5">
-                    <IconMapPin size={12} />
-                    {[data.agency.city?.nameFa, data.agency.address].filter(Boolean).join(' · ')}
-                  </div>
-                )}
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
+            {/* Banner — contained and rounded, logo hangs below */}
+            <div className="relative mb-10">
+              {/* Banner image */}
+              <div
+                className="h-36 md:h-44 w-full rounded-2xl bg-slate-800 bg-cover bg-center flex flex-col justify-end pb-3 px-4"
+                style={{
+                  backgroundImage: data.agency.banner
+                    ? `linear-gradient(to top, rgba(15,23,42,0.82) 40%, rgba(15,23,42,0.1)), url(${data.agency.banner})`
+                    : 'linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%)',
+                }}
+              >
+                {/* Name + address — leave end space for the logo */}
+                <div className="pe-24">
+                  <h1 className="font-black text-xl md:text-2xl text-white drop-shadow-sm leading-snug">
+                    {data.agency.name}
+                  </h1>
+                  {(data.agency.city || data.agency.address) && (
+                    <div className="flex items-center gap-1 text-xs text-white/75 mt-0.5">
+                      <IconMapPin size={12} />
+                      {[data.agency.city?.nameFa, data.agency.address].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-            {/* Logo + CTAs row */}
-            <div className="flex items-center gap-3 md:gap-4 -mt-7 mb-6">
-              <div className="size-20 md:size-24 rounded-2xl bg-white border-2 border-white shadow-md overflow-hidden flex items-center justify-center flex-shrink-0">
+              {/* Logo — bottom-end corner, half outside the banner */}
+              <div className="absolute bottom-0 end-4 translate-y-1/2 z-10 size-20 rounded-2xl bg-white border-2 border-white shadow-lg overflow-hidden flex items-center justify-center">
                 {data.agency.logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={data.agency.logo} alt={data.agency.name} className="h-full w-full object-cover" />
@@ -120,28 +118,30 @@ function AgencyContent({ slug }: { slug: string }) {
                   <IconBuildingCommunity size={32} className="text-slate-400" />
                 )}
               </div>
-              <div className="flex gap-2 flex-wrap mt-8">
-                {data.agency.phone && (
-                  <a
-                    href={`tel:${data.agency.phone}`}
-                    className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-                  >
-                    <IconPhone size={15} />
-                    تماس با آژانس
-                  </a>
-                )}
-                {data.agency.website && (
-                  <a
-                    href={data.agency.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-                  >
-                    <IconWorld size={15} className="text-slate-400" />
-                    وب‌سایت
-                  </a>
-                )}
-              </div>
+            </div>
+
+            {/* CTAs row */}
+            <div className="flex gap-2 flex-wrap mb-6">
+              {data.agency.phone && (
+                <a
+                  href={`tel:${data.agency.phone}`}
+                  className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  <IconPhone size={15} />
+                  تماس با آژانس
+                </a>
+              )}
+              {data.agency.website && (
+                <a
+                  href={data.agency.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  <IconWorld size={15} className="text-slate-400" />
+                  وب‌سایت
+                </a>
+              )}
             </div>
 
             {/* Description */}
