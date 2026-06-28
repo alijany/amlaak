@@ -48,34 +48,55 @@ export class TelegramListingPublisher {
     // lives on an internal host (e.g. MinIO at http://minio:9000) that Telegram
     // can't reach — sending it yields "wrong HTTP URL specified". Fall back to
     // text-only there; in prod (public CDN/S3 URL) the photo is included.
-    const photo = ad.images?.[0];
-    const usePhoto = !!photo && this.isPubliclyFetchable(photo);
-    if (photo && !usePhoto) {
+    const publicPhotos = (ad.images ?? [])
+      .filter((url) => this.isPubliclyFetchable(url))
+      .slice(0, 4);
+
+    if ((ad.images?.length ?? 0) > 0 && publicPhotos.length === 0) {
       this.logger.debug(
-        `Image URL not publicly fetchable (${photo}); posting text only.`,
+        `No publicly fetchable image URLs found; posting text only.`,
       );
     }
 
     const base = `https://api.telegram.org/bot${token}`;
-    const payload: Record<string, unknown> = {
-      chat_id: channelId,
-      parse_mode: 'Markdown',
-    };
 
-    const url = usePhoto ? `${base}/sendPhoto` : `${base}/sendMessage`;
-    if (usePhoto) {
-      payload.photo = photo;
-      payload.caption = caption;
-    } else {
-      payload.text = caption;
+    if (publicPhotos.length === 0) {
+      const { data } = await axios.post(
+        `${base}/sendMessage`,
+        { chat_id: channelId, text: caption, parse_mode: 'Markdown' },
+        telegramRequestConfig(this.config),
+      );
+      return { messageId: data?.result?.message_id };
     }
 
+    if (publicPhotos.length === 1) {
+      const { data } = await axios.post(
+        `${base}/sendPhoto`,
+        {
+          chat_id: channelId,
+          photo: publicPhotos[0],
+          caption,
+          parse_mode: 'Markdown',
+        },
+        telegramRequestConfig(this.config),
+      );
+      return { messageId: data?.result?.message_id };
+    }
+
+    // 2–4 photos: send as a media group (album); caption goes on the first item
+    const media = publicPhotos.map((url, i) => ({
+      type: 'photo',
+      media: url,
+      ...(i === 0 ? { caption, parse_mode: 'Markdown' } : {}),
+    }));
+
     const { data } = await axios.post(
-      url,
-      payload,
+      `${base}/sendMediaGroup`,
+      { chat_id: channelId, media },
       telegramRequestConfig(this.config),
     );
-    return { messageId: data?.result?.message_id };
+    // sendMediaGroup returns an array of messages; expose the first message id
+    return { messageId: data?.result?.[0]?.message_id };
   }
 
   /**

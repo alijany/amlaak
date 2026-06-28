@@ -62,6 +62,7 @@ export class UserController {
 
       return {
         ...user,
+        name: user.name,
         roles: rolesArray,
       };
     });

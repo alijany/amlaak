@@ -83,54 +83,50 @@ function AgencyContent({ slug }: { slug: string }) {
         <article>
           <SeoJsonLd agency={data.agency} />
 
-          {/* Banner */}
-          <div
-            className="h-44 md:h-64 w-full bg-slate-200 bg-cover bg-center"
-            style={{
-              backgroundImage: data.agency.banner
-                ? `linear-gradient(to top, rgba(15,23,42,0.45), rgba(15,23,42,0.05)), url(${data.agency.banner})`
-                : 'linear-gradient(120deg, #1e3a8a, #0f172a)',
-            }}
-          />
-
-          <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-            {/* Header card overlapping the banner */}
-            <div className="-mt-12 mb-6 flex items-end gap-4">
-              <div className="size-24 rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {data.agency.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.agency.logo} alt={data.agency.name} className="h-full w-full object-cover" />
-                ) : (
-                  <IconBuildingCommunity size={36} className="text-slate-400" />
-                )}
-              </div>
-              <div className="pb-1">
-                <h1 className="font-black text-2xl text-slate-800">{data.agency.name}</h1>
+          {/* Banner with agency identity overlaid */}
+          <div className="relative">
+            <div
+              className="h-36 md:h-48 w-full bg-slate-800 bg-cover bg-center"
+              style={{
+                backgroundImage: data.agency.banner
+                  ? `linear-gradient(to top, rgba(15,23,42,0.82) 40%, rgba(15,23,42,0.15)), url(${data.agency.banner})`
+                  : 'linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%)',
+              }}
+            />
+            {/* Name + address overlaid on banner bottom */}
+            <div className="absolute inset-x-0 bottom-0 pb-3 px-4">
+              <div className="container max-w-6xl mx-auto">
+                <h1 className="font-black text-xl md:text-2xl text-white drop-shadow-sm leading-snug">
+                  {data.agency.name}
+                </h1>
                 {(data.agency.city || data.agency.address) && (
-                  <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
-                    <IconMapPin size={14} className="text-slate-400" />
+                  <div className="flex items-center gap-1 text-xs text-white/75 mt-0.5">
+                    <IconMapPin size={12} />
                     {[data.agency.city?.nameFa, data.agency.address].filter(Boolean).join(' · ')}
                   </div>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Info + contact */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="lg:col-span-2 space-y-3">
-                {data.agency.description && (
-                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                    {data.agency.description}
-                  </p>
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+            {/* Logo + CTAs row */}
+            <div className="flex items-center gap-3 md:gap-4 -mt-7 mb-6">
+              <div className="size-20 md:size-24 rounded-2xl bg-white border-2 border-white shadow-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                {data.agency.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={data.agency.logo} alt={data.agency.name} className="h-full w-full object-cover" />
+                ) : (
+                  <IconBuildingCommunity size={32} className="text-slate-400" />
                 )}
               </div>
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 space-y-2 h-fit">
+              <div className="flex gap-2 flex-wrap mt-8">
                 {data.agency.phone && (
                   <a
                     href={`tel:${data.agency.phone}`}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-primary text-white py-2.5 font-medium hover:opacity-90"
+                    className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
                   >
-                    <IconPhone size={16} />
+                    <IconPhone size={15} />
                     تماس با آژانس
                   </a>
                 )}
@@ -139,14 +135,21 @@ function AgencyContent({ slug }: { slug: string }) {
                     href={data.agency.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
+                    className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
                   >
-                    <IconWorld size={16} className="text-slate-400" />
+                    <IconWorld size={15} className="text-slate-400" />
                     وب‌سایت
                   </a>
                 )}
               </div>
             </div>
+
+            {/* Description */}
+            {data.agency.description && (
+              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap mb-6">
+                {data.agency.description}
+              </p>
+            )}
 
             {/* Listings */}
             <div className="flex items-center justify-between mb-4">
