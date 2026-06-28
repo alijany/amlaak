@@ -96,7 +96,7 @@ services:
   # See docs/crawler/developer/browser-gateway-camofox.md
   camofox:
     container_name: ${PROJECT_NAME}-camofox
-    image: ghcr.io/jo-inc/camofox-browser:latest
+    image: ghcr.io/jo-inc/camofox-browser:1.11
     restart: always
     env_file:
       - .env

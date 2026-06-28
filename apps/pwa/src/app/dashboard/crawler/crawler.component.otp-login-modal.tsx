@@ -59,6 +59,8 @@ export function OtpLoginModal({
       onChanged?.();
       if (result.authStatus === CrawlerAuthStatus.LOGGED_IN) {
         onClose();
+      } else if (result.authStatus === CrawlerAuthStatus.ERROR) {
+        setHint(result.lastError ?? 'خطا در شروع فرآیند ورود.');
       } else {
         setHint('کد تایید ارسال شد. کد دریافتی را وارد کنید.');
       }

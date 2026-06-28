@@ -36,6 +36,9 @@ COPY --chown=node:node --from=prod-deps /prod/core-api/node_modules ./node_modul
 COPY --chown=node:node --from=prod-deps /prod/core-api/package.json ./package.json
 COPY --chown=node:node --from=builder /app/apps/core-api/dist ./
 
+# Copy city data files
+COPY --chown=node:node --from=builder /app/apps/core-api/src/city/data/ ./src/city/data/
+
 USER node
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "src/main.js"]
