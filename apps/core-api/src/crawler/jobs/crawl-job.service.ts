@@ -62,7 +62,9 @@ export class CrawlJobService extends BaseRepositoryService<CrawlJobEntity> {
       );
     } catch (err) {
       job.status = CrawlJobStatus.FAILED;
-      job.error = `Failed to enqueue: ${err instanceof Error ? err.message : String(err)}`;
+      job.error = `Failed to enqueue: ${
+        err instanceof Error ? err.message : String(err)
+      }`;
       job.finishedAt = new Date();
       await this.persistAndFlush(job);
       throw err;

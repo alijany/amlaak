@@ -42,7 +42,15 @@ export class TelegramListingPublisher {
       return null;
     }
 
-    const caption = this.buildCaption(ad);
+    const { text: caption, url: listingUrl } = this.buildCaption(ad);
+    const inlineKeyboard = listingUrl
+      ? {
+          inline_keyboard: [
+            [{ text: '🔗 مشاهده آگهی در وب‌سایت', url: listingUrl }],
+          ],
+        }
+      : undefined;
+
     // Telegram's sendPhoto-by-URL fetches the image from Telegram's own
     // servers, so the URL must be publicly reachable. In local/dev the image
     // lives on an internal host (e.g. MinIO at http://minio:9000) that Telegram
@@ -59,12 +67,18 @@ export class TelegramListingPublisher {
     }
 
     const base = `https://api.telegram.org/bot${token}`;
+    const reqConfig = telegramRequestConfig(this.config);
 
     if (publicPhotos.length === 0) {
       const { data } = await axios.post(
         `${base}/sendMessage`,
-        { chat_id: channelId, text: caption, parse_mode: 'Markdown' },
-        telegramRequestConfig(this.config),
+        {
+          chat_id: channelId,
+          text: caption,
+          parse_mode: 'Markdown',
+          ...(inlineKeyboard ? { reply_markup: inlineKeyboard } : {}),
+        },
+        reqConfig,
       );
       return { messageId: data?.result?.message_id };
     }
@@ -77,13 +91,15 @@ export class TelegramListingPublisher {
           photo: publicPhotos[0],
           caption,
           parse_mode: 'Markdown',
+          ...(inlineKeyboard ? { reply_markup: inlineKeyboard } : {}),
         },
-        telegramRequestConfig(this.config),
+        reqConfig,
       );
       return { messageId: data?.result?.message_id };
     }
 
-    // 2–4 photos: send as a media group (album); caption goes on the first item
+    // 2–4 photos: send as a media group (album); caption goes on the first item.
+    // sendMediaGroup does not support reply_markup, so send a follow-up reply.
     const media = publicPhotos.map((url, i) => ({
       type: 'photo',
       media: url,
@@ -93,10 +109,28 @@ export class TelegramListingPublisher {
     const { data } = await axios.post(
       `${base}/sendMediaGroup`,
       { chat_id: channelId, media },
-      telegramRequestConfig(this.config),
+      reqConfig,
     );
-    // sendMediaGroup returns an array of messages; expose the first message id
-    return { messageId: data?.result?.[0]?.message_id };
+    const firstMessageId: number = data?.result?.[0]?.message_id;
+
+    if (inlineKeyboard && firstMessageId) {
+      await axios
+        .post(
+          `${base}/sendMessage`,
+          {
+            chat_id: channelId,
+            text: '🔗',
+            reply_to_message_id: firstMessageId,
+            reply_markup: inlineKeyboard,
+          },
+          reqConfig,
+        )
+        .catch((err) =>
+          this.logger.warn(`Failed to send button reply: ${err?.message}`),
+        );
+    }
+
+    return { messageId: firstMessageId };
   }
 
   /**
@@ -133,7 +167,10 @@ export class TelegramListingPublisher {
     return !isLocal;
   }
 
-  private buildCaption(ad: RealEstateAdvertisementEntity): string {
+  private buildCaption(ad: RealEstateAdvertisementEntity): {
+    text: string;
+    url: string | undefined;
+  } {
     const fa = (n?: number) =>
       n == null ? undefined : n.toLocaleString('fa-IR');
     const lines: string[] = [];
@@ -159,11 +196,24 @@ export class TelegramListingPublisher {
     ].filter(Boolean);
     if (specs.length) lines.push(`📐 ${specs.join(' · ')}`);
 
-    const webUrl = this.config.get<string>('DOMAIN');
-    if (webUrl) lines.push(`🔗 ${webUrl}/listings/${ad.id}`);
+    const contactPhone = ad.agency?.isPlatform
+      ? this.config.get<string>('CONTACT_PHONE')
+      : ad.agency?.phone;
+    if (contactPhone) lines.push(`📞 ${contactPhone}`);
 
-    lines.push(`کد رهگیری: NV-${ad.id.toString(36).toUpperCase()}`);
+    const trackingCode = `NV_${ad.id.toString(36).toUpperCase()}`;
+    lines.push(`🔑 کد: ${trackingCode}`);
 
-    return lines.join('\n');
+    // Hashtags: city + district + tracking code
+    const tags: string[] = [];
+    if (ad.city?.nameFa) tags.push(`#${ad.city.nameFa.replace(/\s+/g, '_')}`);
+    if (ad.district) tags.push(`#${ad.district.replace(/\s+/g, '_')}`);
+    tags.push(`#${trackingCode}`);
+    lines.push(tags.join(' '));
+
+    const domain = this.config.get<string>('DOMAIN');
+    const url = domain ? `${domain}/listings/${ad.id}` : undefined;
+
+    return { text: lines.join('\n'), url };
   }
 }

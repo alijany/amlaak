@@ -24,7 +24,7 @@ export interface PublicListing {
   images?: string[];
   attributes?: Record<string, unknown>;
   publishedAt?: string;
-  agency?: { id: number; name: string; slug?: string; phone?: string };
+  agency?: { id: number; name: string; slug?: string; phone?: string; isPlatform?: boolean };
 }
 
 export interface PublicListingsResponse {

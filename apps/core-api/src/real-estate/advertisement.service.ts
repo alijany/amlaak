@@ -279,7 +279,10 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
             id: ad.agency.id,
             name: ad.agency.name,
             slug: ad.agency.slug,
-            phone: ad.agency.phone,
+            phone: ad.agency.isPlatform
+              ? this.config.get<string>('CONTACT_PHONE')
+              : ad.agency.phone,
+            isPlatform: ad.agency.isPlatform,
           }
         : undefined,
     };

@@ -20,7 +20,7 @@ export class ListingModerationService {
   async approve(id: number): Promise<RealEstateAdvertisementEntity> {
     const ad = await this.advertisements.findOne(
       { id },
-      { populate: ['city'] as never },
+      { populate: ['city', 'agency'] as never },
     );
     if (!ad) throw new NotFoundException('listing not found');
 
@@ -57,7 +57,7 @@ export class ListingModerationService {
   async resendTelegram(id: number): Promise<RealEstateAdvertisementEntity> {
     const ad = await this.advertisements.findOne(
       { id },
-      { populate: ['city'] as never },
+      { populate: ['city', 'agency'] as never },
     );
     if (!ad) throw new NotFoundException('listing not found');
 

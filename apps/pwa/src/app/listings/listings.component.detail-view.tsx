@@ -1,6 +1,5 @@
 'use client';
 
-import { brand } from '@/config/brand.config';
 import {
   IconBuildingCommunity,
   IconChevronLeft,
@@ -194,13 +193,18 @@ export function ListingDetailView({ listing }: { listing: PublicListing }) {
             </div>
           )}
 
-          <a
-            href={`tel:${listing.agency?.phone || brand.contact.phone.primary}`}
-            className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary text-white py-3 font-medium hover:opacity-90 transition-opacity"
-          >
-            <IconPhone size={18} />
-            تماس برای این ملک
-          </a>
+          {listing.agency?.phone && (
+            <a
+              href={`tel:${listing.agency.phone}`}
+              className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary text-white py-3 font-medium hover:opacity-90 transition-opacity"
+            >
+              <IconPhone size={18} />
+              <span className="flex flex-col items-center gap-0.5 leading-tight">
+                <span>تماس برای این ملک</span>
+                <span className="text-sm font-mono opacity-90 tracking-wider">{listing.agency.phone}</span>
+              </span>
+            </a>
+          )}
 
           {listing.agency?.slug && (
             <Link
