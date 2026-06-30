@@ -27,9 +27,9 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
       </div>
 
       <div className="grow flex items-end">
-        <a href="tel:+989104007068" className="block w-full">
+        <a href="tel:+989910401049" className="block w-full">
           <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white w-full">
-            <span dir="ltr">0910 400 7068</span>
+            <span dir="ltr">0991 040 1049</span>
             <IconPhone size={20} />
           </Button>
         </a>

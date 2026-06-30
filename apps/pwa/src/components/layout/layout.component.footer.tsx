@@ -3,10 +3,10 @@
 import React from 'react';
 
 import { brand } from '@/config/brand.config';
+import { IconAddressBook, IconPhone } from '@tabler/icons-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TermsModal } from '../modals/modals.component.terms';
-import { IconAddressBook, IconPhone, IconPhoneCall } from '@tabler/icons-react';
 
 export const Footer: React.FC = () => {
     const [termsModalOpen, setTermsModalOpen] = React.useState(false);
@@ -45,10 +45,6 @@ export const Footer: React.FC = () => {
                         <li className="flex items-center gap-2">
                             <IconPhone name="phone" size={20} className="text-blue-600" />
                             <a href={`tel:${brand.contact.phone.primary}`} dir='ltr' className='hover:text-slate-800'>{brand.contact.phone.display}</a>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <IconPhoneCall name="phone" size={20} className="text-blue-600" />
-                            <a href={`tel:${brand.contact.phone2.primary}`} dir='ltr' className='hover:text-slate-800'>{brand.contact.phone2.display}</a>
                         </li>
                         <li className="flex items-start gap-2">
                             <IconAddressBook size={20} className="text-blue-600 mt-1 min-w-5" />
