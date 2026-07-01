@@ -37,6 +37,10 @@ export interface UserFilterDto {
   limit?: number;
 }
 
+export interface UpdateUserRoleDto {
+  role: Role;
+}
+
 export interface InviteAgencyDto {
   agencyName: string;
   phone: string;

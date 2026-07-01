@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -21,6 +23,7 @@ import { S3StorageService } from 'src/storage/s3-storage.service';
 import { v4 as uuidv4 } from 'uuid';
 import { InviteUserDto } from './dtos/invitation.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
+import { UpdateUserRoleDto } from './dtos/update-user-role.dto';
 import { UsersGetDto } from './dtos/user.get.dto';
 import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
@@ -76,6 +79,24 @@ export class UserController {
         pageCount: Math.ceil(total / limit),
       },
     };
+  }
+
+  @Patch(':id/role')
+  @Roles(Role.ADMIN)
+  async updateUserRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+  ) {
+    const user = await this.userService.updateUserRole(
+      id,
+      updateUserRoleDto.role,
+    );
+
+    const rolesArray = user.roles
+      ? _.uniqBy(user.roles.getItems(), 'role').map((role) => role.role)
+      : [];
+
+    return { ...user, name: user.name, roles: rolesArray };
   }
 
   @Patch('profile')

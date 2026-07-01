@@ -41,6 +41,35 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     return user;
   }
 
+  async updateUserRole(userId: number, role: Role): Promise<UserEntity> {
+    const user = await this.findOne(
+      { id: userId },
+      { populate: ['roles'] as never },
+    );
+
+    if (!user) {
+      throw new NotFoundException('کاربر یافت نشد');
+    }
+
+    // Platform-level role: not scoped to any agency.
+    const platformRole = user.roles
+      .getItems()
+      .find((r) => !r.agency || !r.agency.id);
+
+    if (platformRole) {
+      platformRole.role = role;
+      await this.rolesService.persistAndFlush(platformRole);
+    } else {
+      await this.rolesService.create({
+        user,
+        role,
+        invitationStatus: InvitationStatus.ACCEPTED,
+      });
+    }
+
+    return this.findOne({ id: userId }, { populate: ['roles'] as never });
+  }
+
   async updateUserInvitationStatus(roleId: number, status: InvitationStatus) {
     const role = await this.rolesService.findOne({
       id: roleId,

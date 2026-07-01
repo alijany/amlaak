@@ -7,6 +7,7 @@ import { DataView, Pagination } from '@/ui/molecules';
 import { useState } from 'react';
 import { useUsers } from './users.api';
 import { AddUserForm } from './users.component.add-user';
+import { UserRoleSelect } from './users.component.role-select';
 import { UserFilterDto } from './users.types';
 
 export default function UsersPage() {
@@ -49,14 +50,11 @@ export default function UsersPage() {
                                     </div>
 
                                     <div className='flex items-center flex-wrap justify-end gap-2'>
-                                        {user.roles.map((role) => (
-                                            <div
-                                                key={role}
-                                                className="px-2 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold"
-                                            >
-                                                {role}
-                                            </div>
-                                        ))}
+                                        <UserRoleSelect
+                                            userId={user.id}
+                                            role={user.roles[0]}
+                                            onSuccess={refresh}
+                                        />
                                     </div>
                                 </div>
                             ))}
