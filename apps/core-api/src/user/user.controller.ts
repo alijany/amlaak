@@ -86,7 +86,7 @@ export class UserController {
   async updateUserRole(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserRoleDto: UpdateUserRoleDto,
-  ) {
+  ): Promise<Record<string, unknown>> {
     const user = await this.userService.updateUserRole(
       id,
       updateUserRoleDto.role,
