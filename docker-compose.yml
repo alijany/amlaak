@@ -54,7 +54,7 @@ services:
     networks:
       - app
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     # ports:
     #   - "5432:5432"
     healthcheck:
@@ -135,5 +135,5 @@ services:
 
 
 volumes:
-  postgres_data:
+  pg_data:
   browser_data:
