@@ -175,12 +175,12 @@ export class TelegramListingPublisher {
       n == null ? undefined : n.toLocaleString('fa-IR');
     const lines: string[] = [];
 
-    lines.push(`*${ad.title ?? 'آگهی ملک'}*`);
+    lines.push(`*${this.escapeMarkdown(ad.title ?? 'آگهی ملک')}*`);
 
     const loc = [ad.province, ad.city?.nameFa, ad.district]
       .filter(Boolean)
       .join(' · ');
-    if (loc) lines.push(`📍 ${loc}`);
+    if (loc) lines.push(`📍 ${this.escapeMarkdown(loc)}`);
 
     lines.push(`🏷️ ${CATEGORY_LABEL[ad.category]}`);
 
@@ -199,21 +199,53 @@ export class TelegramListingPublisher {
     const contactPhone = ad.agency?.isPlatform
       ? this.config.get<string>('CONTACT_PHONE')
       : ad.agency?.phone;
-    if (contactPhone) lines.push(`📞 ${contactPhone}`);
+    if (contactPhone) lines.push(`📞 ${this.escapeMarkdown(contactPhone)}`);
 
-    const trackingCode = `NV_${ad.id.toString(36).toUpperCase()}`;
+    // Numeric-only so it doubles cleanly as a hashtag (e.g. #12345).
+    const trackingCode = `${ad.id}`;
     lines.push(`🔑 کد: ${trackingCode}`);
 
     // Hashtags: city + district + tracking code
     const tags: string[] = [];
-    if (ad.city?.nameFa) tags.push(`#${ad.city.nameFa.replace(/\s+/g, '_')}`);
-    if (ad.district) tags.push(`#${ad.district.replace(/\s+/g, '_')}`);
+    if (ad.city?.nameFa)
+      tags.push(`#${this.sanitizeHashtag(ad.city.nameFa)}`);
+    if (ad.district) tags.push(`#${this.sanitizeHashtag(ad.district)}`);
     tags.push(`#${trackingCode}`);
     lines.push(tags.join(' '));
+
+    lines.push(
+      '',
+      '👩🏻‍💻ارتباط با ادمین:',
+      '@rinko_admin',
+      '',
+      '❗️برای استعلام ملک لطفا به کد درج شده در متن توجه کنید.',
+    );
 
     const domain = this.config.get<string>('DOMAIN');
     const url = domain ? `${domain}/listings/${ad.id}` : undefined;
 
     return { text: lines.join('\n'), url };
+  }
+
+  /**
+   * Legacy Telegram Markdown treats `_ * ` [ ` as formatting control chars.
+   * User-supplied text (title, location, phone) can contain them and would
+   * otherwise leave an unmatched entity, which Telegram rejects with a 400
+   * ("can't parse entities"). Escape them so free-text is rendered literally.
+   */
+  private escapeMarkdown(text: string): string {
+    return text.replace(/([_*`[])/g, '\\$1');
+  }
+
+  /**
+   * Telegram hashtags only recognize contiguous word characters, so anything
+   * else (spaces, punctuation) breaks the tag or merges it with following
+   * text. Strip to letters/digits/underscore and collapse whitespace to `_`.
+   */
+  private sanitizeHashtag(text: string): string {
+    return text
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^\p{L}\p{N}_]/gu, '');
   }
 }
