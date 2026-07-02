@@ -17,7 +17,10 @@ import { buildNewAdMessage } from 'src/notification/admin-notification';
 import { NotificationService } from 'src/notification/services/notification.service';
 import { UserEntity } from 'src/user/user.entity';
 import { LeadEntity } from '../lead/lead.entity';
-import { decodeTrackingCode } from '../lead/lead.tracking';
+import {
+  advertisementTrackingCode,
+  decodeTrackingCode,
+} from '../lead/lead.tracking';
 import { CrawlJobEntity } from '../crawler/jobs/crawl-job.entity';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import { RealEstateAdvertisementEntity } from './advertisement.entity';
@@ -29,11 +32,6 @@ import { AdvertisementSource, PublishStatus } from './real-estate.constants';
 
 export interface UpsertResult {
   created: boolean;
-}
-
-/** Per-listing tracking code (mirror of lead/lead.tracking.ts + frontend util). */
-function trackingCode(id: number): string {
-  return `NV-${id.toString(36).toUpperCase()}`;
 }
 
 /** Attribute keys safe to expose publicly (source contact info is dropped). */
@@ -249,7 +247,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
 
     return {
       id: ad.id,
-      trackingCode: trackingCode(ad.id),
+      trackingCode: advertisementTrackingCode(ad.id),
       title: ad.title,
       description: ad.description,
       category: ad.category,

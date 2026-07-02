@@ -141,7 +141,7 @@ export function CreateLeadModal({
             <div className="flex items-end gap-2">
               <Input
                 label="کد رهگیری آگهی"
-                placeholder="مثلاً NV-2A"
+                placeholder="مثلاً 1204"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 containerClassName="grow"

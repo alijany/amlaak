@@ -4,6 +4,7 @@ import axios from 'axios';
 import { RealEstateAdvertisementEntity } from '../advertisement.entity';
 import { RealEstateCategory } from '../real-estate.constants';
 import { telegramRequestConfig } from '../../libs/utils/telegram-http';
+import { advertisementTrackingCode } from '../../lead/lead.tracking';
 
 const CATEGORY_LABEL: Record<RealEstateCategory, string> = {
   [RealEstateCategory.SALE]: 'فروش',
@@ -171,8 +172,9 @@ export class TelegramListingPublisher {
       : ad.agency?.phone;
     if (contactPhone) lines.push(`📞 ${this.escapeMarkdown(contactPhone)}`);
 
-    // Numeric-only so it doubles cleanly as a hashtag (e.g. #12345).
-    const trackingCode = `${ad.id}`;
+    // Numeric-only so it doubles cleanly as a hashtag (e.g. #12345). Uses the
+    // same margin-offset code as the lookup endpoint, not the raw ad id.
+    const trackingCode = advertisementTrackingCode(ad.id);
     lines.push(`🔑 کد: ${trackingCode}`);
 
     // Hashtags: city + district + tracking code
