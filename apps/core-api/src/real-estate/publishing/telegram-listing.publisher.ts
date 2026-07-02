@@ -42,14 +42,7 @@ export class TelegramListingPublisher {
       return null;
     }
 
-    const { text: caption, url: listingUrl } = this.buildCaption(ad);
-    const inlineKeyboard = listingUrl
-      ? {
-          inline_keyboard: [
-            [{ text: '🔗 مشاهده آگهی در وب‌سایت', url: listingUrl }],
-          ],
-        }
-      : undefined;
+    const { text: caption } = this.buildCaption(ad);
 
     // Telegram's sendPhoto-by-URL fetches the image from Telegram's own
     // servers, so the URL must be publicly reachable. In local/dev the image
@@ -76,7 +69,6 @@ export class TelegramListingPublisher {
           chat_id: channelId,
           text: caption,
           parse_mode: 'Markdown',
-          ...(inlineKeyboard ? { reply_markup: inlineKeyboard } : {}),
         },
         reqConfig,
       );
@@ -91,7 +83,6 @@ export class TelegramListingPublisher {
           photo: publicPhotos[0],
           caption,
           parse_mode: 'Markdown',
-          ...(inlineKeyboard ? { reply_markup: inlineKeyboard } : {}),
         },
         reqConfig,
       );
@@ -99,7 +90,6 @@ export class TelegramListingPublisher {
     }
 
     // 2–4 photos: send as a media group (album); caption goes on the first item.
-    // sendMediaGroup does not support reply_markup, so send a follow-up reply.
     const media = publicPhotos.map((url, i) => ({
       type: 'photo',
       media: url,
@@ -112,23 +102,6 @@ export class TelegramListingPublisher {
       reqConfig,
     );
     const firstMessageId: number = data?.result?.[0]?.message_id;
-
-    if (inlineKeyboard && firstMessageId) {
-      await axios
-        .post(
-          `${base}/sendMessage`,
-          {
-            chat_id: channelId,
-            text: '🔗',
-            reply_to_message_id: firstMessageId,
-            reply_markup: inlineKeyboard,
-          },
-          reqConfig,
-        )
-        .catch((err) =>
-          this.logger.warn(`Failed to send button reply: ${err?.message}`),
-        );
-    }
 
     return { messageId: firstMessageId };
   }
@@ -167,10 +140,7 @@ export class TelegramListingPublisher {
     return !isLocal;
   }
 
-  private buildCaption(ad: RealEstateAdvertisementEntity): {
-    text: string;
-    url: string | undefined;
-  } {
+  private buildCaption(ad: RealEstateAdvertisementEntity): { text: string } {
     const fa = (n?: number) =>
       n == null ? undefined : n.toLocaleString('fa-IR');
     const lines: string[] = [];
@@ -207,11 +177,15 @@ export class TelegramListingPublisher {
 
     // Hashtags: city + district + tracking code
     const tags: string[] = [];
-    if (ad.city?.nameFa)
-      tags.push(`#${this.sanitizeHashtag(ad.city.nameFa)}`);
+    if (ad.city?.nameFa) tags.push(`#${this.sanitizeHashtag(ad.city.nameFa)}`);
     if (ad.district) tags.push(`#${this.sanitizeHashtag(ad.district)}`);
     tags.push(`#${trackingCode}`);
     lines.push(tags.join(' '));
+
+    const domain = this.config.get<string>('DOMAIN');
+    if (domain) {
+      lines.push(`🔗 [مشاهده آگهی در وب‌سایت](${domain}/listings/${ad.id})`);
+    }
 
     lines.push(
       '',
@@ -221,10 +195,7 @@ export class TelegramListingPublisher {
       '❗️برای استعلام ملک لطفا به کد درج شده در متن توجه کنید.',
     );
 
-    const domain = this.config.get<string>('DOMAIN');
-    const url = domain ? `${domain}/listings/${ad.id}` : undefined;
-
-    return { text: lines.join('\n'), url };
+    return { text: lines.join('\n') };
   }
 
   /**
