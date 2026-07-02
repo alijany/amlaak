@@ -8,6 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 # shellcheck source=./lib/ssh.sh
 source "$SCRIPT_DIR/lib/ssh.sh"
+# shellcheck source=./modules/clean.sh
+source "$SCRIPT_DIR/modules/clean.sh"
 # shellcheck source=./modules/dns.sh
 source "$SCRIPT_DIR/modules/dns.sh"
 # shellcheck source=./modules/docker.sh
@@ -22,8 +24,8 @@ source "$SCRIPT_DIR/modules/traefik.sh"
 source "$SCRIPT_DIR/modules/cloudflared.sh"
 # shellcheck source=./modules/redis.sh
 source "$SCRIPT_DIR/modules/redis.sh"
-# shellcheck source=./modules/minio.sh
-source "$SCRIPT_DIR/modules/minio.sh"
+# shellcheck source=./modules/rustfs.sh
+source "$SCRIPT_DIR/modules/rustfs.sh"
 # shellcheck source=./commands/setup.sh
 source "$SCRIPT_DIR/commands/setup.sh"
 
@@ -50,7 +52,7 @@ Setup Wizard:
   - Traefik (reverse proxy with Let's Encrypt SSL)
   - Cloudflare Tunnel (cloudflared - local only)
   - Redis (in-memory data store)
-  - Minio (S3-compatible object storage)
+  - RustFS (S3-compatible object storage)
 
   The wizard will:
   1. Ask if you want to deploy locally or remotely

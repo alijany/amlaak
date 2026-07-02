@@ -36,7 +36,7 @@ export default function BlogManagePage() {
       <DashbaordLayout>
         <div className="space-y-3 grow flex flex-col overflow-hidden">
           <div className="p-4 rounded-2xl bg-white flex items-center gap-4 justify-between">
-            <div className="font-bold grow">مدیریت وبلاگ</div>
+            <div className="font-bold grow">مدیریت مقالات</div>
             <Link
               href="/dashboard/blog/create"
               className="px-4 py-2 bg-slate-800 text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors"

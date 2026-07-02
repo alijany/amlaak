@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { BlogModule } from './blog/blog.module';
+import { LeadModule } from './lead/lead.module';
 import { postgresModuleFactory } from './libs/orm/orm.provider.base';
 import { NotificationModule } from './notification/notification.module';
 import { RolesModule } from './roles/roles.module';
@@ -43,6 +44,7 @@ import { S3StorageModule } from './storage/s3-storage.module';
     RolesModule,
     S3StorageModule,
     BlogModule,
+    LeadModule,
   ],
 })
 export class AppModule {}

@@ -7,6 +7,18 @@ export enum BlogPostStatus {
   NOINDEX = 'noindex',
 }
 
+export enum BlogPostType {
+  BAKHSHNAMEH = 'bakhshnameh',
+  AKHBAR = 'akhbar',
+  MAGHALE = 'maghale',
+}
+
+export const BlogPostTypeLabels: Record<BlogPostType, string> = {
+  [BlogPostType.BAKHSHNAMEH]: 'بخشنامه',
+  [BlogPostType.AKHBAR]: 'اخبار',
+  [BlogPostType.MAGHALE]: 'مقاله',
+};
+
 export interface BlogAuthor {
   id: number;
   name: string;
@@ -29,6 +41,7 @@ export interface BlogPost {
   metaDescription?: string;
   ogImage?: string;
   status: BlogPostStatus;
+  type?: BlogPostType;
   redirectUrl?: string;
   publishAt?: string;
   author: BlogAuthor;
@@ -57,6 +70,7 @@ export interface CreatePostDto {
   metaDescription?: string;
   ogImage?: string;
   status?: BlogPostStatus;
+  type?: BlogPostType;
   categoryIds?: number[];
   redirectUrl?: string;
   publishAt?: string;
@@ -68,5 +82,6 @@ export interface BlogFilterDto {
   page?: number;
   limit?: number;
   status?: BlogPostStatus;
+  type?: BlogPostType;
   categoryId?: number;
 }

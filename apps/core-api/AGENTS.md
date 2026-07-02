@@ -8,7 +8,7 @@ NestJS backend service providing RESTful APIs for authentication, user managemen
 - **Database**: PostgreSQL with MikroORM
 - **Cache/Queue**: Redis + BullMQ
 - **Authentication**: Passport.js with JWT
-- **File Storage**: AWS S3 SDK (MinIO for dev)
+- **File Storage**: AWS S3 SDK (RustFS for dev)
 
 ## Module Structure
 

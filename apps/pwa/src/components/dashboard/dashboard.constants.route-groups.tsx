@@ -1,6 +1,6 @@
 'use client';
 
-import { IconDashboard, IconNews, IconNotification, IconUser, IconUsers } from "@tabler/icons-react";
+import { IconAddressBook, IconDashboard, IconNews, IconNotification, IconUser, IconUsers } from "@tabler/icons-react";
 import { Role } from "../auth/auth.constants.roles";
 
 export interface RouteItem {
@@ -24,9 +24,15 @@ export const RouteItems = {
   },
   blog: {
     href: "/dashboard/blog",
-    label: "وبلاگ",
+    label: "مقالات",
     roles: [Role.ADMIN, Role.MANAGER] as Role[],
     icon: <IconNews className="size-5" />
+  },
+  leads: {
+    href: "/dashboard/leads",
+    label: "سرنخ‌ها",
+    roles: [Role.ADMIN, Role.MANAGER] as Role[],
+    icon: <IconAddressBook className="size-5" />
   },
   notifications: {
     href: "/dashboard/notifications",
@@ -53,8 +59,10 @@ export const routeGroups: RouteGroup[] = [
   {
     label: "پیشخوان",
     routes: [
+      RouteItems.dashboard,
       RouteItems.users,
       RouteItems.blog,
+      RouteItems.leads,
       RouteItems.profile,
       RouteItems.notifications,
     ]

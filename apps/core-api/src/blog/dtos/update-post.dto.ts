@@ -5,7 +5,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { BlogPostStatus } from '../blog-post.entity';
+import { BlogPostStatus, BlogPostType } from '../blog-post.entity';
 
 export class UpdatePostDto {
   @IsOptional()
@@ -53,4 +53,8 @@ export class UpdatePostDto {
   @IsOptional()
   @IsString()
   publishAt?: string;
+
+  @IsOptional()
+  @IsEnum(BlogPostType)
+  type?: BlogPostType;
 }

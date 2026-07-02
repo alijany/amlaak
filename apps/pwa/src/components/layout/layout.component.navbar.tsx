@@ -1,127 +1,235 @@
 "use client";
 
-import { brand } from '@/config/brand.config';
-import { Button } from '@/ui/atoms';
-import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import { IconCancel, IconMenu, IconPhone, IconRocket, IconUser } from '@tabler/icons-react';
-import Link from 'next/link';
-import { Fragment, useState } from 'react';
-import { useAuth } from '../auth/auth.context.provider';
+import { useAuth } from "@/components/auth/auth.context.provider";
+import { brand } from "@/config/brand.config";
+import { AppLogo } from "@/components/theme/theme.component.logo";
+import { Dialog, DialogPanel, Transition, TransitionChild } from "@headlessui/react";
+import {
+  IconArrowLeft,
+  IconDashboard,
+  IconMenu2,
+  IconPhone,
+  IconRocket,
+  IconX,
+} from "@tabler/icons-react";
+import Link from "next/link";
+import { Fragment, useState } from "react";
 import { MenuItems } from "./layout.component.menu-items";
 
 export function Navbar({ transparent }: { transparent?: boolean }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
   return (
     <>
-      <div className="z-30 sticky top-4 m-4 lg:top-6">
+      <div style={{ position: "sticky", top: 16, zIndex: 50, padding: "0 16px" }}>
         <nav
-          className={`max-w-7xl mx-auto flex justify-between items-center rounded-2xl p-3 lg:p-4 border transition-all duration-300 ${transparent
-            ? 'bg-white/10 backdrop-blur-xl border-white/40 shadow-lg shadow-black/10'
-            : 'bg-white/80 backdrop-blur-xl border-white shadow-2xl shadow-black/10'
-            }`}
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            background: transparent ? "transparent" : "rgba(255,255,255,0.82)",
+            backdropFilter: transparent ? "none" : "blur(24px)",
+            WebkitBackdropFilter: transparent ? "none" : "blur(24px)",
+            boxShadow: transparent ? "none" : "0 25px 50px -12px rgba(0,0,0,0.06)",
+            borderRadius: 20,
+            border: transparent ? "none" : "2px solid #fff",
+            padding: "12px 18px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 16,
+          }}
         >
-          <div className="flex items-center gap-3">
-            <Button
-              className="lg:hidden visible p-2"
-              variant="outline"
-              size="lg"
-              onClick={() => setIsOpen(true)}
-            >
-              <IconMenu className="size-4" />
-            </Button>
-            <Link href='/' className="flex items-center space-x-reverse space-x-2">
-              <img src="/images/logo.svg" alt="Logo" className="h-6 lg:h-8" />
-              <h1 className="text-base lg:text-lg font-bold text-slate-800">{brand.name}</h1>
-            </Link>
+          {/* Logo lockup */}
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <AppLogo size={72} />
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.05 }}>
+              <span style={{ fontSize: 17, fontWeight: 800, color: "var(--slate-800)" }}>
+                {brand.nameShort}
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 900, color: "var(--rose-500)", marginTop: 1 }}>
+                {brand.namePrimary}
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop menu */}
+          <MenuItems
+            className="hidden md:flex gap-7"
+            itemClassName="text-sm font-medium text-[#4A546B] hover:text-[var(--rose-500)] transition-colors duration-200"
+          />
+
+          {/* Desktop actions */}
+          <div className="hidden md:flex items-center gap-2">
+            <a href={`tel:${brand.contact.phone.primary}`}>
+              <button
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "10px 18px", borderRadius: 12,
+                  background: "#fff", border: "1px solid var(--rose-500)",
+                  color: "var(--rose-500)", fontSize: 14, fontWeight: 700,
+                  cursor: "pointer", fontFamily: "inherit", transition: "background .15s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--rose-50)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
+              >
+                <span>{brand.contact.phone.display}</span>
+                <IconPhone size={16} />
+              </button>
+            </a>
+
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <button
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    padding: "10px 22px", borderRadius: 12,
+                    background: "var(--rose-500)", border: "none",
+                    color: "#fff", fontSize: 14, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit", transition: "background .15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "var(--rose-600)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "var(--rose-500)")}
+                >
+                  <span>داشبورد</span>
+                  <IconDashboard size={16} />
+                </button>
+              </Link>
+            ) : (
+              <Link href="/#lead">
+                <button
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    padding: "10px 22px", borderRadius: 12,
+                    background: "var(--rose-500)", border: "none",
+                    color: "#fff", fontSize: 14, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit", transition: "background .15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "var(--rose-600)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "var(--rose-500)")}
+                >
+                  مشاوره رایگان
+                </button>
+              </Link>
+            )}
           </div>
 
-          <MenuItems onClose={() => setIsOpen(false)} className="lg:flex space-x-reverse space-x-6 hidden" />
-
-          <div className='flex space-x-2 space-x-reverse items-center'>
-            {!isAuthenticated && (
-              <>
-                <a className="block" href="/login" rel="noreferrer">
-                  <Button variant="primary" size="md" className="flex gap-2 text-white shadow-md shadow-blue-500/20">
-                    <div className='text-sm hidden lg:block'>شروع رایگان</div>
-                    <IconRocket size={18} />
-                  </Button>
-                </a>
-              </>
+          {/* Mobile: CTA + hamburger */}
+          <div className="flex md:hidden items-center gap-2">
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <button
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "8px 14px", borderRadius: 10,
+                    background: "var(--rose-500)", border: "none",
+                    color: "#fff", fontSize: 13, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  <IconDashboard size={15} />
+                  <span>داشبورد</span>
+                </button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <button
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "8px 14px", borderRadius: 10,
+                    background: "var(--rose-500)", border: "none",
+                    color: "#fff", fontSize: 13, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  <IconRocket size={15} />
+                  <span>مشاوره</span>
+                </button>
+              </Link>
             )}
-            {isAuthenticated && (
-              <a className="block" href="/dashboard" rel="noreferrer">
-                <Button variant="secondary" className="flex gap-3">
-                  <div className='text-sm hidden lg:block'>پنل کاربری</div>
-                  <IconUser size={20} />
-                </Button>
-              </a>
-            )}
+            <button
+              onClick={() => setMobileOpen(true)}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--slate-700)", padding: 4 }}
+            >
+              <IconMenu2 size={26} />
+            </button>
           </div>
         </nav>
       </div>
 
-      <Transition show={isOpen} as={Fragment}>
-        <Dialog onClose={() => setIsOpen(false)} className="relative z-50">
+      {/* Mobile drawer */}
+      <Transition appear show={mobileOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-[60]" onClose={() => setMobileOpen(false)}>
           <TransitionChild
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
+            leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 backdrop-blur bg-black/30" />
+            <div className="fixed inset-0 bg-black/40" />
           </TransitionChild>
 
-          <TransitionChild
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="translate-x-full"
-            enterTo="translate-x-0"
-            leave="ease-in duration-200"
-            leaveFrom="translate-x-0"
-            leaveTo="translate-x-full"
-          >
-            <DialogPanel className="fixed inset-y-0 right-0 w-[80%] max-w-sm bg-white shadow-xl p-6">
-              <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center space-x-reverse space-x-2">
-                  <img src="/images/logo.svg" alt="Logo" className="h-5" />
-                  <h1 className="text-xl font-bold text-slate-900">{brand.name}</h1>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className='p-2'
-                  onClick={() => setIsOpen(false)}
+          <div className="fixed inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <TransitionChild
+                as={Fragment}
+                enter="transform transition ease-out duration-300"
+                enterFrom="translate-x-full"
+                enterTo="translate-x-0"
+                leave="transform transition ease-in duration-200"
+                leaveFrom="translate-x-0"
+                leaveTo="translate-x-full"
+              >
+                <DialogPanel
+                  className="pointer-events-auto absolute left-0 inset-y-0 w-4/5 max-w-sm flex flex-col"
+                  style={{ background: "#fff", boxShadow: "-8px 0 40px rgba(0,0,0,0.12)" }}
                 >
-                  <IconCancel className="size-4" />
-                </Button>
-              </div>
+                  {/* Drawer header */}
+                  <div
+                    className="flex items-center justify-between p-5"
+                    style={{ borderBottom: "1px solid var(--slate-100)" }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <AppLogo size={34} />
+                      <div style={{ lineHeight: 1.1 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--slate-800)" }}>{brand.nameShort}</div>
+                        <div style={{ fontSize: 15, fontWeight: 900, color: "var(--rose-500)" }}>{brand.namePrimary}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setMobileOpen(false)}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--slate-500)" }}
+                    >
+                      <IconX size={22} />
+                    </button>
+                  </div>
 
-              <MenuItems
-                className="flex flex-col space-y-4"
-                itemClassName="text-slate-600 hover:text-slate-800 text-lg"
-                onClose={() => setIsOpen(false)}
-              />
+                  {/* Drawer nav */}
+                  <div className="flex-1 overflow-y-auto py-2">
+                    <MenuItems
+                      className="flex flex-col"
+                      itemClassName="px-5 py-3.5 text-base font-medium border-b border-[#EEF0F6] text-[#36425D] hover:text-[var(--rose-500)] hover:bg-[var(--rose-50)] transition-colors block"
+                      onClose={() => setMobileOpen(false)}
+                    />
+                  </div>
 
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="flex space-x-2 space-x-reverse">
-                  <a href={`tel:${brand.contact.phone.primary}`} className='flex-1' rel="noreferrer">
-                    <Button variant="outline" size="lg" className="w-full border-orange-500 p-2 flex justify-center items-center space-x-2 space-x-reverse">
-                      <div dir='ltr' className="font-semibold text-sm text-orange-600">{brand.contact.phone.display}</div>
-                      <IconPhone color="#FC4258" className="size-4" />
-                    </Button>
-                  </a>
-                </div>
-              </div>
-            </DialogPanel>
-          </TransitionChild>
+                  {/* Drawer footer */}
+                  <div className="p-5" style={{ borderTop: "1px solid var(--slate-100)" }}>
+                    <a
+                      href={`tel:${brand.contact.phone.primary}`}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold"
+                      style={{ background: "var(--rose-50)", color: "var(--rose-500)", border: "1px solid var(--rose-200)" }}
+                    >
+                      <IconPhone size={16} />
+                      <span>{brand.contact.phone.display}</span>
+                      <IconArrowLeft size={14} />
+                    </a>
+                  </div>
+                </DialogPanel>
+              </TransitionChild>
+            </div>
+          </div>
         </Dialog>
       </Transition>
     </>
   );
 }
-

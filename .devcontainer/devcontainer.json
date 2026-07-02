@@ -6,6 +6,7 @@
 	"service": "app",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"features": {
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/devcontainers-community/npm-features/typescript:1": {},
 		"ghcr.io/devcontainers-extra/features/pnpm:2": {}
 	},
@@ -18,7 +19,7 @@
 	// Port 80 is nginx — it reverse-proxies all internal services so they are
 	// accessible as a single forwarded port in GitHub Codespaces.
 	// Routes: / → pwa:8000, /api/v1/ → core-api:4000,
-	//         /minio/ → minio:9000, /minio-console/ → minio:9001
+	//         /rustfs/ → rustfs:9000
 	"forwardPorts": [80],
 
 	"customizations": {
@@ -39,7 +40,7 @@
 	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pnpm install"
+	"postCreateCommand": "[ -f apps/core-api/.env ] || cp apps/core-api/.env.example apps/core-api/.env && [ -f apps/pwa/.env.local ] || cp apps/pwa/.env.example apps/pwa/.env.local && pnpm install"
 
 	// Configure tool-specific properties.
 	// "customizations": {},

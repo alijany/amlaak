@@ -4,7 +4,7 @@ name: ${PROJECT_NAME}
 # Networks:
 # - traefik-public: External network managed by standalone Traefik container
 #   (created via init.sh or manually with: docker network create traefik-public)
-# - app: Internal network for service-to-service communication (shared with standalone redis/minio)
+# - app: Internal network for service-to-service communication (shared with standalone redis/rustfs)
 networks:
   traefik-public:
     external: true
@@ -16,6 +16,7 @@ networks:
 services:
   api:
     container_name: ${PROJECT_NAME}-api
+    image: ${PROJECT_NAME}-api:latest
     build:
       context: .
       dockerfile: apps/core-api/Dockerfile
@@ -26,7 +27,7 @@ services:
       - .env
     networks:
       - traefik-public  # For external access via Traefik
-      - app             # For internal communication with db, redis, minio
+      - app             # For internal communication with db, redis, rustfs
     depends_on:
       db:
         condition: service_healthy
@@ -37,8 +38,8 @@ services:
       - traefik.docker.network=traefik-public
       - traefik.http.routers.${PROJECT_NAME}-api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/v1`)
       - traefik.http.routers.${PROJECT_NAME}-api.priority=10
-      - traefik.http.routers.${PROJECT_NAME}-api.entrypoints=websecure
-      - traefik.http.routers.${PROJECT_NAME}-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.${PROJECT_NAME}-api.entrypoints=web
+      # - traefik.http.routers.${PROJECT_NAME}-api.tls.certresolver=letsencrypt
       - traefik.http.services.${PROJECT_NAME}-api.loadbalancer.server.port=4000
 
   db:
@@ -60,6 +61,7 @@ services:
 
   pwa:
     container_name: ${PROJECT_NAME}-pwa
+    image: ${PROJECT_NAME}-pwa:latest
     build:
       context: .
       dockerfile: apps/pwa/Dockerfile
@@ -86,8 +88,8 @@ services:
       - traefik.docker.network=traefik-public
       - traefik.http.routers.${PROJECT_NAME}-pwa.rule=Host(`${DOMAIN}`) || Header(`User-Agent`, `Clarity-Bot`)
       - traefik.http.routers.${PROJECT_NAME}-pwa.priority=1
-      - traefik.http.routers.${PROJECT_NAME}-pwa.entrypoints=websecure
-      - traefik.http.routers.${PROJECT_NAME}-pwa.tls.certresolver=letsencrypt
+      - traefik.http.routers.${PROJECT_NAME}-pwa.entrypoints=web
+      # - traefik.http.routers.${PROJECT_NAME}-pwa.tls.certresolver=letsencrypt
       - traefik.http.services.${PROJECT_NAME}-pwa.loadbalancer.server.port=4000
 
 

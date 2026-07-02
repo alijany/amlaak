@@ -118,7 +118,7 @@ export default async function BlogPostPage({
           className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors mb-8"
         >
           <span>→</span>
-          بازگشت به وبلاگ
+          بازگشت به مقالات
         </Link>
 
         {/* Cover image */}
@@ -180,7 +180,7 @@ export default async function BlogPostPage({
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition-colors"
           >
             <span>→</span>
-            بازگشت به وبلاگ
+            بازگشت به مقالات
           </Link>
         </div>
       </main>

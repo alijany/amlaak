@@ -19,6 +19,12 @@ export enum BlogPostStatus {
   NOINDEX = 'noindex',
 }
 
+export enum BlogPostType {
+  BAKHSHNAMEH = 'bakhshnameh', // بخشنامه
+  AKHBAR = 'akhbar', // اخبار
+  MAGHALE = 'maghale', // مقاله
+}
+
 @Entity()
 export class BlogPostEntity extends BaseEntity {
   @Property()
@@ -54,6 +60,9 @@ export class BlogPostEntity extends BaseEntity {
 
   @Property({ nullable: true, type: 'timestamp' })
   publishAt?: Date;
+
+  @Property({ nullable: true })
+  type?: BlogPostType;
 
   @ManyToOne(() => UserEntity)
   author: UserEntity;

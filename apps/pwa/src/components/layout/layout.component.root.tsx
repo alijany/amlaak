@@ -4,13 +4,22 @@ import { Navbar } from "@/components/layout/layout.component.navbar";
 interface RootLayoutProps {
   children: React.ReactNode;
   navbarTransparent?: boolean;
+  heroBg?: boolean;
 }
 
-export function RootLayout({ children, navbarTransparent }: RootLayoutProps) {
+export function RootLayout({ children, navbarTransparent, heroBg }: RootLayoutProps) {
   return (
-    <div className="overflow-x-hidden">
-      <Navbar transparent={navbarTransparent} />
-      <main>{children}</main>
+    <div>
+      <div
+        className={
+          heroBg
+            ? "hero-wrapper"
+            : undefined
+        }
+      >
+        <Navbar transparent={navbarTransparent} />
+        <main>{children}</main>
+      </div>
       <Footer />
     </div>
   );

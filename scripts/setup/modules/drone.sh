@@ -8,11 +8,11 @@ module_drone_install() {
     require_cmd docker
   fi
 
-  local drone_host github_client_id github_client_secret github_username rpc_secret http_port https_port
+  local drone_host github_client_id github_client_secret github_username rpc_secret traefik_domain
 
-  drone_host="$(prompt_required "Enter Drone server host (e.g. ci.example.com)")"
-  http_port="$(prompt_default "Enter Drone HTTP port" "80")"
-  https_port="$(prompt_default "Enter Drone HTTPS port" "443")"
+  # Drone is always fronted by Traefik (which terminates TLS for DRONE_SERVER_PROTO=https).
+  drone_host="$(prompt_required "Enter Drone server host / Traefik subdomain (e.g. ci.example.com)")"
+  traefik_domain="$drone_host"
   github_client_id="$(prompt_required "Enter GitHub OAuth client ID")"
   github_client_secret="$(prompt_required "Enter GitHub OAuth client secret")"
   github_username="$(prompt_required "Enter GitHub admin username")"
@@ -30,6 +30,11 @@ module_drone_install() {
     exec_cmd "docker rm -f runner >/dev/null 2>&1 || true"
   fi
 
+  # Drone server listens on :80 inside the container; Traefik terminates TLS.
+  ensure_traefik_network
+  local drone_expose
+  drone_expose=" --network traefik-public$(traefik_labels drone "$traefik_domain" 80)"
+
   exec_cmd "docker run --volume=/var/lib/drone:/data \
     --env=DRONE_GITHUB_CLIENT_ID='$github_client_id' \
     --env=DRONE_GITHUB_CLIENT_SECRET='$github_client_secret' \
@@ -39,8 +44,7 @@ module_drone_install() {
     --env=DRONE_TLS_AUTOCERT=false \
     --env=DRONE_REGISTRATION_CLOSED=false \
     --env=DRONE_USER_CREATE='username:$github_username,admin:true' \
-    --publish='$http_port':80 \
-    --publish='$https_port':443 \
+    $drone_expose \
     --restart=always \
     --detach=true \
     --name=drone \

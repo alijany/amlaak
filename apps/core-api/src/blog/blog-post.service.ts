@@ -60,6 +60,7 @@ export class BlogPostService extends BaseRepositoryService<BlogPostEntity> {
       status: dto.status ?? BlogPostStatus.DRAFT,
       redirectUrl: dto.redirectUrl,
       publishAt: dto.publishAt ? new Date(dto.publishAt) : undefined,
+      type: dto.type,
       author,
       publishedAt:
         dto.status === BlogPostStatus.PUBLISHED ? new Date() : undefined,
@@ -97,6 +98,7 @@ export class BlogPostService extends BaseRepositoryService<BlogPostEntity> {
     if (dto.redirectUrl !== undefined) post.redirectUrl = dto.redirectUrl;
     if (dto.publishAt !== undefined)
       post.publishAt = dto.publishAt ? new Date(dto.publishAt) : undefined;
+    if (dto.type !== undefined) post.type = dto.type;
 
     if (dto.status !== undefined && dto.status !== post.status) {
       post.status = dto.status;
@@ -123,10 +125,11 @@ export class BlogPostService extends BaseRepositoryService<BlogPostEntity> {
   }
 
   async findPosts(filters: PostsFilterDto) {
-    const { page = 0, limit = 10, status, categoryId } = filters;
+    const { page = 0, limit = 10, status, categoryId, type } = filters;
     const where: any = {};
     if (status) where.status = status;
     if (categoryId) where.categories = { id: categoryId };
+    if (type) where.type = type;
 
     const [items, total] = await this.findAll(where, {
       orderBy: { created_at: 'DESC' },

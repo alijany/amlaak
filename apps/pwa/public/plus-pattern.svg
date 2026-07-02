@@ -1,0 +1,9 @@
+<svg width="24" height="24" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="plus-pattern" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+      <line x1="20" y1="12" x2="20" y2="28" stroke="currentColor" stroke-width="0.8" opacity="0.1"></line>
+      <line x1="12" y1="20" x2="28" y2="20" stroke="currentColor" stroke-width="0.8" opacity="0.1"></line>
+    </pattern>
+  </defs>
+  <rect width="32" height="32" fill="url(#plus-pattern)"></rect>
+</svg>

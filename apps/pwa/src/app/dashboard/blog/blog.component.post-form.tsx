@@ -9,7 +9,7 @@ import { uploadFileFetcher } from '@/libs/api/api.util.fetcher';
 import { parseSlateValue } from '@/ui/molecules/slate-editor/slate.utils';
 import '@/ui/molecules/slate-editor/slate.types';
 import { useBlogCategories } from './blog.api';
-import { BlogPost, BlogPostStatus, CreatePostDto } from './blog.types';
+import { BlogPost, BlogPostStatus, BlogPostType, BlogPostTypeLabels, CreatePostDto } from './blog.types';
 
 const SlateEditor = dynamic(
   () => import('@/ui/molecules/slate-editor/ui.slate-editor').then((m) => m.SlateEditor),
@@ -221,6 +221,7 @@ export function BlogPostForm({ initialData, onSubmit, isLoading }: PostFormProps
   const [status, setStatus] = useState<BlogPostStatus>(
     initialData?.status ?? BlogPostStatus.DRAFT,
   );
+  const [type, setType] = useState<BlogPostType | undefined>(initialData?.type);
   const [redirectUrl, setRedirectUrl] = useState(initialData?.redirectUrl ?? '');
   const [publishAt, setPublishAt] = useState(
     initialData?.publishAt ? initialData.publishAt.slice(0, 16) : '',
@@ -239,6 +240,7 @@ export function BlogPostForm({ initialData, onSubmit, isLoading }: PostFormProps
       setMetaDescription(initialData.metaDescription ?? '');
       setOgImage(initialData.ogImage ?? '');
       setStatus(initialData.status);
+      setType(initialData.type);
       setRedirectUrl(initialData.redirectUrl ?? '');
       setPublishAt(initialData.publishAt ? initialData.publishAt.slice(0, 16) : '');
       setSelectedCategoryIds(initialData.categories?.map((c) => c.id) ?? []);
@@ -268,6 +270,7 @@ export function BlogPostForm({ initialData, onSubmit, isLoading }: PostFormProps
       metaDescription: metaDescription || undefined,
       ogImage: ogImage || undefined,
       status,
+      type: type || undefined,
       categoryIds: selectedCategoryIds,
       redirectUrl: redirectUrl || undefined,
       publishAt: publishAt || undefined,
@@ -343,6 +346,30 @@ export function BlogPostForm({ initialData, onSubmit, isLoading }: PostFormProps
 
       {/* ── Section 3: Categories & Status ────────────────────── */}
       <Section title="دسته‌بندی و وضعیت">
+        {/* Type picker */}
+        <div>
+          <p className="text-sm font-medium text-slate-700 mb-2">نوع مطلب</p>
+          <div className="flex flex-wrap gap-2">
+            {(Object.values(BlogPostType) as BlogPostType[]).map((t) => {
+              const active = type === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setType(active ? undefined : t)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${
+                    active
+                      ? 'bg-indigo-100 text-indigo-800 border-indigo-300'
+                      : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {BlogPostTypeLabels[t]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Status picker */}
         <div>
           <p className="text-sm font-medium text-slate-700 mb-2">وضعیت انتشار</p>

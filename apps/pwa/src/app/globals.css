@@ -2,26 +2,216 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design Tokens ─────────────────────────────────── */
+:root {
+  --font-sans: var(--font-dana), system-ui, sans-serif;
 
+  --rose-50:  #FFF1F3;
+  --rose-100: #FFE3E7;
+  --rose-200: #FFCAD2;
+  --rose-300: #FFA7B4;
+  --rose-400: #FF7185;
+  --rose-500: #FC4258;
+  --rose-600: #E0394D;
+  --rose-700: #B0263A;
+
+  --slate-50:  #F8F9FC;
+  --slate-100: #EEF0F6;
+  --slate-200: #DDE2EC;
+  --slate-300: #CED3DE;
+  --slate-400: #98A0B3;
+  --slate-500: #6B7488;
+  --slate-600: #4A546B;
+  --slate-700: #36425D;
+  --slate-800: #1F2A44;
+  --slate-900: #0F172A;
+}
+
+/* ── Base ──────────────────────────────────────────── */
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  color: var(--slate-700);
+  background: var(--slate-50);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Custom Scrollbar Styles */
-::-webkit-scrollbar {
-  width: 8px;
+
+/* Pseudo-element sized to the viewport so the bg always fills the screen */
+.hero-wrapper {
+  position: relative;
+}
+.hero-wrapper::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('/hero-bg.png') no-repeat center center / cover;
+  mix-blend-mode: multiply;
+  background-color: var(--slate-50);
+  background-blend-mode: multiply;
+  z-index: -1;
+  pointer-events: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+/* ── Layout helpers ────────────────────────────────── */
+.container-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+.section-pad {
+  padding: 96px 0;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.section-pad-tight {
+  padding: 64px 0;
+}
+
+/* The signature curved 'lift' that puts rest of page above hero */
+.page-lift {
+  background: var(--slate-50);
+  border-top-left-radius: 64px;
+  border-top-right-radius: 64px;
+  box-shadow: 0 -4px 100px 0 rgba(0,0,0,0.16);
+  position: relative;
+  z-index: 1;
+  margin-top: -1px;
+  overflow: hidden;
+}
+
+/* ── Typography accents ────────────────────────────── */
+.split-h1 {
+  margin: 0;
+  font-size: clamp(32px, 4.4vw, 60px);
+  line-height: 1.18;
+}
+.split-h1 .setup  { font-weight: 900; color: var(--slate-700); display: block; }
+.split-h1 .accent { font-weight: 950; color: var(--rose-500);  display: block; }
+
+.split-h2 {
+  margin: 0;
+  font-size: clamp(22px, 2.5vw, 36px);
+  line-height: 1.32;
+  letter-spacing: -0.005em;
+}
+.split-h2 .setup  { font-weight: 800; color: var(--slate-700); display: block; }
+.split-h2 .accent { font-weight: 900; color: var(--rose-500);  display: block; }
+
+/* ── Cards ─────────────────────────────────────────── */
+.design-card {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: 24px;
+  box-shadow: 0 0 32px rgba(0,0,0,0.02);
+}
+
+/* ── Chip row (form) ───────────────────────────────── */
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--slate-200);
+  background: #fff;
+  color: var(--slate-700);
+  cursor: pointer;
+  transition: all .15s;
+  font-weight: 500;
+  font-family: inherit;
+}
+.chip:hover { border-color: var(--rose-300); color: var(--rose-500); }
+.chip.is-active { background: var(--rose-500); color: #fff; border-color: var(--rose-500); }
+
+/* ── Marquee ───────────────────────────────────────── */
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(to left, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee-track {
+  display: flex;
+  gap: 56px;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(50%); }
+}
+
+/* ── FAQ Accordion ─────────────────────────────────── */
+details.faq-row {
+  border-bottom: 1px solid var(--slate-200);
+  padding: 18px 4px;
+}
+details.faq-row[open] summary svg { transform: rotate(180deg); }
+details.faq-row summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--slate-700);
+  font-size: 16px;
+  list-style: none;
+  padding: 4px 0;
+  font-family: inherit;
+}
+details.faq-row summary::-webkit-details-marker { display: none; }
+details.faq-row summary svg { transition: transform .25s ease; flex-shrink: 0; color: var(--rose-500); }
+details.faq-row .faq-body {
+  padding-top: 12px;
+  color: var(--slate-600);
+  line-height: 1.85;
+  font-size: 14px;
+}
+
+/* ── Form fields ───────────────────────────────────── */
+.design-field { display: flex; flex-direction: column; gap: 8px; }
+.design-field label { font-size: 13px; color: var(--slate-700); font-weight: 600; }
+.design-field input,
+.design-field select,
+.design-field textarea {
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--slate-700);
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+  width: 100%;
+}
+.design-field input::placeholder,
+.design-field textarea::placeholder { color: var(--slate-400); }
+.design-field input:focus,
+.design-field select:focus,
+.design-field textarea:focus {
+  border-color: var(--rose-500);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(252,66,88,0.10);
+}
+.design-field textarea { resize: vertical; min-height: 96px; }
+
+/* ── Custom Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Responsive helpers ────────────────────────────── */
+@media (max-width: 960px) {
+  .section-pad { padding: 64px 0; }
+  .hide-mobile { display: none !important; }
+}
+@media (max-width: 720px) {
+  .container-page { padding: 0 16px; }
 }

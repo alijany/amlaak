@@ -1,30 +1,18 @@
 "use client";
 
+import { AppLogo } from "@/components/theme/theme.component.logo";
 import { brand } from "@/config/brand.config";
 import { Button } from "@/ui/atoms";
 import { Dialog, DialogPanel, Transition, TransitionChild } from "@headlessui/react";
 import { IconMenu4, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import React, { Fragment } from "react";
-import { SupportModal } from "../modals/modals.component.support";
 import { MenuItems } from "./dashboard.component.menu-items";
 import { NotificationDropdown } from "./dashboard.component.notification-dropdown";
-
-
 
 export const Navbar = () => {
 
     const [isOpen, setIsOpen] = React.useState(false);
-
-    const [supportModalOpen, setSupportModalOpen] = React.useState(false);
-
-    const openSupportModal = () => {
-        setSupportModalOpen(true);
-    };
-
-    const closeSupportModal = () => {
-        setSupportModalOpen(false);
-    };
 
 
     return (
@@ -33,20 +21,15 @@ export const Navbar = () => {
                 <IconMenu4 size={20} />
             </Button>
 
-            <Link href='/' className="flex items-center gap-1.5">
-                <img src="/images/logo.svg" alt="Logo" className="h-7 lg:h-8" />
-                <h1 className="text-base font-bold text-slate-900">{brand.name}</h1>
+            <Link href='/' className="flex items-center gap-2" style={{ textDecoration: "none" }}>
+                <AppLogo size={72} />
+                <div style={{ lineHeight: 1.1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--slate-800)" }}>{brand.nameShort}</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--rose-500)" }}>{brand.namePrimary}</div>
+                </div>
             </Link>
 
-            <div className="flex items-center gap-3">
-                <Button onClick={openSupportModal} variant="white">پشتیبانی</Button>
-                <NotificationDropdown />
-                <SupportModal
-                    isOpen={supportModalOpen}
-                    onClose={closeSupportModal}
-                />
-            </div>
-
+            <NotificationDropdown />
 
             <Transition show={isOpen} as={Fragment}>
                 <Dialog onClose={() => setIsOpen(false)} className="relative z-50">
@@ -73,9 +56,12 @@ export const Navbar = () => {
                     >
                         <DialogPanel className="fixed inset-y-0 right-0 w-[80%] max-w-sm bg-white shadow-xl p-6 h-screen flex flex-col">
                             <div className="flex justify-between items-center mb-8">
-                                <div className="flex items-center space-x-reverse space-x-2">
-                                    <img src="/images/logo.svg" alt="Logo" className="h-5" />
-                                    <h1 className="text-xl font-bold text-rose-500">{brand.name}</h1>
+                                <div className="flex items-center gap-2" style={{ textDecoration: "none" }}>
+                                    <AppLogo size={28} />
+                                    <div style={{ lineHeight: 1.1 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--slate-800)" }}>{brand.nameShort}</div>
+                                        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--rose-500)" }}>{brand.namePrimary}</div>
+                                    </div>
                                 </div>
                                 <Button
                                     variant="outline"
