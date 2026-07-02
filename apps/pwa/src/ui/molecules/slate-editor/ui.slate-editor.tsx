@@ -326,23 +326,23 @@ function renderElement({ attributes, children, element }: RenderElementProps) {
       );
     }
     case 'heading-one':
-      return <h1 {...attributes} className="text-3xl font-bold my-2">{children}</h1>;
+      return <h1 {...attributes} className="relative text-3xl font-bold my-2">{children}</h1>;
     case 'heading-two':
-      return <h2 {...attributes} className="text-2xl font-bold my-2">{children}</h2>;
+      return <h2 {...attributes} className="relative text-2xl font-bold my-2">{children}</h2>;
     case 'heading-three':
-      return <h3 {...attributes} className="text-xl font-bold my-1">{children}</h3>;
+      return <h3 {...attributes} className="relative text-xl font-bold my-1">{children}</h3>;
     case 'block-quote':
-      return <blockquote {...attributes} className="border-r-4 border-slate-300 pr-4 italic text-slate-600 my-2">{children}</blockquote>;
+      return <blockquote {...attributes} className="relative border-r-4 border-slate-300 pr-4 italic text-slate-600 my-2">{children}</blockquote>;
     case 'bulleted-list':
       return <ul {...attributes} className="list-disc list-inside my-2">{children}</ul>;
     case 'numbered-list':
       return <ol {...attributes} className="list-decimal list-inside my-2">{children}</ol>;
     case 'list-item':
-      return <li {...attributes}>{children}</li>;
+      return <li {...attributes} className="relative">{children}</li>;
     case 'code-block':
-      return <pre {...attributes} className="bg-slate-100 rounded p-3 font-mono text-sm my-2 overflow-x-auto"><code>{children}</code></pre>;
+      return <pre {...attributes} className="relative bg-slate-100 rounded p-3 font-mono text-sm my-2 overflow-x-auto"><code>{children}</code></pre>;
     default:
-      return <p {...attributes} className="my-1 leading-relaxed">{children}</p>;
+      return <p {...attributes} className="relative my-1 leading-relaxed">{children}</p>;
   }
 }
 
@@ -702,9 +702,14 @@ export function SlateEditor({
         </DndContext>
 
         <style>{`
+          /* slate-react positions the placeholder with position:absolute so a hidden
+             <br> on the empty line can't push it down. It relies on the nearest
+             positioned ancestor being the block element itself (see the "relative"
+             class added to each case in renderElement) so top/right: 0 line up with
+             that block's own line — no manual offset needed. */
           [data-slate-placeholder] {
-            top: 1rem !important;
-            right: 1rem !important;
+            top: 0 !important;
+            right: 0 !important;
             left: auto !important;
             pointer-events: none;
           }
