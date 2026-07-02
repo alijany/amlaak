@@ -14,6 +14,7 @@ const LINKS: { href: string; label: string }[] = [
   { href: "/listings", label: "آگهی‌ها" },
   { href: "/listings?category=sale", label: "خرید" },
   { href: "/listings?category=rent", label: "رهن و اجاره" },
+  { href: "/blog", label: "وبلاگ" },
   { href: "/#faq", label: "سوالات متداول" },
 ];
 

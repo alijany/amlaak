@@ -2,6 +2,7 @@
 
 import { RealEstateCategory } from '@/app/listings/listings.types';
 import { LandingAgenciesCta } from '@/components/landing/landing.agencies-cta';
+import { LandingBlogStrip } from '@/components/landing/landing.blog-strip';
 import { LandingCategories } from '@/components/landing/landing.categories';
 import { LandingFaq } from '@/components/landing/landing.faq';
 import { LandingHeroSearch } from '@/components/landing/landing.hero-search';
@@ -25,6 +26,7 @@ export default function Landing() {
         viewAllHref="/listings?category=sale"
       />
       <LandingSteps />
+      <LandingBlogStrip />
       <LandingAgenciesCta />
       <LandingFaq />
       <Footer />

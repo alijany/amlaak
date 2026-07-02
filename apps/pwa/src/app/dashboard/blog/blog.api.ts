@@ -34,6 +34,13 @@ export function useBlogPosts(filters?: BlogFilterDto) {
   );
 }
 
+export function usePublicBlogPosts(filters?: Omit<BlogFilterDto, 'status'>) {
+  const query = buildQuery(filters);
+  return useSwrHelper(
+    useSWR<GetBlogPostsResponse>(`/blog?status=published&${query}`, fetcher),
+  );
+}
+
 export function useBlogPost(id?: number) {
   return useSwrHelper(
     useSWR<BlogPost>(id ? `/blog/manage/posts/${id}` : null, fetcher),

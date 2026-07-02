@@ -85,21 +85,21 @@ export class BlogController {
 
   @Get('manage/posts')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async getManagedPosts(@Query() filters: PostsFilterDto) {
     return this.blogPostService.findPosts(filters);
   }
 
   @Get('manage/posts/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async getManagedPost(@Param('id', ParseIntPipe) id: number) {
     return this.blogPostService.findOneById(id);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async createPost(
     @CurrentUser() user: UserEntity,
     @Body() dto: CreatePostDto,
@@ -109,7 +109,7 @@ export class BlogController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async updatePost(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePostDto,
@@ -119,7 +119,7 @@ export class BlogController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async deletePost(@Param('id', ParseIntPipe) id: number) {
     await this.blogPostService.deletePost(id);
     return { success: true };
@@ -127,7 +127,7 @@ export class BlogController {
 
   @Post('cover-image')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('file'))
   async uploadCoverImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('فایلی آپلود نشده است');
@@ -163,7 +163,7 @@ export class BlogController {
 
   @Delete('cover-image')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async deleteCoverImage(@Body() body: { url: string }) {
     if (!body?.url) throw new BadRequestException('آدرس تصویر الزامی است');
     await this.s3StorageService.deleteByUrl(body.url);
@@ -172,7 +172,7 @@ export class BlogController {
 
   @Post('categories')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.ADMIN)
   async createCategory(@Body() dto: CreateCategoryDto) {
     return this.blogCategoryService.createCategory(dto);
   }

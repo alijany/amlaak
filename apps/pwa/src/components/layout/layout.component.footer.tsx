@@ -32,6 +32,7 @@ export const Footer: React.FC = () => {
                         <li><Link href="/#activities" className="text-slate-600 hover:text-slate-800">فرآیند کار</Link></li>
                         <li><Link href="/#" className="text-slate-600 hover:text-slate-800">ویژگی‌ها</Link></li>
                         <li><Link href="/#" className="text-slate-600 hover:text-slate-800">نمونه خروجی</Link></li>
+                        <li><Link href="/blog" className="text-slate-600 hover:text-slate-800">وبلاگ</Link></li>
                         <li><Link href="/#faq" className="text-slate-600 hover:text-slate-800">سوالات متداول</Link></li>
                         <li><button onClick={() => setTermsModalOpen(true)} className="text-slate-600 hover:text-slate-800">قوانین استفاده</button></li>
                         <li><Link href="/about" className="text-slate-600 hover:text-slate-800">درباره ما</Link></li>
