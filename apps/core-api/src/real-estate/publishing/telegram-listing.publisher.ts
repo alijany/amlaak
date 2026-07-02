@@ -69,7 +69,7 @@ export class TelegramListingPublisher {
         {
           chat_id: channelId,
           text: caption,
-          parse_mode: 'Markdown',
+          parse_mode: 'HTML',
         },
         reqConfig,
       );
@@ -83,7 +83,7 @@ export class TelegramListingPublisher {
           chat_id: channelId,
           photo: publicPhotos[0],
           caption,
-          parse_mode: 'Markdown',
+          parse_mode: 'HTML',
         },
         reqConfig,
       );
@@ -94,7 +94,7 @@ export class TelegramListingPublisher {
     const media = publicPhotos.map((url, i) => ({
       type: 'photo',
       media: url,
-      ...(i === 0 ? { caption, parse_mode: 'Markdown' } : {}),
+      ...(i === 0 ? { caption, parse_mode: 'HTML' } : {}),
     }));
 
     const { data } = await axios.post(
@@ -146,12 +146,12 @@ export class TelegramListingPublisher {
       n == null ? undefined : n.toLocaleString('fa-IR');
     const lines: string[] = [];
 
-    lines.push(`*${this.escapeMarkdown(ad.title ?? 'آگهی ملک')}*`);
+    lines.push(`<b>${this.escapeHtml(ad.title ?? 'آگهی ملک')}</b>`);
 
     const loc = [ad.province, ad.city?.nameFa, ad.district]
       .filter(Boolean)
       .join(' · ');
-    if (loc) lines.push(`📍 ${this.escapeMarkdown(loc)}`);
+    if (loc) lines.push(`📍 ${this.escapeHtml(loc)}`);
 
     lines.push(`🏷️ ${CATEGORY_LABEL[ad.category]}`);
 
@@ -170,12 +170,12 @@ export class TelegramListingPublisher {
     const contactPhone = ad.agency?.isPlatform
       ? this.config.get<string>('CONTACT_PHONE')
       : ad.agency?.phone;
-    if (contactPhone) lines.push(`📞 ${this.escapeMarkdown(contactPhone)}`);
+    if (contactPhone) lines.push(`📞 ${this.escapeHtml(contactPhone)}`);
 
     // Numeric-only so it doubles cleanly as a hashtag (e.g. #12345). Uses the
-    // same margin-offset code as the lookup endpoint, not the raw ad id.
+    // same margin-offset code as the lookup endpoint, not the raw ad id. Shown
+    // only as a hashtag below, not repeated as a separate "کد:" line.
     const trackingCode = advertisementTrackingCode(ad.id);
-    lines.push(`🔑 کد: ${trackingCode}`);
 
     // Hashtags: city + district + tracking code
     const tags: string[] = [];
@@ -186,7 +186,10 @@ export class TelegramListingPublisher {
 
     const domain = this.config.get<string>('DOMAIN');
     if (domain) {
-      lines.push(`🔗 [مشاهده آگهی در وب‌سایت](${domain}/listings/${ad.id})`);
+      const href = this.escapeHtmlAttr(
+        `${this.withScheme(domain)}/listings/${ad.id}`,
+      );
+      lines.push(`🔗 <a href="${href}">مشاهده آگهی در وب‌سایت</a>`);
     }
 
     lines.push(
@@ -201,13 +204,29 @@ export class TelegramListingPublisher {
   }
 
   /**
-   * Legacy Telegram Markdown treats `_ * ` [ ` as formatting control chars.
-   * User-supplied text (title, location, phone) can contain them and would
-   * otherwise leave an unmatched entity, which Telegram rejects with a 400
-   * ("can't parse entities"). Escape them so free-text is rendered literally.
+   * Telegram's HTML parse mode only treats & < > (and quotes in attributes)
+   * specially, unlike legacy Markdown which trips on _ * ` [ in ordinary text
+   * (e.g. an admin handle or title containing "_" would otherwise get eaten
+   * as an unmatched italic marker). Escape the minimal HTML set instead.
    */
-  private escapeMarkdown(text: string): string {
-    return text.replace(/([_*`[])/g, '\\$1');
+  private escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  private escapeHtmlAttr(text: string): string {
+    return this.escapeHtml(text).replace(/"/g, '&quot;');
+  }
+
+  /**
+   * DOMAIN is configured without a scheme (e.g. "novamelk.ir"). Telegram only
+   * renders `<a href>` as a clickable link when the URL has an explicit
+   * http(s) scheme — otherwise it's shown as literal, unlinked text.
+   */
+  private withScheme(domain: string): string {
+    return /^https?:\/\//i.test(domain) ? domain : `https://${domain}`;
   }
 
   /**
