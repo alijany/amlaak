@@ -1,6 +1,6 @@
 'use client';
 
-import { IconBuildingCommunity, IconDashboard, IconHomePlus, IconList, IconNotification, IconPhoneCall, IconSpider, IconUser, IconUsers } from "@tabler/icons-react";
+import { IconBuildingCommunity, IconDashboard, IconHomePlus, IconList, IconNews, IconNotification, IconPhoneCall, IconSpider, IconUser, IconUsers } from "@tabler/icons-react";
 import { Role } from "../auth/auth.constants.roles";
 
 export interface RouteItem {
@@ -21,6 +21,12 @@ export const RouteItems = {
     label: "کاربران",
     roles: [Role.ADMIN],
     icon: <IconUsers className="size-5" />
+  },
+  blog: {
+    href: "/dashboard/blog",
+    label: "وبلاگ",
+    roles: [Role.ADMIN],
+    icon: <IconNews className="size-5" />
   },
   notifications: {
     href: "/dashboard/notifications",
@@ -98,6 +104,7 @@ export const routeGroups: RouteGroup[] = [
       RouteItems.agencies,
       RouteItems.crawler,
       RouteItems.users,
+      RouteItems.blog,
       RouteItems.profile,
       RouteItems.notifications,
     ]

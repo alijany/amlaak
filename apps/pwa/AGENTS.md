@@ -229,9 +229,83 @@ pnpm --filter pwa lint         # ESLint check
 pnpm --filter pwa type-check   # TypeScript check
 ```
 
+## Server-side Data Fetching (RSC / SSR pages)
+
+Public pages that must be crawlable by search engines use React Server Components, not SWR. Use the server-only fetcher:
+
+```typescript
+import { serverFetcher } from '@/libs/api/api.util.server-fetcher';
+
+// In an async Server Component or generateMetadata:
+const data = await serverFetcher<MyType>('/endpoint');
+```
+
+- No auth token is sent — use only for public endpoints.
+- Wraps Next.js `fetch` with `next: { revalidate }` for ISR (default 1 hour).
+- Throws on non-2xx — wrap in `try/catch` and call `notFound()` or return a fallback.
+- For `generateStaticParams`, return `[]` on error so the build doesn't fail if the API is down.
+
+## Rich Text — Slate Editor Molecule (`src/ui/molecules/slate-editor/`)
+
+| Export | Where to use |
+|---|---|
+| `SlateEditor` | Dashboard forms only — import via `dynamic` with `ssr: false` |
+| `SlateRenderer` | Public pages (SSR-safe read-only HTML render) |
+| `slateToHtml(nodes)` | Serialize Slate value to HTML string |
+| `parseSlateValue(raw)` | Deserialize stored JSON string back to `Descendant[]` |
+| `EMPTY_SLATE_VALUE` | Default initial value for a new editor |
+
+The body field is stored as a **JSON string** (`JSON.stringify(Descendant[])`) in the DB and rendered back via `parseSlateValue` + `SlateRenderer` on public pages.
+
+```typescript
+// Dashboard form — dynamic import prevents SSR hydration errors
+const SlateEditor = dynamic(
+  () => import('@/ui/molecules/slate-editor/ui.slate-editor').then((m) => m.SlateEditor),
+  { ssr: false },
+);
+
+// Public page — SSR-safe, no dynamic import needed
+import { SlateRenderer } from '@/ui/molecules/slate-editor/ui.slate-renderer';
+<SlateRenderer content={post.body} />
+```
+
+## SEO on Public Pages
+
+Next.js 15 App Router handles SEO via `metadata` exports and `generateMetadata`.
+
+```typescript
+// Static metadata (listing pages)
+export const metadata: Metadata = {
+  title: 'Blog',
+  alternates: { canonical: '/blog' },
+  openGraph: { type: 'website', ... },
+};
+
+// Dynamic metadata (detail pages)
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const post = await serverFetcher<Post>(`/blog/${params.slug}`);
+  return {
+    title: post.metaTitle || post.title,
+    description: post.metaDescription || post.excerpt,
+    openGraph: { type: 'article', publishedTime: post.publishedAt, ... },
+  };
+}
+```
+
+Inject **JSON-LD structured data** directly in the page JSX:
+```tsx
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ... }) }}
+/>
+```
+
+The dynamic sitemap lives at `src/app/sitemap.ts` and exports a default async function returning `MetadataRoute.Sitemap`.
+
 ## Troubleshooting
 
 - **Hydration errors**: ensure data passed from Server → Client Components is serializable
 - **SWR cache stale**: call `refresh()` from `useSwrHelper` after mutations; pass `onSuccess={refresh}` to forms
 - **Type errors**: import types only from the owning domain — avoid cross-domain type imports
 - **Auth token issues**: clear localStorage and re-login; check JWT expiration settings
+- **Slate SSR errors**: always use `dynamic(..., { ssr: false })` for `SlateEditor`; `SlateRenderer` is SSR-safe

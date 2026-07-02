@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AgencyModule } from './agency/agency.module';
 import { AuthModule } from './auth/auth.module';
+import { BlogModule } from './blog/blog.module';
 import { CityModule } from './city/city.module';
 import { CrawlerModule } from './crawler/crawler.module';
 import { LeadModule } from './lead/lead.module';
@@ -51,6 +52,7 @@ import { S3StorageModule } from './storage/s3-storage.module';
     RealEstateModule,
     LeadModule,
     CityModule,
+    BlogModule,
   ],
 })
 export class AppModule {}

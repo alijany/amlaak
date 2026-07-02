@@ -146,6 +146,21 @@ export class S3StorageService implements OnModuleInit {
     }
   }
 
+  /**
+   * Extracts the S3 key from a full URL and deletes the object.
+   * URL format: {domain}/{bucket}/{key}  e.g. http://host/minio/app-dev/blog-covers/uuid.ext
+   */
+  async deleteByUrl(url: string): Promise<void> {
+    const marker = `/${this.bucketName}/`;
+    const idx = url.indexOf(marker);
+    if (idx === -1) {
+      this.logger.warn(`deleteByUrl: bucket name not found in URL: ${url}`);
+      return;
+    }
+    const key = url.slice(idx + marker.length);
+    await this.deleteObject(key);
+  }
+
   async deleteObject(key: string): Promise<void> {
     try {
       const deleteObjectCommand = new DeleteObjectCommand({
