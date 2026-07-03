@@ -77,6 +77,7 @@ export class CrawlScheduleService
       maxItems: dto.maxItems ?? schedule?.maxItems ?? 24,
       crawlDelayMs: dto.crawlDelayMs ?? schedule?.crawlDelayMs,
       maxScrolls: dto.maxScrolls ?? schedule?.maxScrolls,
+      url: dto.url ?? schedule?.url,
       enabled: dto.enabled ?? schedule?.enabled ?? false,
     };
 
@@ -121,14 +122,15 @@ export class CrawlScheduleService
     });
   }
 
-  /** Build the provider params (politeness/scroll depth) for a scheduled run. */
+  /** Build the provider params (politeness/scroll depth/url) for a scheduled run. */
   private paramsFor(
     schedule: CrawlScheduleEntity,
-  ): Record<string, number> | undefined {
-    const params: Record<string, number> = {};
+  ): Record<string, any> | undefined {
+    const params: Record<string, any> = {};
     if (schedule.crawlDelayMs != null)
       params.crawlDelayMs = schedule.crawlDelayMs;
     if (schedule.maxScrolls != null) params.maxScrolls = schedule.maxScrolls;
+    if (schedule.url != null) params.url = schedule.url;
     return Object.keys(params).length ? params : undefined;
   }
 

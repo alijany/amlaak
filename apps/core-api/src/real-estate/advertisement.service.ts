@@ -32,6 +32,7 @@ import { AdvertisementSource, PublishStatus } from './real-estate.constants';
 
 export interface UpsertResult {
   created: boolean;
+  ad: RealEstateAdvertisementEntity;
 }
 
 /** Attribute keys safe to expose publicly (source contact info is dropped). */
@@ -97,7 +98,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
     if (existing) {
       this.em.assign(existing, { ...fields, city, target, job });
       await this.persistAndFlush(existing);
-      return { created: false };
+      return { created: false, ad: existing };
     }
 
     // Crawled listings are owned by the platform agency (tenant).
@@ -112,7 +113,7 @@ export class AdvertisementService extends BaseRepositoryService<RealEstateAdvert
         : undefined,
     });
     await this.persistAndFlush(entity);
-    return { created: true };
+    return { created: true, ad: entity };
   }
 
   /** Paginated, filterable list for the dashboard data view. */

@@ -31,10 +31,14 @@ export function RunCrawlModal({
   const [maxItems, setMaxItems] = useState('12');
   const [maxScrolls, setMaxScrolls] = useState('25');
   const [crawlDelayMs, setCrawlDelayMs] = useState('');
+  const [customUrl, setCustomUrl] = useState('');
   const [hint, setHint] = useState<string | undefined>();
 
   useEffect(() => {
-    if (isOpen) setHint(undefined);
+    if (isOpen) {
+      setHint(undefined);
+      setCustomUrl('');
+    }
   }, [isOpen]);
 
   const run = async () => {
@@ -46,6 +50,7 @@ export function RunCrawlModal({
         params: {
           maxScrolls: Number(maxScrolls) || 25,
           ...(crawlDelayMs ? { crawlDelayMs: Number(crawlDelayMs) } : {}),
+          ...(customUrl.trim() ? { url: customUrl.trim() } : {}),
         },
       });
       setHint('کراول در صف اجرا قرار گرفت.');
@@ -106,6 +111,24 @@ export function RunCrawlModal({
             placeholder="پیش‌فرض"
             min={0}
           />
+        </div>
+
+        <div className="space-y-2">
+          <label className="font-medium text-slate-700 text-sm block">
+            URL فیلتر‌شده (اختیاری)
+          </label>
+          <textarea
+            value={customUrl}
+            onChange={(e) => setCustomUrl(e.target.value)}
+            placeholder="https://divar.ir/s/gilan-province/real-estate?cities=826"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 resize-none"
+            rows={2}
+          />
+          <p className="text-[11px] text-slate-400">
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            URL پیش‌فیلتر‌شده Divar (مثلاً شهر یا دسته‌بندی محدود). درصورت ارائه،
+            صفحهٔ فیلتر شده را جای صفحهٔ پیش‌فرض استفاده می‌کند.
+          </p>
         </div>
 
         <div className="text-[11px] text-slate-400 leading-5">

@@ -41,6 +41,10 @@ export class CrawlScheduleEntity extends BaseEntity {
   @Property({ nullable: true })
   maxScrolls?: number;
 
+  /** Divar URL for SINGLE_AD job type (detail page or pre-filtered listing). */
+  @Property({ type: 'text', nullable: true })
+  url?: string;
+
   @Property({ type: 'timestamp', nullable: true })
   lastRunAt?: Date;
 

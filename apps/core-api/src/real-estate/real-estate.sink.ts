@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { CrawlJobType } from '../crawler/crawler.constants';
 import { CrawlTargetEntity } from '../crawler/targets/crawl-target.entity';
 import { RawCrawlItem } from '../crawler/providers/crawler-provider.interface';
 import {
@@ -11,6 +12,7 @@ import { buildCrawlEndedMessage } from '../notification/admin-notification';
 import { NotificationService } from '../notification/services/notification.service';
 import { AdvertisementImageService } from './advertisement-image.service';
 import { AdvertisementService } from './advertisement.service';
+import { ListingModerationService } from './listing-moderation.service';
 import {
   NormalizationService,
   NormalizedAdvertisement,
@@ -34,6 +36,7 @@ export class RealEstateSink implements CrawlResultSink {
     private readonly advertisements: AdvertisementService,
     private readonly images: AdvertisementImageService,
     private readonly notifications: NotificationService,
+    private readonly moderation: ListingModerationService,
     private readonly config: ConfigService,
   ) {}
 
@@ -42,18 +45,23 @@ export class RealEstateSink implements CrawlResultSink {
     ctx: CrawlSinkContext,
   ): Promise<CrawlSinkResult> {
     const result: CrawlSinkResult = { created: 0, updated: 0, skipped: 0 };
+    const createdAds: Array<{ id: number }> = [];
 
     for (const item of items) {
       try {
         const normalized = this.normalization.extract(item as RawAdvertisement);
         await this.applyImages(ctx.target, normalized);
-        const { created } = await this.advertisements.upsert(
+        const upserted = await this.advertisements.upsert(
           ctx.target,
           ctx.job,
           normalized,
         );
-        if (created) result.created++;
-        else result.updated++;
+        if (upserted.created) {
+          result.created++;
+          createdAds.push(upserted.ad);
+        } else {
+          result.updated++;
+        }
       } catch (err: any) {
         result.skipped++;
         this.logger.warn(
@@ -62,8 +70,21 @@ export class RealEstateSink implements CrawlResultSink {
       }
     }
 
+    // Auto-publish SINGLE_AD crawls to Telegram (best-effort, never blocks crawl)
+    if (ctx.job.type === CrawlJobType.SINGLE_AD && createdAds.length > 0) {
+      for (const ad of createdAds) {
+        try {
+          await this.moderation.approve(ad.id);
+        } catch (err: any) {
+          this.logger.warn(
+            `Failed to auto-publish ad ${ad.id}: ${err?.message ?? err}`,
+          );
+        }
+      }
+    }
+
     // Alert operators when a crawl produced new ads that need confirmation.
-    if (result.created > 0) {
+    if (result.created > 0 && ctx.job.type !== CrawlJobType.SINGLE_AD) {
       await this.notifyAdminsOfCrawl(ctx.target, result);
     }
 

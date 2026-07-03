@@ -41,6 +41,11 @@ export class UpsertCrawlScheduleDto {
   @Max(50)
   maxScrolls?: number;
 
+  /** Divar URL for SINGLE_AD job type (detail page or pre-filtered listing). */
+  @IsOptional()
+  @IsString()
+  url?: string;
+
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;

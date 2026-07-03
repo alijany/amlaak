@@ -7,6 +7,11 @@ export class CreateCrawlJobDto {
   @IsOptional()
   type?: CrawlJobType;
 
+  /**
+   * Provider-specific job parameters. For SINGLE_AD jobs on Divar:
+   *   { url: "https://divar.ir/v/..." } — crawl a specific ad detail page
+   *   { url: "https://divar.ir/s/...?cities=..." } — crawl a pre-filtered listing
+   */
   @IsObject()
   @IsOptional()
   params?: Record<string, any>;

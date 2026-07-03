@@ -104,6 +104,7 @@ export interface CrawlSchedule {
   maxItems: number;
   crawlDelayMs?: number;
   maxScrolls?: number;
+  url?: string;
   lastRunAt?: string;
   lastJobId?: number;
   nextRunAt?: string;
@@ -116,6 +117,7 @@ export interface UpsertScheduleDto {
   maxItems?: number;
   crawlDelayMs?: number;
   maxScrolls?: number;
+  url?: string;
   enabled?: boolean;
 }
 

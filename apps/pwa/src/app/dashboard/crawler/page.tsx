@@ -4,15 +4,19 @@ import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protec
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { DataView } from '@/ui/molecules';
-import { IconRefresh } from '@tabler/icons-react';
+import { IconRefresh, IconLink } from '@tabler/icons-react';
 import { Button } from '@/ui/atoms';
+import { useState } from 'react';
 import { useCrawlTargets } from './crawler.api';
 import { BrowserStatus } from './crawler.component.browser-status';
 import { JobList } from './crawler.component.job-list';
 import { TargetCard } from './crawler.component.target-card';
+import { UrlCrawlModal } from './crawler.component.url-crawl-modal';
 
 export default function CrawlerPage() {
   const { data, error, isLoading, refresh } = useCrawlTargets();
+  const [urlCrawlOpen, setUrlCrawlOpen] = useState(false);
+  const divarTarget = data?.items?.find((t) => t.siteKey === 'divar');
 
   return (
     <RoleProtectedRoute allowedRoles={RouteItems.crawler.roles}>
@@ -27,6 +31,16 @@ export default function CrawlerPage() {
             </div>
             <div className="flex items-center gap-3">
               <BrowserStatus />
+              {divarTarget && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUrlCrawlOpen(true)}
+                >
+                  <IconLink className="size-4 ml-1" />
+                  کراول URL
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={refresh}>
                 <IconRefresh className="size-4 ml-1" />
                 بروزرسانی
@@ -57,6 +71,15 @@ export default function CrawlerPage() {
             </div>
           </div>
         </div>
+
+        {divarTarget && (
+          <UrlCrawlModal
+            target={divarTarget}
+            isOpen={urlCrawlOpen}
+            onClose={() => setUrlCrawlOpen(false)}
+            onChanged={refresh}
+          />
+        )}
       </DashbaordLayout>
     </RoleProtectedRoute>
   );

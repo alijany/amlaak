@@ -63,7 +63,11 @@ export class DivarCrawlerProvider implements CrawlerProvider {
     siteKey: SiteKey.DIVAR,
     displayName: 'Divar (real-estate)',
     requiresAuth: true,
-    supportedJobTypes: [CrawlJobType.FULL_SCAN, CrawlJobType.INCREMENTAL],
+    supportedJobTypes: [
+      CrawlJobType.FULL_SCAN,
+      CrawlJobType.INCREMENTAL,
+      CrawlJobType.SINGLE_AD,
+    ],
   };
 
   /** Max scroll iterations before giving up on loading more cards. */
@@ -84,9 +88,12 @@ export class DivarCrawlerProvider implements CrawlerProvider {
     const maxItems = Math.max(1, Math.min(ctx.maxItems ?? 12, 60));
     const sessionId = `target-${ctx.targetId}`;
 
+    // Use custom URL if provided, otherwise use baseUrl
+    const startUrl = ctx.params?.url ? (ctx.params.url as string) : ctx.baseUrl;
+
     const tab = await this.browser.createTab({
       sessionId,
-      url: ctx.baseUrl,
+      url: startUrl,
     });
 
     const maxScrolls = Math.max(
@@ -96,6 +103,28 @@ export class DivarCrawlerProvider implements CrawlerProvider {
 
     try {
       await this.sleep(3500);
+
+      // For single-ad detail pages (/v/...), scrape just that one ad
+      const isDetailPage = startUrl.includes('/v/');
+      if (isDetailPage) {
+        this.logger.log(`Divar: crawling single ad detail page.`);
+        // Extract a synthetic card from the detail page URL for buildAd() to process
+        const urlMatch = /\/v\/([^/?]+)\/([^/?]+)/.exec(startUrl);
+        if (!urlMatch) {
+          throw new Error(`Invalid Divar detail URL: ${startUrl}`);
+        }
+        const token = urlMatch[2];
+        const card: DivarListingCard = {
+          token,
+          sourceUrl: startUrl,
+          title: 'Ad from URL',
+          metaText: '',
+        };
+        const ad = await this.buildAd(tab.id, card);
+        return [ad];
+      }
+
+      // For listing pages, use normal flow (close map, collect cards, scrape details)
       await this.closeMapIfPresent(tab.id);
 
       const cards = await this.collectCards(tab.id, maxItems, maxScrolls);

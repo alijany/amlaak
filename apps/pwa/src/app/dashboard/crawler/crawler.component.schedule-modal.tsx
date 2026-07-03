@@ -20,6 +20,7 @@ interface ScheduleModalProps {
   onChanged?: () => void;
 }
 
+
 const CRON_PRESETS: { label: string; value: string }[] = [
   { label: 'هر ساعت', value: '0 * * * *' },
   { label: 'هر ۶ ساعت', value: '0 */6 * * *' },
@@ -49,6 +50,7 @@ export function ScheduleModal({
   const [maxItems, setMaxItems] = useState('24');
   const [maxScrolls, setMaxScrolls] = useState('');
   const [crawlDelayMs, setCrawlDelayMs] = useState('');
+  const [url, setUrl] = useState('');
   const [hint, setHint] = useState<string | undefined>();
 
   // Hydrate the form from the loaded schedule (once per open / data change).
@@ -63,6 +65,7 @@ export function ScheduleModal({
       setMaxItems(String(data.maxItems));
       setMaxScrolls(data.maxScrolls != null ? String(data.maxScrolls) : '');
       setCrawlDelayMs(data.crawlDelayMs != null ? String(data.crawlDelayMs) : '');
+      setUrl(data.url ?? '');
     }
   }, [isOpen, data]);
 
@@ -76,6 +79,7 @@ export function ScheduleModal({
         maxItems: Number(maxItems) || 24,
         maxScrolls: maxScrolls ? Number(maxScrolls) : undefined,
         crawlDelayMs: crawlDelayMs ? Number(crawlDelayMs) : undefined,
+        url: url.trim() || undefined,
         enabled,
       });
       setHint('زمان‌بندی ذخیره شد.');
@@ -199,6 +203,24 @@ export function ScheduleModal({
             placeholder="پیش‌فرض"
             min={0}
           />
+        </div>
+
+        <div className="space-y-2">
+          <label className="font-medium text-slate-700 text-sm block">
+            URL فیلتر‌شده (اختیاری)
+          </label>
+          <textarea
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://divar.ir/s/gilan-province/real-estate?cities=826"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 resize-none"
+            rows={2}
+          />
+          <p className="text-[11px] text-slate-400">
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            URL پیش‌فیلتر‌شده Divar (مثلاً شهر یا دسته‌بندی محدود). درصورت ارائه،
+            صفحهٔ فیلتر شده را جای صفحهٔ پیش‌فرض استفاده می‌کند.
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-500 rounded-xl bg-slate-50 px-4 py-3">
