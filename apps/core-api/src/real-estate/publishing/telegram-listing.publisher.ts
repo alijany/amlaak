@@ -146,6 +146,9 @@ export class TelegramListingPublisher {
       n == null ? undefined : n.toLocaleString('fa-IR');
     const lines: string[] = [];
 
+    const trackingCode = advertisementTrackingCode(ad.id);
+    lines.push(`#${trackingCode}`);
+
     lines.push(`<b>${this.escapeHtml(ad.title ?? 'آگهی ملک')}</b>`);
 
     const loc = [ad.province, ad.city?.nameFa, ad.district]
@@ -160,45 +163,28 @@ export class TelegramListingPublisher {
     if (ad.deposit != null) lines.push(`💵 ودیعه: ${fa(ad.deposit)} تومان`);
     if (ad.rent != null) lines.push(`🗓️ اجاره: ${fa(ad.rent)} تومان`);
 
-    const specs = [
-      ad.area != null ? `${fa(ad.area)} متر` : undefined,
-      ad.rooms != null ? `${fa(ad.rooms)} خواب` : undefined,
-      ad.yearBuilt != null ? `ساخت ${fa(ad.yearBuilt)}` : undefined,
-    ].filter(Boolean);
-    if (specs.length) lines.push(`📐 ${specs.join(' · ')}`);
+    if (ad.area != null) lines.push(`📐 ${fa(ad.area)} متر`);
 
     const contactPhone = ad.agency?.isPlatform
       ? this.config.get<string>('CONTACT_PHONE')
       : ad.agency?.phone;
-    if (contactPhone) lines.push(`📞 ${this.escapeHtml(contactPhone)}`);
+    if (contactPhone) {
+      lines.push('');
+      lines.push('📞تماس با ادمین:');
+      lines.push(this.escapeHtml(contactPhone));
+    }
 
-    // Numeric-only so it doubles cleanly as a hashtag (e.g. #12345). Uses the
-    // same margin-offset code as the lookup endpoint, not the raw ad id. Shown
-    // only as a hashtag below, not repeated as a separate "کد:" line.
-    const trackingCode = advertisementTrackingCode(ad.id);
-
-    // Hashtags: city + district + tracking code
-    const tags: string[] = [];
-    if (ad.city?.nameFa) tags.push(`#${this.sanitizeHashtag(ad.city.nameFa)}`);
-    if (ad.district) tags.push(`#${this.sanitizeHashtag(ad.district)}`);
-    tags.push(`#${trackingCode}`);
-    lines.push(tags.join(' '));
+    lines.push('', '👩🏻‍💻ارتباط با ادمین:', '@rinko_admin');
 
     const domain = this.config.get<string>('DOMAIN');
     if (domain) {
       const href = this.escapeHtmlAttr(
         `${this.withScheme(domain)}/listings/${ad.id}`,
       );
-      lines.push(`🔗 <a href="${href}">مشاهده آگهی در وب‌سایت</a>`);
+      lines.push('', `🔗 <a href="${href}">مشاهده آگهی در وب‌سایت</a>`);
     }
 
-    lines.push(
-      '',
-      '👩🏻‍💻ارتباط با ادمین:',
-      '@rinko_admin',
-      '',
-      '❗️برای استعلام ملک لطفا به کد درج شده در متن توجه کنید.',
-    );
+    lines.push('', '❗️برای استعلام ملک لطفا به کد درج شده در متن توجه کنید.');
 
     return { text: lines.join('\n') };
   }
@@ -227,17 +213,5 @@ export class TelegramListingPublisher {
    */
   private withScheme(domain: string): string {
     return /^https?:\/\//i.test(domain) ? domain : `https://${domain}`;
-  }
-
-  /**
-   * Telegram hashtags only recognize contiguous word characters, so anything
-   * else (spaces, punctuation) breaks the tag or merges it with following
-   * text. Strip to letters/digits/underscore and collapse whitespace to `_`.
-   */
-  private sanitizeHashtag(text: string): string {
-    return text
-      .trim()
-      .replace(/\s+/g, '_')
-      .replace(/[^\p{L}\p{N}_]/gu, '');
   }
 }
