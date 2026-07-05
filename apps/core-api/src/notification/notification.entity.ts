@@ -18,6 +18,9 @@ export class NotificationEntity extends BaseEntity {
   @Property({ nullable: true, type: types.bigint })
   recipientChatId?: number;
 
+  @Property({ nullable: true, type: types.bigint })
+  topicId?: number;
+
   @Enum({ items: () => NotificationType })
   type: NotificationType;
 

@@ -68,6 +68,7 @@ export class NotificationDispatcherService {
         message: channel.message || request.message,
         recipientPhone: channel.recipientPhone,
         recipientChatId: channel.recipientChatId,
+        topicId: channel.topicId,
         link: request.link,
         metadata: request.metadata || {},
         priority: request.priority || 'normal',
@@ -230,6 +231,7 @@ export class NotificationDispatcherService {
     recipientPhone?: string;
     link?: string;
     recipientChatId?: number;
+    topicId?: number;
     metadata: Record<string, any>;
     priority: 'low' | 'normal' | 'high';
   }): Promise<NotificationEntity> {

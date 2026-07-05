@@ -40,13 +40,19 @@ export class TelegramNotificationChannel extends BaseNotificationChannel {
       throw new Error(`No bot token configured for ${notification.type}`);
     }
 
+    const payload: any = {
+      chat_id: notification.recipientChatId,
+      text: notification.message,
+      parse_mode: 'Markdown',
+    };
+
+    if (notification.topicId) {
+      payload.message_thread_id = notification.topicId;
+    }
+
     await axios.post(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
-      {
-        chat_id: notification.recipientChatId,
-        text: notification.message,
-        parse_mode: 'Markdown',
-      },
+      payload,
       telegramRequestConfig(this.configService),
     );
   }

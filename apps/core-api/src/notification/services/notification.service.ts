@@ -98,6 +98,7 @@ export class NotificationService {
    * and never throws, so callers can fire it without guarding the action.
    * Unlike {@link sendToAdmins} this does not depend on each admin having linked
    * a personal Telegram chatId — it targets one operator-managed chat.
+   * Optionally sends to a specific topic if TELEGRAM_ADMIN_TOPIC_ID is configured.
    */
   async notifyAdmins(
     message: string,
@@ -114,12 +115,14 @@ export class NotificationService {
       return [];
     }
     try {
+      const adminTopicId = this.config.get<number>('TELEGRAM_ADMIN_TOPIC_ID');
       return await this.sendToChannels(
         message,
         [
           {
             type: NotificationType.TELEGRAM_BOT,
             recipientChatId: adminChatId,
+            topicId: adminTopicId,
           },
         ],
         {

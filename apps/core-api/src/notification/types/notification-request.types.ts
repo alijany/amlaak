@@ -42,6 +42,7 @@ export interface NotificationChannelRequest {
   type: NotificationType;
   recipientPhone?: string;
   recipientChatId?: number;
+  topicId?: number; // Optional Telegram topic/thread ID
   message?: string; // Optional override for channel-specific message
 }
 
