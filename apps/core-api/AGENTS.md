@@ -117,7 +117,9 @@ pnpm --filter core-api build      # compile to dist/
 pnpm --filter core-api lint       # ESLint check
 ```
 
-Tests are currently unstable — use `lint` + `build` as the verification loop.
+Tests are currently unstable. Use `lint` as the normal verification loop; run a
+focused test when relevant. Run `build` for build/runtime configuration changes
+or when explicitly requested.
 
 ## API
 

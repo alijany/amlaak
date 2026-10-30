@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "bash",
+      "args": [".devcontainer/playwright-mcp.sh", "--headless"],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright"
+      }
+    }
+  }
+}

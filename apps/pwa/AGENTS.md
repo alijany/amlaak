@@ -16,6 +16,7 @@ src/
   components/     Shared components used across 2+ domains
     auth/         Authentication system (global by design)
     dashboard/    Dashboard shell (navbar, sidebar, layout)
+    layout/       Public-page shell (navbar, footer)
   ui/             Design system
     atoms/        Primitive components (Button, Input, Modal…)
     molecules/    Composite components (DataView, Pagination, Tabs…)
@@ -27,6 +28,11 @@ src/
 ```
 
 Domain-local code stays inside `src/app/<domain>/`. Only move code to `src/libs/` or `src/components/` when it is used by two or more domains.
+
+### Shared layouts
+
+- `components/layout/` — public-facing pages: `RootLayout` wraps content with a sticky glassmorphism `Navbar` (transparent variant available) and a `Footer`. The navbar shows a "start free" CTA for guests and a "dashboard" link for authenticated users.
+- `components/dashboard/` — authenticated area: `DashbaordLayout` (the export's spelling) provides a top `Navbar`, a collapsible `Sidebar` (desktop only), and a `BottomNavBar` (mobile only). Navigation items in `dashboard.constants.route-groups.tsx` are filtered at render time by the user's selected role. Add new dashboard routes there.
 
 ## File Naming Convention
 
@@ -211,14 +217,18 @@ export function MyComponent() {
 
 ### Role System
 
-```typescript
-export enum Role {
-  ADMIN = 'admin',
-  USER = 'user',
-  MODERATOR = 'moderator',
-  GUEST = 'guest',
-}
-```
+Roles live in `src/components/auth/auth.constants.roles.ts` and follow a strict hierarchy (higher = more access):
+
+| Role | Level | Notes |
+|---|---|---|
+| `admin` | 5 | Full access; sees the Users management route |
+| `owner` | 4 | Organization owner |
+| `manager` | 3 | |
+| `member` | 2 | |
+| `user` | 1 | |
+| `guest` | 0 | Lowest privilege |
+
+A user may hold multiple roles (one per organization). The active role is chosen in the sidebar dropdown, and route visibility and guards are evaluated against `selectedRole` from `useAuth()`. Use `hasPermission(userRole, requiredRole)` for hierarchy checks, and pass a `roles` array to a `RouteItem` in `dashboard.constants.route-groups.tsx` to restrict a sidebar link.
 
 ## Commands
 
@@ -228,6 +238,30 @@ pnpm --filter pwa build        # production build
 pnpm --filter pwa lint         # ESLint check
 pnpm --filter pwa type-check   # TypeScript check
 ```
+
+## Runtime and browser validation
+
+Follow the repository-root `.devcontainer/README.md`; it owns the runtime,
+Playwright, login, and container-network procedures. For UI or journey changes,
+linting and HTTP status checks are necessary but not sufficient:
+
+1. Start `pnpm dev:back` when the page reads API data, then `pnpm dev:front`.
+2. Load the changed route through nginx on `http://127.0.0.1/` and verify its
+   relevant `/api/v1/` request independently.
+3. Open the route with the Playwright MCP server (`browser_navigate` to
+   `http://127.0.0.1/…`), inspect the accessibility snapshot
+   (`browser_snapshot`), and capture a screenshot (`browser_take_screenshot`)
+   for visual review.
+4. Exercise the changed interaction and important loading, empty, error, and
+   success states when they are part of the change (`browser_click`,
+   `browser_type`, then re-snapshot).
+5. Check mobile and desktop widths when layout can differ (the dashboard swaps
+   the sidebar for a bottom bar on mobile), then close the tab
+   (`browser_close`).
+
+For dashboard or admin-only routes, sign in with the OTP flow in
+`.devcontainer/README.md`; never add an auth bypass for validation. Playwright
+is the default browser path for frontend QA here.
 
 ## Troubleshooting
 

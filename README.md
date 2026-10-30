@@ -71,6 +71,29 @@ Telegram notification steps are included in `.drone.yml` but commented out — a
 
 See [SETUP.md](SETUP.md) for the full first-run checklist.
 
+## Working with coding agents
+
+[AGENTS.md](AGENTS.md) is the canonical agent guide: repository map, exact
+verification commands, documentation routing, and durable project rules. Codex
+reads it directly; `CLAUDE.md` only imports it for Claude Code and should not
+duplicate project instructions. More specific guidance lives beside the code:
+
+- [Core API agent guide](apps/core-api/AGENTS.md)
+- [PWA agent guide](apps/pwa/AGENTS.md)
+- [Scripts agent guide](scripts/AGENTS.md)
+- [Devcontainer runtime validation](.devcontainer/README.md) — app startup,
+  Playwright browser checks, and OTP login
+
+Repeatable ways of working are skills in [.claude/skills/](.claude/skills/):
+`/task`, `/fix`, `/write-brief`, `/design-ux-ui-copy`, `/seo`, and
+`/agent-harness-review`. [docs/README.md](docs/README.md) maps when to use each
+and which document owns each kind of decision; approved hand-offs are queued in
+[docs/tasks/](docs/tasks/README.md).
+
+Agents validate UI through the Playwright MCP server declared in `.mcp.json`
+(and `.codex/config.toml`). Its Chromium is baked into the devcontainer image;
+if the server is missing, rebuild the container rather than installing a browser.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, coding standards, and commit guidelines.
