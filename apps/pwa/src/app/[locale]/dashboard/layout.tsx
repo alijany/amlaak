@@ -1,5 +1,6 @@
 import { locales, ROOT_CLIENT_NAMESPACES } from '@/i18n/i18n.config';
 import { routing } from '@/i18n/i18n.routing';
+import type { Metadata } from 'next';
 import pick from 'lodash/pick';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -19,6 +20,17 @@ import { notFound } from 'next/navigation';
  * Add domain namespaces the same way — either here, or in a layout further
  * down if the strings belong to a single domain.
  */
+
+/**
+ * The dashboard is an application surface, not an acquisition page. Metadata
+ * merges down, so this one directive covers every route below it. `noindex`
+ * rather than a robots.txt disallow: a disallow only stops crawling, so a
+ * `/dashboard/...` URL found through an inbound link could still be indexed.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
