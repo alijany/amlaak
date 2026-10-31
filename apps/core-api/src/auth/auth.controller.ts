@@ -71,6 +71,7 @@ export class AuthController {
   }
 
   @Patch('profile/phone')
+  @UseGuards(JwtAuthGuard)
   async updatePhoneNumber(
     @CurrentUser() user: UserEntity,
     @Body(...formPipes) updatePhoneDto: UpdatePhoneDto,
