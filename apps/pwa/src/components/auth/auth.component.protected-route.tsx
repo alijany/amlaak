@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth.context.provider';
+import { usePathname, useRouter } from '@/i18n/i18n.navigation';
 import { Spinner } from '@/ui/atoms/ui.atoms.spinner';
 
 interface ProtectedRouteProps {
@@ -16,7 +16,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated && pathname !== '/login') {
-            // Redirect to login with current URL as redirect param
+            // Redirect to login with current URL as redirect param. `pathname`
+            // has no locale prefix, so the login page's locale-aware router
+            // can send the user back without doubling it.
             const currentUrl = `${pathname}${window.location.search}`;
             const redirectUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`;
             router.push(redirectUrl);

@@ -4,6 +4,7 @@ import { RoleProtectedRoute } from '@/components/auth/auth.component.role-protec
 import { RouteItems } from '@/components/dashboard/dashboard.constants.route-groups';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { DataView, Pagination } from '@/ui/molecules';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useUsers } from './users.api';
 import { AddUserForm } from './users.component.add-user';
@@ -11,6 +12,7 @@ import { UserFilterDto } from './users.types';
 
 export default function UsersPage() {
     const [filters, setFilters] = useState<UserFilterDto>({});
+    const t = useTranslations('dashboard');
 
     const { data, error, isLoading, refresh } = useUsers(filters);
 
@@ -23,7 +25,7 @@ export default function UsersPage() {
             <DashbaordLayout>
                 <div className='space-y-3 grow flex flex-col overflow-hidden'>
                     <div className='p-4 rounded-2xl bg-white flex items-center gap-4 justify-between'>
-                        <div className='font-bold grow'>مدیریت کاربران</div>
+                        <div className='font-bold grow'>{t('users.title')}</div>
                         <div>
                             <AddUserForm onSuccess={refresh} />
                         </div>
@@ -34,7 +36,7 @@ export default function UsersPage() {
                             error={error}
                             isLoading={isLoading}
                             className='overflow-auto flex flex-col gap-4'
-                            emptyMessage='هیچ کاربری در آژانس شما وجود ندارد'
+                            emptyMessage={t('users.empty')}
                             isEmpty={(data) => !data?.items.length}
                             onRetry={refresh}
                         >
@@ -44,8 +46,8 @@ export default function UsersPage() {
                                     className="px-3 py-2.5 rounded-2xl border border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-4 items-center"
                                 >
                                     <div className="space-y-1">
-                                        <h3 className="text-slate-400">{user.name ?? 'بدون نام'}</h3>
-                                        <div className="font-semibold text-slate-500">{user.phone ?? 'بدون شماره'}</div>
+                                        <h3 className="text-slate-400">{user.name ?? t('users.noName')}</h3>
+                                        <div className="font-semibold text-slate-500">{user.phone ?? t('users.noPhone')}</div>
                                     </div>
 
                                     <div className='flex items-center flex-wrap justify-end gap-2'>
@@ -54,7 +56,7 @@ export default function UsersPage() {
                                                 key={role}
                                                 className="px-2 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold"
                                             >
-                                                {role}
+                                                {t(`roles.${role}`)}
                                             </div>
                                         ))}
                                     </div>

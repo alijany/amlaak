@@ -1,15 +1,16 @@
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager'; // Import Cache
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import crypto from 'crypto';
 import parsePhoneNumberFromString from 'libphonenumber-js';
+import {
+  CodedBadRequestException,
+  CodedInternalServerErrorException,
+  CodedUnauthorizedException,
+} from 'src/libs/error/error.exception.coded';
+import { AppLocale } from 'src/libs/i18n/i18n.constants';
+import { renderSms, SmsTemplate } from 'src/libs/i18n/i18n.templates.sms';
 import { Role } from 'src/roles/roles.constants';
 import { InvitationStatus } from 'src/roles/roles.entity';
 import { SmsService } from 'src/sms/sms.service';
@@ -69,12 +70,18 @@ export class AuthService {
       }) as RefreshJwtPayload;
 
       if (payload.type !== 'refresh') {
-        throw new UnauthorizedException('Invalid token type');
+        throw new CodedUnauthorizedException(
+          'auth.token.invalid_type',
+          'Invalid token type',
+        );
       }
 
       return payload;
     } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new CodedUnauthorizedException(
+        'auth.token.invalid_refresh',
+        'Invalid refresh token',
+      );
     }
   }
 
@@ -101,7 +108,10 @@ export class AuthService {
     );
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new CodedUnauthorizedException(
+        'auth.user.not_found',
+        'User not found',
+      );
     }
 
     // Generate new tokens
@@ -125,7 +135,7 @@ export class AuthService {
    */
   generateOtp(length = 6) {
     if (length <= 0) {
-      throw new Error('طول رمز یکبار مصرف باید یک عدد صحیح مثبت باشد.');
+      throw new Error('OTP length must be a positive integer.');
     }
     // Calculate the minimum and maximum values for the desired length
     // e.g., for length 6, min = 100000, max = 999999
@@ -143,12 +153,19 @@ export class AuthService {
   /**
    * Send OTP for login/registration
    * Charges the user themselves (if they exist)
+   *
+   * `locale` is what the client negotiated for this visit. The SMS is the one
+   * message the backend writes itself, and this call is the only moment the
+   * sender's language is known, so it is used here and not stored.
    */
-  async sendOtp(phoneNumber: string) {
+  async sendOtp(phoneNumber: string, locale?: AppLocale) {
     const validatedPhone = parsePhoneNumberFromString(phoneNumber, 'IR');
 
     if (!validatedPhone?.isValid()) {
-      throw new BadRequestException('فرمت شماره تلفن نامعتبر است.');
+      throw new CodedBadRequestException(
+        'auth.phone.invalid_format',
+        'Phone number format is invalid.',
+      );
     }
     const cacheKey = `otp:${validatedPhone.number}`;
     const otp = this.generateOtp(+this.configService.get('OTP_LENGTH', 4));
@@ -163,7 +180,7 @@ export class AuthService {
       }
 
       const result = await this.smsService.sendSms(
-        `رمز یکبار مصرف شما: ${otp}`,
+        renderSms(SmsTemplate.OTP, locale, { otp }),
         validatedPhone.nationalNumber,
       );
 
@@ -172,8 +189,9 @@ export class AuthService {
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
-      throw new InternalServerErrorException(
-        'ارسال رمز یکبار مصرف ناموفق بود.',
+      throw new CodedInternalServerErrorException(
+        'auth.otp.send_failed',
+        'Could not send the one-time password.',
       );
     }
   }
@@ -188,11 +206,17 @@ export class AuthService {
     const storedOtp = await this.cacheManager.get<string>(cacheKey);
 
     if (!storedOtp) {
-      throw new BadRequestException('رمز یکبار مصرف منقضی شده یا یافت نشد.');
+      throw new CodedBadRequestException(
+        'auth.otp.expired',
+        'The one-time password has expired or was not found.',
+      );
     }
 
     if (storedOtp !== otp) {
-      throw new BadRequestException('رمز یکبار مصرف نامعتبر است.');
+      throw new CodedBadRequestException(
+        'auth.otp.invalid',
+        'The one-time password is invalid.',
+      );
     }
 
     // OTP is valid, remove it from cache
@@ -252,7 +276,10 @@ export class AuthService {
   ): Promise<boolean> {
     const validatedPhone = parsePhoneNumberFromString(phoneNumber, 'IR');
     if (!validatedPhone?.isValid()) {
-      throw new BadRequestException('فرمت شماره تلفن نامعتبر است.');
+      throw new CodedBadRequestException(
+        'auth.phone.invalid_format',
+        'Phone number format is invalid.',
+      );
     }
 
     const cacheKey = `otp:${validatedPhone.number}`;
@@ -272,18 +299,27 @@ export class AuthService {
   }> {
     const validatedPhone = parsePhoneNumberFromString(phoneNumber, 'IR');
     if (!validatedPhone?.isValid()) {
-      throw new BadRequestException('فرمت شماره تلفن نامعتبر است.');
+      throw new CodedBadRequestException(
+        'auth.phone.invalid_format',
+        'Phone number format is invalid.',
+      );
     }
 
     const cacheKey = `otp:${validatedPhone.number}`;
     const storedOtp = await this.cacheManager.get<string>(cacheKey);
 
     if (!storedOtp) {
-      throw new UnauthorizedException('رمز یکبار مصرف منقضی شده یا یافت نشد.');
+      throw new CodedUnauthorizedException(
+        'auth.otp.expired',
+        'The one-time password has expired or was not found.',
+      );
     }
 
     if (storedOtp !== otp) {
-      throw new UnauthorizedException('رمز یکبار مصرف نامعتبر است.');
+      throw new CodedUnauthorizedException(
+        'auth.otp.invalid',
+        'The one-time password is invalid.',
+      );
     }
 
     // OTP is valid, remove it from cache
@@ -315,8 +351,9 @@ export class AuthService {
         isNewUser = true;
       } catch (error) {
         console.error('Error creating user during OTP verification:', error);
-        throw new InternalServerErrorException(
-          'پردازش حساب کاربری ناموفق بود.',
+        throw new CodedInternalServerErrorException(
+          'auth.account.processing_failed',
+          'Could not process the user account.',
         );
       }
     }

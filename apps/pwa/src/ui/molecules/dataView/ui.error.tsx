@@ -1,5 +1,6 @@
 import { cn } from "@/libs/style/style.util.helpers";
 import { IconAlertTriangle } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { HTMLAttributes } from "react";
 import { Button } from "../../atoms/ui.button";
 import { Card, CardContent } from "../../atoms/ui.card";
@@ -11,19 +12,21 @@ interface ErrorProps extends HTMLAttributes<HTMLDivElement> {
     variant?: "card" | "inline";
     showBackButton?: boolean;
     onRetry?: () => void;
+    retryText?: string;
 }
 
 export function Error({
     children,
-    title = "اوه نه!",
-    message = "مشکلی پیش آمد. لطفا دوباره تلاش کنید.",
+    title,
+    message,
     className,
     variant = "card",
     showBackButton = false,
     onRetry,
+    retryText,
     ...props
 }: ErrorProps) {
-    // const router = useRouter();
+    const t = useTranslations('common.dataView');
 
     const content = (
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -31,21 +34,21 @@ export function Error({
 
             <div className="space-y-2">
                 <h3 className="text-lg font-medium text-foreground">
-                    {title}
+                    {title ?? t('errorTitle')}
                 </h3>
-                <p className="text-muted-foreground">{message}</p>
+                <p className="text-muted-foreground">{message ?? t('errorMessage')}</p>
             </div>
 
             <div className="flex gap-2">
                 {showBackButton && (
                     <Button variant="outline" onClick={() => { }}>
-                        بازگشت
+                        {t('back')}
                     </Button>
                 )}
 
                 {onRetry && (
                     <Button size="sm" onClick={onRetry}>
-                        تلاش مجدد
+                        {retryText ?? t('retry')}
                     </Button>
                 )}
             </div>

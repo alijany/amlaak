@@ -35,16 +35,24 @@ boundaries.
 
 ## Understand this application
 
-- Routes use the Next.js App Router under `apps/pwa/src/app/`. If the project adds a
-  `[locale]` segment, routes live beneath it.
-- The root layout renders `<html lang="fa" dir="rtl">` and owns the default `metadata`. A
-  child page that exports no metadata inherits the root title, description, and canonical.
+- Routes use the Next.js App Router under `apps/pwa/src/app/[locale]/`.
+- `fa` is the default locale and has unprefixed URLs (`/`, `/login`); `en` uses `/en`
+  (`/en`, `/en/login`). The language is negotiated in `src/proxy.ts` before rendering so both
+  versions stay statically rendered; do not add a language switcher or read request headers
+  inside a page. See `docs/engine/localization.md`.
+- `app/[locale]/layout.tsx` renders `<html lang dir>` per locale and owns the default,
+  localized title and description (catalog namespace `meta`). It sets no canonical: layout
+  metadata merges into every child, so canonical and `alternates.languages` belong on the page
+  that owns them — `/` declares its own canonical plus `fa`/`en` alternates. next-intl also
+  sends `Link: rel="alternate"; hreflang` (including `x-default`) on every route.
 - The boilerplate's search-facing surface is `/`, the public landing page inside
-  `RootLayout`; its brand copy comes from `src/config/brand.config`. `/login` and
-  `/dashboard/**` are application surfaces, not acquisition pages. Give each public page one
-  search intent; do not blend a product pitch, directory, and legal content on one URL.
+  `RootLayout`; its copy comes from the `meta` and `landing` catalog namespaces in
+  `src/messages/fa.json` and `en.json`. `/login` and `/dashboard/**` are application
+  surfaces, not acquisition pages. Give each public page one search intent; do not blend a
+  product pitch, directory, and legal content on one URL.
 - Domain data is fetched client-side with SWR and rendered through `DataView`, and the
-  landing page itself is a Client Component. For a public page whose primary content comes
+  landing content (`landing.component.page.tsx`) is a Client Component rendered, and
+  prerendered per locale, from a server `page.tsx`. For a public page whose primary content comes
   from the API, treat initial-HTML discoverability as an explicit tradeoff. Do not redesign
   the data path or abandon `DataView` merely to satisfy a checklist; surface the impact and
   change it only when the approved scope includes that architecture.

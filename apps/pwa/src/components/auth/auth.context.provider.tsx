@@ -1,7 +1,7 @@
 'use client';
 
+import { usePathname, useRouter } from '@/i18n/i18n.navigation';
 import { ApiError } from '@/libs/api/api.types.error';
-import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AuthResponse, useProfile, useRequestOtpMutation, useVerifyOtpMutation } from './auth.api.client';
 import { InvitationStatus, Role, RoleType } from './auth.constants.roles';

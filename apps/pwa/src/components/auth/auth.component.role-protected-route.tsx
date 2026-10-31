@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/i18n.navigation';
 import { ReactNode, useEffect } from 'react';
 import { useAuth } from './auth.context.provider';
 import { Role } from './auth.constants.roles';

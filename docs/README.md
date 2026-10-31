@@ -22,6 +22,7 @@ read the queue and brief first, then only the additional sources the brief names
 | Approved or in-progress hand-off | `tasks/README.md` for the queue and backlog, then the brief | Only the app/code/docs paths named by the brief |
 | Starting or handing off a session | The matching skill below | The active brief, if one exists |
 | Reviewing recurring agent friction or agent-facing structure | `agent-harness-review` skill | `agent-friction-log.md` and only the evidence named there |
+| Localized UI, locale routing, formatting, RTL/LTR, coded API errors, SMS copy | `apps/pwa/AGENTS.md` §Localization | `engine/localization.md` for the design, precedence and verification |
 
 Add a domain row when the project creates a state, product, or engine document for a
 capability, naming the cheapest entry point first.
@@ -62,8 +63,9 @@ point it at the relevant `SKILL.md`.
 
 ## Document ownership
 
-Only `tasks/` and `agent-friction-log.md` exist from the start. Create the others when the
-project first has a fact they own, and add a routing row above when you do.
+`tasks/`, `agent-friction-log.md` and `engine/localization.md` exist from the start. Create
+the others when the project first has a fact they own, and add a routing row above when you
+do.
 
 | Path | Owns |
 |---|---|

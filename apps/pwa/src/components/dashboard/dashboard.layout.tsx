@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Navbar } from "./dashboard.component.navbar";
 import { Sidebar } from "./dashboard.component.sidebar";
 import { BottomNavBar } from "./dashboard.component.bottom-navbar";
@@ -8,6 +9,8 @@ interface RootLayoutProps {
 }
 
 export function DashbaordLayout({ children, showSidebar = true }: RootLayoutProps) {
+    const t = useTranslations('dashboard.shell');
+
     return (
         <div className="bg-slate-50 p-4 gap-6 h-screen flex flex-col max-w-6xl mx-auto overflow-hidden relative">
             <Navbar />
@@ -18,7 +21,7 @@ export function DashbaordLayout({ children, showSidebar = true }: RootLayoutProp
                 </main>
             </div>
             <div className="hidden lg:block">
-                <p className="text-sm text-neutral-400 text-center">نسخه آزمایشی . انتشار عمومی</p>
+                <p className="text-sm text-neutral-400 text-center">{t('versionNote')}</p>
             </div>
             <BottomNavBar />
         </div>

@@ -1,8 +1,8 @@
 'use client';
 
+import { Link, usePathname } from "@/i18n/i18n.navigation";
 import { cn } from "@/libs/style/style.util.helpers";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import React from "react";
 import { useAuth } from "../auth/auth.context.provider";
 import { RouteItem, RouteItems } from "./dashboard.constants.route-groups";
@@ -13,7 +13,9 @@ import { RouteItem, RouteItems } from "./dashboard.constants.route-groups";
  * Hidden on desktop (lg+ screens)
  */
 export const BottomNavBar: React.FC = () => {
+  // Locale-aware: returns the path without the `/en` prefix.
   const pathname = usePathname();
+  const t = useTranslations('dashboard.routes');
   const { hasAnyRole, selectedRole } = useAuth();
 
   // Priority navigation items for mobile - based on UX analysis
@@ -43,7 +45,7 @@ export const BottomNavBar: React.FC = () => {
   });
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 shadow-lg z-40">
       <div className="max-w-6xl mx-auto px-2 py-2">
         <div className="flex justify-around items-center">
           {visibleItems.map((item) => {
@@ -72,7 +74,7 @@ export const BottomNavBar: React.FC = () => {
                   "text-xs font-medium",
                   isActive && "font-semibold"
                 )}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </Link>
             );

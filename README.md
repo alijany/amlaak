@@ -1,13 +1,13 @@
 # Web Boilerplate
 
-A production-ready monorepo boilerplate for building web applications with a NestJS backend and Next.js frontend. Includes authentication, a dashboard shell, Docker-based CI/CD, and a server provisioning toolkit.
+A production-ready monorepo boilerplate for building web applications with a NestJS backend and Next.js frontend. Includes authentication, a dashboard shell, automatic Persian/English localization, Docker-based CI/CD, and a server provisioning toolkit.
 
 ## Project Structure
 
 ```
 apps/
   core-api/     NestJS backend service
-  pwa/          Next.js 15 progressive web application
+  pwa/          Next.js 16 progressive web application
 docker/
   base.Dockerfile   shared dependency layer for app images
 scripts/
@@ -15,7 +15,7 @@ scripts/
 .devcontainer/  VS Code Dev Container config
 ```
 
-- **[PWA](apps/pwa/AGENTS.md)**: Next.js 15 frontend — App Router, auth, dashboard, domain-driven architecture
+- **[PWA](apps/pwa/AGENTS.md)**: Next.js 16 frontend — App Router, auth, dashboard, fa/en localization, domain-driven architecture
 - **[Core-API](apps/core-api/AGENTS.md)**: NestJS backend — JWT/OTP auth, MikroORM, Redis, S3 storage
 
 ### Monorepo Setup
@@ -41,10 +41,11 @@ scripts/
 
 ### Frontend (PWA)
 
-- **Framework**: Next.js 15 with React 19 — App Router, SSR, PWA
+- **Framework**: Next.js 16 with React 19 — App Router, SSR, PWA
 - **Styling**: Tailwind CSS
 - **Data Fetching**: SWR + custom fetcher
 - **Forms**: React Hook Form + Zod
+- **Localization**: next-intl — `fa` (RTL, Jalali dates) by default and `en` under `/en`, negotiated automatically with no language switcher; every route is statically rendered per locale ([design](docs/engine/localization.md))
 - **Authentication**: OTP-based with JWT, role-based route protection
 
 ### DevOps

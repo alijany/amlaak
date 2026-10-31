@@ -1,4 +1,5 @@
 import { HTMLAttributes } from 'react';
+import { useTranslations } from 'next-intl';
 import { Loading } from './ui.loading';
 import { Error } from './ui.error';
 import { EmptyState } from './ui.empty-state';
@@ -10,6 +11,7 @@ interface DataViewProps<T> extends HTMLAttributes<HTMLDivElement> {
     isEmpty?: (data: T) => boolean;
     errorTitle?: string;
     errorMessage?: string;
+    retryText?: string;
     emptyMessage?: string;
     emptyIcon?: React.ReactNode;
     onRetry?: () => void;
@@ -21,9 +23,10 @@ export function DataView<T>({
     error,
     isLoading,
     isEmpty,
-    errorTitle = "اوه نه!",
-    errorMessage = "مشکلی پیش آمد. لطفا دوباره تلاش کنید.",
-    emptyMessage = "نتیجه ای یافت نشد",
+    errorTitle,
+    errorMessage,
+    retryText,
+    emptyMessage,
     emptyIcon,
     onRetry,
     variant = "card",
@@ -31,6 +34,10 @@ export function DataView<T>({
     className,
     ...props
 }: DataViewProps<T>) {
+    // Callers may still pass explicit copy; the catalog supplies the default so
+    // a caller that omits it renders in the reader's language.
+    const t = useTranslations('common.dataView');
+
     if (isLoading) {
         return <Loading className={className} variant={variant} />;
     }
@@ -39,8 +46,9 @@ export function DataView<T>({
         return (
             <Error
                 className={className}
-                title={errorTitle}
-                message={errorMessage}
+                title={errorTitle ?? t('errorTitle')}
+                message={errorMessage ?? t('errorMessage')}
+                retryText={retryText ?? t('retry')}
                 onRetry={onRetry}
                 variant={variant}
             />
@@ -51,7 +59,7 @@ export function DataView<T>({
         return (
             <EmptyState
                 className={className}
-                message={emptyMessage}
+                message={emptyMessage ?? t('empty')}
                 icon={emptyIcon}
                 variant={variant}
             />

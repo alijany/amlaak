@@ -1,7 +1,9 @@
 'use client';
 
+import { useApiErrorMessage } from '@/libs/api/api.hook.use-error-message';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { IconPhone, IconX } from '@tabler/icons-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 interface PhoneChangeModalProps {
@@ -24,6 +26,9 @@ export function PhoneChangeModal({
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const t = useTranslations('dashboard.profile.phoneChange');
+  const tCommon = useTranslations('common');
+  const errorMessage = useApiErrorMessage();
 
   const handleSendOtp = async () => {
     setError('');
@@ -32,7 +37,7 @@ export function PhoneChangeModal({
       await onSendOtp(phoneNumber);
       setStep('otp');
     } catch (err: unknown) {
-      setError((err as Error).message || 'خطا در ارسال کد تایید');
+      setError(errorMessage(err, t('sendFailed')));
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +50,7 @@ export function PhoneChangeModal({
       await onSubmit(phoneNumber, otp);
       handleClose();
     } catch (err: unknown) {
-      setError((err as Error).message || 'کد تایید نادرست است');
+      setError(errorMessage(err, t('verifyFailed')));
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +70,8 @@ export function PhoneChangeModal({
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute left-4 top-4 p-2 rounded-xl hover:bg-slate-100 transition-colors"
+          aria-label={tCommon('close')}
+          className="absolute end-4 top-4 p-2 rounded-xl hover:bg-slate-100 transition-colors"
         >
           <IconX className="size-5 text-slate-600" />
         </button>
@@ -75,17 +81,17 @@ export function PhoneChangeModal({
           <div className="p-4 rounded-2xl bg-primary/10 mb-4">
             <IconPhone className="size-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">تغییر شماره تلفن</h2>
+          <h2 className="text-2xl font-bold text-slate-900">{t('title')}</h2>
           <p className="text-slate-600 mt-2 text-center">
             {step === 'phone'
-              ? 'شماره تلفن جدید خود را وارد کنید'
-              : 'کد تایید ارسال شده را وارد کنید'}
+              ? t('phoneStep')
+              : t('otpStep')}
           </p>
         </div>
 
         {/* Current phone display */}
         <div className="mb-6 p-4 rounded-2xl bg-slate-50">
-          <div className="text-sm text-slate-600 mb-1">شماره تلفن فعلی</div>
+          <div className="text-sm text-slate-600 mb-1">{t('current')}</div>
           <div className="font-semibold text-slate-900 font-mono">{currentPhone}</div>
         </div>
 
@@ -95,7 +101,7 @@ export function PhoneChangeModal({
             <>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  شماره تلفن جدید
+                  {t('newPhone')}
                 </label>
                 <Input
                   type="tel"
@@ -118,14 +124,14 @@ export function PhoneChangeModal({
                 className="w-full"
                 size="lg"
               >
-                {isLoading ? 'در حال ارسال...' : 'ارسال کد تایید'}
+                {isLoading ? t('sending') : t('sendCode')}
               </Button>
             </>
           ) : (
             <>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  کد تایید
+                  {t('otp')}
                 </label>
                 <Input
                   type="text"
@@ -149,7 +155,7 @@ export function PhoneChangeModal({
                   onClick={() => setStep('phone')}
                   className="flex-1"
                 >
-                  بازگشت
+                  {tCommon('back')}
                 </Button>
                 <Button
                   onClick={handleVerifyOtp}
@@ -157,7 +163,7 @@ export function PhoneChangeModal({
                   className="flex-1"
                   size="lg"
                 >
-                  {isLoading ? 'در حال تایید...' : 'تایید'}
+                  {isLoading ? t('verifying') : t('verify')}
                 </Button>
               </div>
             </>

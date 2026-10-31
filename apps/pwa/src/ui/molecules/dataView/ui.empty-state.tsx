@@ -1,4 +1,5 @@
 import { cn } from "@/libs/style/style.util.helpers";
+import { useTranslations } from "next-intl";
 import { HTMLAttributes } from "react";
 import { Button } from "../../atoms/ui.button";
 import { Card, CardContent } from "../../atoms/ui.card";
@@ -16,7 +17,7 @@ interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
 
 export function EmptyState({
   children,
-  message = "نتیجه ای یافت نشد",
+  message,
   className,
   variant = "card",
   showBackButton = false,
@@ -25,7 +26,7 @@ export function EmptyState({
   actionText,
   ...props
 }: EmptyStateProps) {
-  // const router = useRouter();
+  const t = useTranslations('common.dataView');
 
   const defaultIcon = (
     <IconMoodSad />
@@ -34,12 +35,12 @@ export function EmptyState({
   const content = (
     <div className="flex flex-col items-center justify-center text-center">
       {icon || defaultIcon}
-      <p className="mb-4 mt-3 text-muted-foreground">{message}</p>
+      <p className="mb-4 mt-3 text-muted-foreground">{message ?? t('empty')}</p>
 
       <div className="flex gap-2">
         {showBackButton && (
           <Button variant="outline" onClick={() => { }}>
-            بازگشت
+            {t('back')}
           </Button>
         )}
 

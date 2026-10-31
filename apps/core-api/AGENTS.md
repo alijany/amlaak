@@ -37,7 +37,14 @@ src/<feature>/
 - **`roles/`**: Role definitions and permission management
 - **`sms/`**: SMS provider integration
 
-### Shared Libraries (`src/libs/orm/`)
+### Shared Libraries (`src/libs/`)
+
+- `error/`: coded exceptions, the global `CodedExceptionFilter`, and the
+  `formPipes`/`validationPipes` validation lists — see Error Handling below.
+- `i18n/`: backend locale constants and the SMS template catalog.
+- `orm/`: persistence bases, below.
+
+#### `src/libs/orm/`
 
 Always extend these — never reimplement:
 
@@ -64,7 +71,8 @@ export class Item extends BaseEntity {
 }
 ```
 
-3. Create DTOs with `class-validator` decorators
+3. Create DTOs with `class-validator` decorators (no `message:` option) and bind
+   them with `@Body(...formPipes)` / `@Query(...validationPipes)`
 4. Implement service injecting `EntityManager` or extending the base repository service
 5. Register the module in `src/app.module.ts`
 6. Restart the dev server — `MigrationService` auto-generates and runs pending migrations on startup (non-prod only)
@@ -87,19 +95,29 @@ Test files: `<feature>.spec.ts` or `<feature>.test.ts`
 
 ## Error Handling
 
-Use NestJS built-in exceptions for standard HTTP errors (`BadRequestException`, `UnauthorizedException`, etc.).
-
-For domain-specific errors extend `HttpException`:
+Every refusal a person can see carries a **code** the PWA translates; the API
+never chooses the reader's language. Throw the per-status subclasses in
+`src/libs/error/error.exception.coded.ts`:
 
 ```typescript
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { CodedNotFoundException } from 'src/libs/error/error.exception.coded';
 
-export class ItemNotFoundException extends HttpException {
-  constructor(id: string) {
-    super(`Item ${id} not found`, HttpStatus.NOT_FOUND);
-  }
-}
+throw new CodedNotFoundException(
+  'item.not_found',           // domain.subject.reason — a key under errors.* in the PWA catalogs
+  'Item not found',           // English, required: logs and non-PWA consumers
+  { id },                     // optional interpolation values, never a sentence
+);
 ```
+
+Add the code to `apps/pwa/src/messages/fa.json`, then `en.json`. Validation goes
+through `formPipes` (human-typed bodies: normalises Persian digits, then
+validates) or `validationPipes` (queries and documents), applied per parameter —
+never a class- or method-level `@UsePipes`, which runs before parameter pipes.
+Both answer `code: "validation.failed"` with `issues: [{ field, rules }]`; a new
+constraint key or user-visible field name goes under `errors.validation.*`.
+Unexpected errors can stay plain `Error`s — the filter only reshapes
+`HttpException`s. SMS copy lives in `src/libs/i18n/i18n.templates.sms.ts` with
+both languages. See `docs/engine/localization.md` §"API errors".
 
 ## Code Organization
 

@@ -1,9 +1,11 @@
 "use client";
 
+import { localeDirection } from "@/i18n/i18n.config";
 import { cn } from "@/libs/style/style.util.helpers";
 import { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
 import useEmblaCarousel from 'embla-carousel-react';
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { useLocale } from "next-intl";
 import React, { useCallback, useEffect, useState } from "react";
 
 const useDotButton = (
@@ -90,7 +92,7 @@ interface CarouselProps {
 }
 
 export const Carousel: React.FC<CarouselProps> = ({
-    options = { align: 'start', direction: 'rtl', loop: true },
+    options = { align: 'start', loop: true },
     className,
     children,
     showControls = true,
@@ -98,7 +100,10 @@ export const Carousel: React.FC<CarouselProps> = ({
     showDots = true,
     containerClassName
 }) => {
-    const [emblaRef, emblaApi] = useEmblaCarousel(options)
+    // Embla measures slides itself, so it is told the writing direction rather
+    // than inheriting `dir`. An explicit `options.direction` still wins.
+    const direction = localeDirection[useLocale()]
+    const [emblaRef, emblaApi] = useEmblaCarousel({ direction, ...options })
 
     const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi)
     const {
@@ -120,14 +125,17 @@ export const Carousel: React.FC<CarouselProps> = ({
                             disabled={prevBtnDisabled}
                             className="p-2 lg:p-3 cursor-pointer rounded-full bg-white/30"
                         >
-                            <IconChevronRight className="size-4 lg:size-6" />
+                            {/* "Previous" points toward the start of the line. */}
+                            <IconChevronRight className="size-4 lg:size-6 ltr:hidden" />
+                            <IconChevronLeft className="size-4 lg:size-6 rtl:hidden" />
                         </button>
                         <button
                             onClick={onNextButtonClick}
                             disabled={nextBtnDisabled}
                             className="p-2 lg:p-3 cursor-pointer rounded-full bg-white/30"
                         >
-                            <IconChevronLeft className="size-4 lg:size-6" />
+                            <IconChevronLeft className="size-4 lg:size-6 ltr:hidden" />
+                            <IconChevronRight className="size-4 lg:size-6 rtl:hidden" />
                         </button>
                     </div>
                 )}

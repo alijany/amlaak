@@ -1,8 +1,9 @@
 # Repository guide for coding agents
 
 This repository is a pnpm monorepo boilerplate for web applications: a NestJS
-API and a Next.js 15 frontend with OTP/JWT authentication, a role-aware
-dashboard shell, Docker-based CI/CD, and server provisioning scripts.
+API and a Next.js 16 frontend with OTP/JWT authentication, a role-aware
+dashboard shell, automatic Persian/English localization, Docker-based CI/CD,
+and server provisioning scripts.
 
 ## Start here
 
@@ -25,7 +26,7 @@ document is stale. Call out material conflicts instead of silently guessing.
 
 ```text
 apps/core-api/   NestJS API, PostgreSQL/MikroORM, Redis/BullMQ, S3
-apps/pwa/        Next.js 15 App Router frontend, React 19, SWR
+apps/pwa/        Next.js 16 App Router frontend, React 19, SWR, next-intl
 docker/          Shared dependency base image for both app images
 docs/            Product scope, living state, architecture, and task briefs
 scripts/         Server provisioning, offline deploy, and local helpers
@@ -46,7 +47,7 @@ pnpm install
 pnpm dev:back                      # API on :4000, output mirrored to /tmp/back.log
 pnpm dev:front                     # web app on :8000
 pnpm --filter core-api lint        # type-check + ESLint --fix (modifies files)
-pnpm --filter pwa lint             # type-check + next lint
+pnpm --filter pwa lint             # type-check + ESLint
 pnpm --filter core-api build
 pnpm --filter pwa build
 ```
@@ -59,7 +60,8 @@ Production builds are not required for routine edits; run one when changing
 build/runtime configuration or when explicitly requested.
 
 Do not run broad formatting or auto-fix commands across untouched files. The
-core-api lint script auto-fixes; inspect the resulting diff.
+core-api lint script auto-fixes; inspect the resulting diff and revert changes
+to files the task did not touch.
 
 ## Runtime validation
 
@@ -94,9 +96,16 @@ auth bypass or weaken roles for validation.
 
 - Backend entities extend the bases in `apps/core-api/src/libs/orm/`; do not
   reimplement common persistence behavior.
-- Frontend domains are self-contained under `apps/pwa/src/app/<domain>/`.
+- Frontend domains are self-contained under `apps/pwa/src/app/[locale]/<domain>/`.
 - Frontend requests use the shared fetchers and SWR helpers. Render async state
   with `DataView`; see `apps/pwa/AGENTS.md` for the complete pattern.
+- The product supports `fa` and `en`; localization is automatic. Do not add a
+  language switcher. Use next-intl formatters and `@/i18n/i18n.navigation`, not
+  `toLocaleString('fa-IR')` or direct `next/link` imports in new localized UI.
+- Add translation keys to `fa.json` first (the type source), then `en.json`.
+- API refusals a person can see throw a `Coded*Exception` with an English
+  `message`; the PWA translates the `code`. The backend renders copy itself only
+  for SMS, from `apps/core-api/src/libs/i18n/`.
 - Do not create authentication bypasses for reviewer or demo access. Reviewer
   credentials and SMS delivery are operational concerns.
 - `PROJECT_NAME` in `.env` names every Docker container, network, and volume.
@@ -109,6 +118,8 @@ auth bypass or weaken roles for validation.
 - `docs/README.md`: current focus and documentation map.
 - `docs/tasks/`: approved, not-yet-completed hand-off briefs; its `README.md`
   owns both the scheduled queue and the deferred backlog.
+- `docs/engine/localization.md`: locale negotiation, static rendering per
+  locale, formatting, bidi, coded API errors and SMS copy.
 - `.devcontainer/README.md`: runtime, browser, login, and container-network
   validation.
 - `README.md` and `SETUP.md`: human onboarding, CI/CD, and first deploy.

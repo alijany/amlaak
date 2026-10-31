@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { CodedUnauthorizedException } from 'src/libs/error/error.exception.coded';
 import { UserService } from '../../user/user.service';
 import { JwtPayload } from '../types/jwt-payload.interface';
 import { ConfigService } from '@nestjs/config';
@@ -20,7 +21,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     if (!payload || !payload.sub) {
-      throw new UnauthorizedException('Invalid token payload');
+      throw new CodedUnauthorizedException(
+        'auth.token.invalid_payload',
+        'Invalid token payload',
+      );
     }
 
     try {
@@ -33,7 +37,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
 
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new CodedUnauthorizedException(
+          'auth.user.not_found',
+          'User not found',
+        );
       }
 
       return user;
@@ -41,7 +48,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Failed to authenticate token');
+      throw new CodedUnauthorizedException(
+        'auth.token.authentication_failed',
+        'Failed to authenticate token',
+      );
     }
   }
 }

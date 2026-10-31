@@ -1,11 +1,13 @@
 'use client';
 
-import { Role, getRoleName } from '@/components/auth/auth.constants.roles';
+import { Role } from '@/components/auth/auth.constants.roles';
+import { useApiErrorMessage } from '@/libs/api/api.hook.use-error-message';
 import { Button, Input } from '@/ui/atoms';
 import { Dropdown } from '@/ui/atoms/ui.dropdown';
 import { Modal } from '@/ui/atoms/ui.modal';
 import { ResultModal } from '@/ui/molecules/result-modal';
 import { IconX } from '@tabler/icons-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useAddUser } from './users.api';
 
@@ -23,6 +25,9 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
     const [isResultModalOpen, setIsResultModalOpen] = useState(false);
 
     const { submit, isLoading, error, reset } = useAddUser();
+    const t = useTranslations('dashboard');
+    const tCommon = useTranslations('common');
+    const errorMessage = useApiErrorMessage();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,8 +54,8 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
 
     // Available roles for the dropdown
     const availableRoles = [
-        { value: Role.USER, label: 'کاربر عادی' },
-        { value: Role.ADMIN, label: getRoleName(Role.ADMIN) }
+        { value: Role.USER, label: t('users.add.regularUser') },
+        { value: Role.ADMIN, label: t(`roles.${Role.ADMIN}`) }
     ];
 
     const handleCloseResultModal = () => {
@@ -60,7 +65,7 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
 
     return (
         <>
-            <Button onClick={() => setIsOpen(true)}>افزودن کاربر جدید</Button>
+            <Button onClick={() => setIsOpen(true)}>{t('users.add.open')}</Button>
 
             <Modal
                 isOpen={isOpen}
@@ -70,10 +75,10 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
                 <div className="p-6 flex flex-col gap-4">
                     <div className='flex justify-between items-center'>
                         <div className='font-bold text-lg lg:text-xl text-slate-700'>
-                            افزودن کاربر جدید
+                            {t('users.add.open')}
                         </div>
 
-                        <Button variant='outline' className='!px-2' onClick={() => setIsOpen(false)}>
+                        <Button variant='outline' className='!px-2' onClick={() => setIsOpen(false)} aria-label={tCommon('close')}>
                             <IconX className='size-5' />
                         </Button>
                     </div>
@@ -81,20 +86,20 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                                نقش کاربر
+                                {t('users.add.role')}
                             </label>
                             <Dropdown
                                 items={availableRoles}
                                 value={role}
                                 onChange={(value) => setRole(value as Role)}
-                                placeholder="انتخاب نقش کاربر"
+                                placeholder={t('users.add.rolePlaceholder')}
                                 variant="outline"
                             />
                         </div>
 
                         <Input
                             id="phone"
-                            label='شماره موبایل کاربر'
+                            label={t('users.add.phone')}
                             type="tel"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
@@ -112,18 +117,18 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
 
                         <Input
                             id="firstName"
-                            label='نام (اختیاری)'
+                            label={t('users.add.firstName')}
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
-                            placeholder="نام"
+                            placeholder={t('users.add.firstNamePlaceholder')}
                         />
 
                         <Input
                             id="lastName"
-                            label='نام خانوادگی (اختیاری)'
+                            label={t('users.add.lastName')}
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
-                            placeholder="نام خانوادگی"
+                            placeholder={t('users.add.lastNamePlaceholder')}
                         />
 
                         <div className="flex gap-4 pt-4">
@@ -132,7 +137,7 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
                                 className="flex-1"
                                 disabled={isLoading || !phone}
                             >
-                                {isLoading ? "در حال ارسال..." : "افزودن"}
+                                {isLoading ? t('users.add.submitting') : t('users.add.submit')}
                             </Button>
                             <Button
                                 type="button"
@@ -140,7 +145,7 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
                                 className="flex-1"
                                 onClick={() => setIsOpen(false)}
                             >
-                                لغو
+                                {tCommon('cancel')}
                             </Button>
                         </div>
                     </form>
@@ -151,9 +156,9 @@ export function AddUserForm({ onSuccess }: AddUserFormProps) {
                 isOpen={isResultModalOpen}
                 onClose={handleCloseResultModal}
                 status={error ? 'error' : 'success'}
-                title="افزودن کاربر"
-                successMessage="کاربر با موفقیت به افزوده شد"
-                errorMessage={error?.message || "خطا در افزودن کاربر"}
+                title={t('users.add.resultTitle')}
+                successMessage={t('users.add.success')}
+                errorMessage={errorMessage(error, t('users.add.failed'))}
             />
         </>
     );

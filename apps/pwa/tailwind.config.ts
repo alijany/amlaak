@@ -14,6 +14,12 @@ export default {
       },
       fontFamily: {
         yekan: ['var(--font-yekan)'],
+        inter: [
+          'var(--font-inter)',
+          'ui-sans-serif',
+          'system-ui',
+          'sans-serif',
+        ],
       },
     },
   },

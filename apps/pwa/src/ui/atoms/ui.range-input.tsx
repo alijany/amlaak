@@ -1,4 +1,6 @@
 "use client"
+import { localeDirection } from '@/i18n/i18n.config';
+import { useLocale, useTranslations } from 'next-intl';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Range, getTrackBackground } from 'react-range';
 
@@ -19,11 +21,15 @@ export const RangeInput: React.FC<RangeInputProps> = ({
     maxValue,
     step = 1,
     onChange,
-    fromLabel = 'از',
-    toLabel = 'تا',
+    fromLabel,
+    toLabel,
     unit = '',
     debounceMs = 300, // Default debounce of 300ms
 }) => {
+    const t = useTranslations('common.rangeInput');
+    // react-range lays the track out itself, so it is told the direction
+    // rather than inheriting it from `dir`.
+    const rtl = localeDirection[useLocale()] === 'rtl';
     const [values, setValues] = useState([minValue, maxValue]);
     const isMounted = useRef(false);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -64,8 +70,8 @@ export const RangeInput: React.FC<RangeInputProps> = ({
 
     return (
         <div className='pb-6'>
-            <div className="flex items-center justify-center space-x-2 space-x-reverse">
-                <span className="text-slate-500">{fromLabel}</span>
+            <div className="flex items-center justify-center gap-2">
+                <span className="text-slate-500">{fromLabel ?? t('from')}</span>
                 <input
                     dir='ltr'
                     value={values[0]}
@@ -78,8 +84,8 @@ export const RangeInput: React.FC<RangeInputProps> = ({
                 {unit && <span className="text-xs text-slate-500">{unit}</span>}
             </div>
 
-            <div className="flex items-center justify-center space-x-2 space-x-reverse mt-2">
-                <span className="text-slate-500">{toLabel}</span>
+            <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="text-slate-500">{toLabel ?? t('to')}</span>
                 <input
                     dir='ltr'
                     value={values[1]}
@@ -98,7 +104,7 @@ export const RangeInput: React.FC<RangeInputProps> = ({
                     step={step}
                     min={minValue}
                     max={maxValue}
-                    rtl={true}
+                    rtl={rtl}
                     onChange={(newValues) => {
                         handleChange(newValues[0], newValues[1]);
                     }}
@@ -112,7 +118,7 @@ export const RangeInput: React.FC<RangeInputProps> = ({
                                     colors: ["#cbd5e1", "#475569", "#cbd5e1"],
                                     min: minValue,
                                     max: maxValue,
-                                    rtl: true
+                                    rtl
                                 })
                             }}
                         >
@@ -128,8 +134,8 @@ export const RangeInput: React.FC<RangeInputProps> = ({
                     )}
                 />
                 <div className='flex justify-between items-center mt-3'>
-                    <span className='text-xs text-slate-500'>کمترین</span>
-                    <span className='text-xs text-slate-500'>بیشترین</span>
+                    <span className='text-xs text-slate-500'>{t('min')}</span>
+                    <span className='text-xs text-slate-500'>{t('max')}</span>
                 </div>
             </div>
         </div>

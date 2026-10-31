@@ -11,7 +11,7 @@ export function Label({ children, icon, className }: LabelProps) {
     return (
         <div
             className={cn(
-                "inline-flex justify-center items-center space-x-2 space-x-reverse bg-white/40 backdrop-blur-sm rounded-full px-3 py-2.5 shadow-rose-500/5 shadow-lg",
+                "inline-flex justify-center items-center gap-2 bg-white/40 backdrop-blur-sm rounded-full px-3 py-2.5 shadow-rose-500/5 shadow-lg",
                 className
             )}
         >

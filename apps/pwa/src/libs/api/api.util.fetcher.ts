@@ -35,14 +35,20 @@ export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    const errorMessage = (await response.json().catch(() => null))?.message || 'خطای ناشناخته';
-    const error = new ApiError(errorMessage);
+    // Read the body once. A second `response.json()` always throws on the
+    // consumed stream, so structured detail — error codes, validation issues —
+    // would be discarded before any caller could see it.
+    const payload = await response.json().catch(() => null);
+    // No copy is chosen here. `fetcher` is a plain function with no
+    // `useTranslations`, so it carries the API's `code` through untouched and
+    // lets `useApiErrorMessage` pick the wording at the display layer, where
+    // the locale is actually known.
+    const error = new ApiError(payload?.message ?? '');
     error.status = response.status;
-    try {
-      error.info = await response.json();
-    } catch {
-      error.info = { message: response.statusText };
-    }
+    error.code = payload?.code;
+    error.params = payload?.params;
+    error.issues = payload?.issues;
+    error.info = payload ?? { message: response.statusText };
     throw error;
   }
 

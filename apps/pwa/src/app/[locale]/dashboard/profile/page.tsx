@@ -14,6 +14,7 @@ import { cn } from '@/libs/style/style.util.helpers';
 import { Button, Input } from '@/ui/atoms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconBuilding, IconCamera, IconCheck, IconPhone, IconUser, IconUserFilled, IconX } from '@tabler/icons-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -25,6 +26,8 @@ export default function ProfilePage() {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations('dashboard.profile');
+  const tCommon = useTranslations('common');
 
   const { updateProfile, isLoading: isUpdating } = useUpdateProfileMutation();
   const { requestOtp } = useRequestOtpMutation();
@@ -34,7 +37,7 @@ export default function ProfilePage() {
   // Form setup using react-hook-form + zod (validate simple requirements)
   // ---------------------------------------------------------------------------
   const profileSchema = z.object({
-    firstName: z.string().min(1, 'نام را وارد کنید'),
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
     lastName: z.string().optional().or(z.literal('')),
     userType: z.nativeEnum(UserType),
     organizationName: z.string().optional().or(z.literal('')),
@@ -47,7 +50,7 @@ export default function ProfilePage() {
     }
     return true;
   }, {
-    message: 'لطفا اطلاعات حقوقی را کامل کنید',
+    message: t('validation.legalIncomplete'),
     path: ['organizationName'],
   });
 
@@ -93,10 +96,10 @@ export default function ProfilePage() {
       });
       await refreshProfile();
       reset(data);
-      toast.success('تغییرات ذخیره شد');
+      toast.success(t('saved'));
     } catch (err) {
       console.error('Error updating profile:', err);
-      toast.error('خطا در ذخیره تغییرات');
+      toast.error(t('saveFailed'));
     }
   };
 
@@ -137,17 +140,17 @@ export default function ProfilePage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-4 py-4 bg-white z-10 sticky top-0">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">پروفایل کاربری</h1>
-                <p className="text-slate-600 mt-1">اطلاعات حساب کاربری خود را مدیریت کنید</p>
+                <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+                <p className="text-slate-600 mt-1">{t('subtitle')}</p>
               </div>
               <div className="flex gap-2 items-center">
                 {isDirty && <Button variant="outline" onClick={handleCancel} size="sm" disabled={isUpdating} type="button">
                   <IconX className="size-4" />
-                  لغو
+                  {tCommon('cancel')}
                 </Button>}
                 <Button type="submit" size="sm" disabled={!isDirty || isUpdating}>
                   <IconCheck className="size-4" />
-                  {isUpdating ? 'در حال ذخیره...' : 'ذخیره'}
+                  {isUpdating ? t('saving') : t('save')}
                 </Button>
               </div>
             </div>
@@ -161,7 +164,7 @@ export default function ProfilePage() {
                   {user?.profilePicture ? (
                     <img
                       src={user.profilePicture}
-                      alt="Profile"
+                      alt={t('pictureAlt')}
                       width={128}
                       height={128}
                       className="w-full h-full object-cover"
@@ -173,7 +176,8 @@ export default function ProfilePage() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
-                  className="absolute bottom-0 right-0 p-3 rounded-2xl bg-white shadow-lg border border-slate-200 hover:bg-slate-50 transition-all group-hover:scale-110"
+                  aria-label={t('changePicture')}
+                  className="absolute bottom-0 start-0 p-3 rounded-2xl bg-white shadow-lg border border-slate-200 hover:bg-slate-50 transition-all group-hover:scale-110"
                 >
                   <IconCamera className="size-5 text-primary" />
                 </button>
@@ -186,14 +190,14 @@ export default function ProfilePage() {
                 />
               </div>
               {isUploadingImage && (
-                <p className="text-sm text-slate-600 mt-3">در حال آپلود...</p>
+                <p className="text-sm text-slate-600 mt-3">{t('uploading')}</p>
               )}
             </div>
 
             {/* User Type Toggle */}
             <div className="mb-8">
               <label className="block text-sm font-semibold text-slate-700 mb-3">
-                نوع کاربری
+                {t('userType')}
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -223,7 +227,7 @@ export default function ProfilePage() {
                       watch('userType') === UserType.INDIVIDUAL ? 'text-primary' : 'text-slate-600'
                     )}
                   >
-                    حقیقی
+                    {t('individual')}
                   </span>
                 </button>
                 <button
@@ -247,7 +251,7 @@ export default function ProfilePage() {
                       watch('userType') === UserType.LEGAL ? 'text-primary' : 'text-slate-600'
                     )}
                   >
-                    حقوقی
+                    {t('legal')}
                   </span>
                 </button>
               </div>
@@ -257,24 +261,24 @@ export default function ProfilePage() {
             {/* Organization Details for LEGAL users */}
             {watch('userType') === UserType.LEGAL && (
               <div className="space-y-6 mb-8">
-                <h2 className="text-lg font-bold text-slate-900">اطلاعات حقوقی</h2>
+                <h2 className="text-lg font-bold text-slate-900">{t('legalInfo')}</h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      نام سازمان
+                      {t('organizationName.label')}
                     </label>
                     <Input
-                      placeholder="نام سازمان را وارد کنید"
+                      placeholder={t('organizationName.placeholder')}
                       {...register('organizationName')}
                       error={errors.organizationName?.message}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      شماره ثبت
+                      {t('organizationRegistrationNumber.label')}
                     </label>
                     <Input
-                      placeholder="شماره ثبت سازمان"
+                      placeholder={t('organizationRegistrationNumber.placeholder')}
                       {...register('organizationRegistrationNumber')}
                       error={errors.organizationRegistrationNumber?.message}
                     />
@@ -283,20 +287,20 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      شناسه ملی سازمان
+                      {t('organizationNationalId.label')}
                     </label>
                     <Input
-                      placeholder="شناسه ملی سازمان"
+                      placeholder={t('organizationNationalId.placeholder')}
                       {...register('organizationNationalId')}
                       error={errors.organizationNationalId?.message}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      نماینده حقوقی
+                      {t('organizationRepresentative.label')}
                     </label>
                     <Input
-                      placeholder="نام نماینده قانونی"
+                      placeholder={t('organizationRepresentative.placeholder')}
                       {...register('organizationRepresentative')}
                       error={errors.organizationRepresentative?.message}
                     />
@@ -307,15 +311,15 @@ export default function ProfilePage() {
 
             {/* Personal Information */}
             <div className="space-y-6">
-              <h2 className="text-lg font-bold text-slate-900">اطلاعات شخصی</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t('personalInfo')}</h2>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    نام
+                    {t('firstName.label')}
                   </label>
                   <Input
-                    placeholder="نام خود را وارد کنید"
+                    placeholder={t('firstName.placeholder')}
                     {...register('firstName')}
                     error={errors.firstName?.message}
                   />
@@ -323,10 +327,10 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    نام خانوادگی
+                    {t('lastName.label')}
                   </label>
                   <Input
-                    placeholder="نام خانوادگی خود را وارد کنید"
+                    placeholder={t('lastName.placeholder')}
                     {...register('lastName')}
                     error={errors.lastName?.message}
                   />
@@ -335,12 +339,12 @@ export default function ProfilePage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  شماره تلفن
+                  {t('phone.label')}
                 </label>
                 <div className="flex gap-3">
                   <Input
                     disabled
-                    placeholder="شماره تلفن"
+                    placeholder={t('phone.placeholder')}
                     value={user?.phone || ''}
                     className="flex-1 font-mono"
                   />
@@ -350,7 +354,7 @@ export default function ProfilePage() {
                     className="shrink-0"
                   >
                     <IconPhone className="size-4" />
-                    تغییر
+                    {t('phone.change')}
                   </Button>
                 </div>
               </div>

@@ -1,0 +1,544 @@
+{
+  "meta": {
+    "title": "Monno | Turn user conversations into actionable insight",
+    "description": "Collect user feedback through smart conversations and turn it into concrete next steps."
+  },
+  "common": {
+    "brand": "Monno",
+    "unknownError": "Something went wrong",
+    "close": "Close",
+    "openMenu": "Open menu",
+    "back": "Back",
+    "cancel": "Cancel",
+    "dataView": {
+      "errorTitle": "Something went wrong",
+      "errorMessage": "We could not load this. Please try again.",
+      "retry": "Try again",
+      "empty": "No results found",
+      "back": "Back"
+    },
+    "confirm": {
+      "title": "Confirm action",
+      "message": "Are you sure you want to do this?",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "result": {
+      "title": "Request result",
+      "successTitle": "Done",
+      "successMessage": "Your request was sent successfully",
+      "errorTitle": "Error",
+      "errorMessage": "Your request could not be sent",
+      "close": "Back"
+    },
+    "filePicker": {
+      "label": "Choose a file",
+      "dropHint": "Drag and drop your photo or video here",
+      "browsePrefix": "or, to pick a file,",
+      "browseAction": "click here"
+    },
+    "rangeInput": {
+      "from": "From",
+      "to": "To",
+      "min": "Lowest",
+      "max": "Highest"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "page": "Page {page, number}"
+    },
+    "terms": {
+      "title": "Terms and conditions",
+      "updatedAt": "Last updated: {date}",
+      "accept": "I agree"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "howItWorks": "How it works",
+    "features": "Features",
+    "sampleOutput": "Sample output",
+    "faq": "FAQ",
+    "earlyAccess": "Early access",
+    "startFree": "Start free",
+    "dashboard": "Dashboard"
+  },
+  "footer": {
+    "description": "A smart platform that turns user conversations into actionable insight. No long forms — just natural conversation and output you can decide on. See everything from hidden needs to suggested actions in one dashboard.",
+    "siteMap": "Site map",
+    "workflow": "How it works",
+    "features": "Features",
+    "sampleOutput": "Sample output",
+    "faq": "FAQ",
+    "terms": "Terms of use",
+    "about": "About us",
+    "contact": "Contact us",
+    "address": "Mehregan Building, Shahid Mohammadpour Alley, Roudbartan, Rasht, Iran",
+    "copyright": "© 2025 All rights reserved. Use is subject to the terms of use and the privacy policy."
+  },
+  "format": {
+    "cost": "{amount} T",
+    "unit": "Toman",
+    "noCost": "No cost yet",
+    "unknown": "—"
+  },
+  "calendar": {
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
+  },
+  "landing": {
+    "hero": {
+      "label": "Sentiment and needs analysis, no forms",
+      "heading1": "Goodbye, rigid forms.",
+      "heading2": "Hello, smart conversation.",
+      "body": "Monno's AI talks with your users on its own, understands what they actually need, and turns qualitative data into concrete actions for your product team.",
+      "cta1": "Start free",
+      "cta2": "See a sample output",
+      "scrollHint": "Scroll to the next section"
+    },
+    "problem": {
+      "heading": "Forms stay on the surface;\nthey don't make decisions.",
+      "body": "Our platform gathers feedback through natural conversation and draws out sentiment, needs, problems and mindset from a single AI-led conversation. No long forms, no scattered manual interpretation.",
+      "cta": "Sign up and create your first link",
+      "sampleCard": {
+        "badge": "AI analysis active",
+        "title": "Sample dashboard output",
+        "subtitle": "A summary of insights after processing user conversations.",
+        "sentiment": {
+          "label": "Dominant sentiment",
+          "value": "Confusion 42%",
+          "note": "Users are not sure where to start on their first visit."
+        },
+        "need": {
+          "label": "Most frequent need",
+          "value": "Quick-start guide",
+          "note": "Requests for a real example and a step-by-step path."
+        },
+        "action": {
+          "label": "Suggested action",
+          "value": "Add a simple step-by-step onboarding",
+          "note": "A four-step setup flow with a short checklist and a next-step suggestion."
+        }
+      }
+    },
+    "workflow": {
+      "heading": "How does it work?",
+      "subheading": "Four steps to actionable insight",
+      "steps": {
+        "create": {
+          "title": "Create a conversation link",
+          "desc": "After signing up, set the goal and persona and get a dedicated link."
+        },
+        "share": {
+          "title": "Share it with your users",
+          "desc": "Send the link to your users so they can join a focused conversation with the AI."
+        },
+        "analyze": {
+          "title": "Automatic analysis",
+          "desc": "The model processes the conversation and produces structured JSON plus a dashboard."
+        },
+        "decide": {
+          "title": "Decide quickly",
+          "desc": "See suggested actions and problem priorities right away, and act on them."
+        }
+      }
+    },
+    "features": {
+      "heading": "Monno's three building blocks",
+      "subheading": "Collect → Analyze → Insights",
+      "items": {
+        "chatbot": {
+          "title": "Conversational collection",
+          "desc": "Instead of rigid forms, a dynamic natural conversation that drives higher participation."
+        },
+        "analyze": {
+          "title": "AI analysis",
+          "desc": "Extracts sentiment, needs, problems and impact priority with NLP models."
+        },
+        "chart": {
+          "title": "Actionable dashboard",
+          "desc": "Get actionable insight instead of raw data, and decide faster."
+        }
+      }
+    },
+    "cta": {
+      "badge": "Beta now open • No card required",
+      "heading1": "Launch the next wave of user understanding,",
+      "heading2": "starting today",
+      "body": "Create a conversation link, start talking with your users, and a few minutes later see a clear summary of needs, sentiment and suggested actions in your dashboard.",
+      "bullets": {
+        "teams": "Built for product and research teams",
+        "noBot": "No external bot to build",
+        "output": "Standard JSON plus a visual dashboard",
+        "support": "Support with designing your conversations"
+      },
+      "cta1": "Start free",
+      "cta2": "What's coming next",
+      "footnote": "Limited beta • Covers your first 500 conversations • Upgrade to higher plans after validation.",
+      "sampleCard": {
+        "eyebrow": "Sample summarized insight",
+        "title": "Wave 1 – Onboarding conversations",
+        "badge": "Analysis complete",
+        "sentiment": {
+          "label": "Dominant sentiment",
+          "value": "Confusion (42%)",
+          "note": "Users don't know where to start on their first visit."
+        },
+        "need": {
+          "label": "Most frequent need",
+          "value": "Quick-start guide",
+          "note": "Requests for a real, step-by-step example."
+        },
+        "action": {
+          "label": "Suggested action",
+          "value": "Design a four-step onboarding flow",
+          "note": "A setup flow with a short checklist, a 30-second video and a next-step suggestion."
+        },
+        "syncNote": "Syncs with your team's tools",
+        "apiNote": "* Connects to your internal product and analytics tools."
+      }
+    },
+    "faq": {
+      "heading": "Frequently asked questions",
+      "subheading": "Didn't find your answer? Email us or message support.",
+      "items": {
+        "why": {
+          "q": "Why is a smart conversation better than a regular form?",
+          "a": "Long forms are tiring and most people abandon them. Monno talks with your users, adapts its questions to earlier answers, and politely asks for more detail when an answer is vague. That means more answers, and more precise ones."
+        },
+        "dashboard": {
+          "q": "What does the dashboard show me?",
+          "a": "Instead of reading hundreds of long responses, you get a summary: your users' biggest problems, how they feel about the product overall, and — most importantly — practical suggestions for fixing those problems. It turns data into decisions."
+        },
+        "coding": {
+          "q": "Do I need to know how to code?",
+          "a": "Not at all. You write the goal of your survey and get a link. Put that link in an email, on social media or inside your product. There is no code to install and nothing technical to configure."
+        },
+        "setupTime": {
+          "q": "How long does it take to set up a survey?",
+          "a": "Less than 5 minutes. Tell us what you want to learn and who your audience is. The AI does the rest and designs the questions."
+        },
+        "pricing": {
+          "q": "How much does it cost?",
+          "a": "We offer several plans, from free to get started up to professional plans for large teams. Pricing combines a subscription with pay-as-you-go, so you only pay for the analyses you actually run."
+        },
+        "privacy": {
+          "q": "Is my users' data safe?",
+          "a": "Yes — security and privacy are our priority. We only collect the information your analysis needs. You own all of the data and can delete or export it whenever you like."
+        },
+        "reliability": {
+          "q": "How reliable is the AI analysis?",
+          "a": "We use the world's most advanced language models to understand exactly what users mean. Each conclusion also shows a confidence score and the number of responses that support it."
+        },
+        "planChange": {
+          "q": "What happens if I want to change my plan?",
+          "a": "You can upgrade or downgrade at any time. The system prorates charges by the days remaining, so you never lose what you paid."
+        }
+      }
+    }
+  },
+  "login": {
+    "title": "Sign in to your account",
+    "checking": "Checking…",
+    "imageAlt": "Sign-in illustration",
+    "phone": {
+      "heading": "Enter your mobile number",
+      "body": "To continue, enter your mobile number. We'll text a verification code to it.",
+      "placeholder": "Mobile number",
+      "submit": "Send verification code",
+      "help": "Need help?",
+      "terms": "Terms and conditions"
+    },
+    "otp": {
+      "heading": "Enter the verification code",
+      "body": "Enter the code we texted to {phone}.",
+      "placeholder": "4-digit verification code",
+      "submit": "Sign in",
+      "editPhone": "Change number",
+      "resend": "Resend code",
+      "sent": "Verification code sent",
+      "resent": "Verification code sent again"
+    },
+    "validation": {
+      "phoneMin": "The phone number must have at least 11 digits",
+      "phoneFormat": "That phone number format is not valid",
+      "otpMin": "The verification code must have at least 4 digits",
+      "otpDigits": "The verification code can only contain digits"
+    }
+  },
+  "dashboard": {
+    "shell": {
+      "support": "Support",
+      "selectRole": "Select a role",
+      "logout": "Sign out",
+      "versionNote": "Beta · public release",
+      "notifications": {
+        "title": "Notifications",
+        "viewAll": "View all",
+        "viewAllNotifications": "View all notifications",
+        "empty": "No new notifications",
+        "overflow": "{count, number}+"
+      }
+    },
+    "support": {
+      "title": "Support",
+      "body": "To reach support, please give us a call."
+    },
+    "roles": {
+      "admin": "Admin",
+      "owner": "Owner",
+      "manager": "Manager",
+      "member": "Member",
+      "user": "User",
+      "guest": "Guest"
+    },
+    "groups": {
+      "dashboard": "Dashboard"
+    },
+    "routes": {
+      "users": "Users",
+      "notifications": "Notifications",
+      "profile": "Account",
+      "dashboard": "Dashboard"
+    },
+    "notifications": {
+      "title": "Notification center",
+      "newCount": "{count, number} new",
+      "markAllRead": "Mark all as read",
+      "preferencesLink": "Channel settings and preferences",
+      "searchPlaceholder": "Search notification text, status or category",
+      "allCategories": "All categories",
+      "listTitle": "Notifications",
+      "sortNewest": "Newest first",
+      "eventCount": "{count, plural, one {# event} other {# events}}",
+      "noData": "No data",
+      "empty": "There are no notifications in this range. New account events will show up here as they happen.",
+      "columns": {
+        "notification": "Notification",
+        "channel": "Channel and timing",
+        "status": "Status"
+      },
+      "markUnread": "Mark as unread",
+      "markRead": "Mark as read",
+      "fresh": "New",
+      "channelLabel": "Channel",
+      "categories": {
+        "all": "All",
+        "system": "System",
+        "general": "General"
+      },
+      "categoryDescriptions": {
+        "system": "System notifications and updates",
+        "general": "General notifications and announcements"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "failed": "Failed",
+        "canceled": "Canceled"
+      },
+      "channels": {
+        "sms": "SMS",
+        "email": "Email",
+        "app_push": "App notification",
+        "telegram_bot": "Telegram",
+        "system": "System"
+      },
+      "preferences": {
+        "title": "Notification settings",
+        "subtitle": "Choose how you receive each kind of notification",
+        "empty": "There are no notification settings yet.",
+        "channelsHeading": "Delivery channels:"
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "subtitle": "Manage your account details",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Changes saved",
+      "saveFailed": "Could not save your changes",
+      "uploading": "Uploading…",
+      "changePicture": "Change profile picture",
+      "pictureAlt": "Profile picture",
+      "userType": "Account type",
+      "individual": "Individual",
+      "legal": "Organization",
+      "legalInfo": "Organization details",
+      "organizationName": {
+        "label": "Organization name",
+        "placeholder": "Enter the organization name"
+      },
+      "organizationRegistrationNumber": {
+        "label": "Registration number",
+        "placeholder": "Organization registration number"
+      },
+      "organizationNationalId": {
+        "label": "Organization national ID",
+        "placeholder": "Organization national ID"
+      },
+      "organizationRepresentative": {
+        "label": "Legal representative",
+        "placeholder": "Name of the legal representative"
+      },
+      "personalInfo": "Personal details",
+      "firstName": {
+        "label": "First name",
+        "placeholder": "Enter your first name"
+      },
+      "lastName": {
+        "label": "Last name",
+        "placeholder": "Enter your last name"
+      },
+      "phone": {
+        "label": "Phone number",
+        "placeholder": "Phone number",
+        "change": "Change"
+      },
+      "validation": {
+        "firstNameRequired": "Enter your first name",
+        "legalIncomplete": "Please complete the organization details"
+      },
+      "phoneChange": {
+        "title": "Change phone number",
+        "phoneStep": "Enter your new phone number",
+        "otpStep": "Enter the verification code we sent",
+        "current": "Current phone number",
+        "newPhone": "New phone number",
+        "sending": "Sending…",
+        "sendCode": "Send verification code",
+        "otp": "Verification code",
+        "verifying": "Verifying…",
+        "verify": "Verify",
+        "sendFailed": "Could not send the verification code",
+        "verifyFailed": "That verification code is not correct"
+      }
+    },
+    "users": {
+      "title": "User management",
+      "empty": "There are no users yet",
+      "noName": "No name",
+      "noPhone": "No phone number",
+      "add": {
+        "open": "Add a new user",
+        "role": "User role",
+        "rolePlaceholder": "Choose a role",
+        "regularUser": "Regular user",
+        "phone": "User's mobile number",
+        "firstName": "First name (optional)",
+        "firstNamePlaceholder": "First name",
+        "lastName": "Last name (optional)",
+        "lastNamePlaceholder": "Last name",
+        "submitting": "Sending…",
+        "submit": "Add",
+        "resultTitle": "Add user",
+        "success": "The user was added",
+        "failed": "Could not add the user"
+      }
+    }
+  },
+  "errors": {
+    "validation": {
+      "failed": "Some of the information you entered is not valid.",
+      "fields": {
+        "generic": "field",
+        "phone": "phone number",
+        "phoneNumber": "mobile number",
+        "otp": "verification code",
+        "locale": "language",
+        "refresh_token": "session",
+        "firstName": "first name",
+        "lastName": "last name",
+        "role": "role",
+        "userType": "account type",
+        "organizationName": "organization name",
+        "organizationRegistrationNumber": "registration number",
+        "organizationNationalId": "organization national ID",
+        "organizationRepresentative": "legal representative",
+        "category": "category",
+        "status": "status",
+        "type": "channel",
+        "text": "search term",
+        "isRead": "read status",
+        "enabled": "notification setting",
+        "smsEnabled": "SMS setting",
+        "emailEnabled": "email setting",
+        "appPushEnabled": "app notification setting",
+        "telegramEnabled": "Telegram setting",
+        "page": "page",
+        "limit": "result count"
+      },
+      "rules": {
+        "invalid": "The {field} is not valid.",
+        "isDefined": "The {field} is required.",
+        "isNotEmpty": "Enter the {field}.",
+        "isString": "The {field} must be text.",
+        "isNumber": "The {field} must be a number.",
+        "isInt": "The {field} must be a whole number.",
+        "isBoolean": "The {field} is not valid.",
+        "isArray": "The {field} must be sent as a list.",
+        "isObject": "The {field} is not valid.",
+        "isEmail": "Enter a valid {field}.",
+        "isPhoneNumber": "Enter a valid {field}.",
+        "isEnum": "Choose a valid option for the {field}.",
+        "isIn": "Choose a valid option for the {field}.",
+        "isUrl": "Enter a valid {field}.",
+        "isDateString": "Enter a valid {field}.",
+        "isIso8601": "Enter a valid {field}.",
+        "matches": "Use the expected format for the {field}.",
+        "isLength": "The {field} has the wrong length.",
+        "minLength": "The {field} is too short.",
+        "maxLength": "The {field} is too long.",
+        "min": "The {field} is below the allowed value.",
+        "max": "The {field} is above the allowed value."
+      }
+    },
+    "auth": {
+      "account": {
+        "processing_failed": "We could not finish setting up your account."
+      },
+      "otp": {
+        "expired": "The one-time code has expired or was not found.",
+        "invalid": "That one-time code is not correct.",
+        "send_failed": "We could not send the one-time code."
+      },
+      "phone": {
+        "invalid_format": "That phone number format is not valid."
+      },
+      "session": {
+        "expired": "Your session has expired. Please sign in again.",
+        "invalid": "Your session is not valid. Please sign in again."
+      },
+      "token": {
+        "authentication_failed": "We could not verify your session. Please sign in again.",
+        "invalid_payload": "Your session is not valid. Please sign in again.",
+        "invalid_refresh": "Your session has expired. Please sign in again.",
+        "invalid_type": "Your session is not valid. Please sign in again.",
+        "refresh_missing": "Your session was not found. Please sign in again."
+      },
+      "user": {
+        "not_found": "User not found."
+      }
+    },
+    "user": {
+      "avatar": {
+        "file_missing": "No file was uploaded.",
+        "invalid_type": "That file format is not valid. Only images are allowed.",
+        "too_large": "The file has to be smaller than {megabytes} MB."
+      },
+      "invitation": {
+        "already_processed": "This invitation has already been handled.",
+        "not_found": "Invitation not found."
+      },
+      "not_found": "User not found.",
+      "phone": {
+        "already_used": "That phone number is already in use."
+      },
+      "role": {
+        "already_granted": "This user already has that role.",
+        "not_found": "That role could not be found."
+      }
+    }
+  }
+}

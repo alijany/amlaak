@@ -196,9 +196,11 @@ The module connects to these backend endpoints:
 'use client';
 
 import { useAuth } from '@/components/auth/auth.context.provider';
-import { getRoleName } from '@/components/auth/auth.constants.roles';
+import { useTranslations } from 'next-intl';
 
 export function RoleSwitcher() {
+  // Role labels live in the catalog (`dashboard.roles.*`), not in code.
+  const t = useTranslations('dashboard.roles');
   const { 
     user,
     selectedRole, 
@@ -220,7 +222,7 @@ export function RoleSwitcher() {
         <option value="">Select Role</option>
         {allRoles.map(role => (
           <option key={role.id} value={role.id}>
-            {getRoleName(role.role)}
+            {t(role.role)}
             {role.organizationId && role.organization && ` - ${role.organization.name}`}
           </option>
         ))}

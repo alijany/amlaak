@@ -46,7 +46,7 @@ export function Dropdown<T>({
 
     return (
         <div className="w-full">
-            <Menu as="div" className={cn("relative inline-block text-left w-full", className)}>
+            <Menu as="div" className={cn("relative inline-block text-end w-full", className)}>
                 <div>
                     {renderButton ? (
                         <MenuButton as="div" disabled={disabled}>
@@ -71,7 +71,7 @@ export function Dropdown<T>({
                             disabled={disabled}
                         >
                             {buttonLabel}
-                            <IconArrowDown className="mr-2 -ml-1 h-5 w-5" aria-hidden="true" />
+                            <IconArrowDown className="ms-2 -me-1 h-5 w-5" aria-hidden="true" />
                         </MenuButton>
                     )}
                 </div>
@@ -86,7 +86,7 @@ export function Dropdown<T>({
                 >
                     <MenuItems
                         className={cn(
-                            "absolute right-0 z-10 mt-2 w-full origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
+                            "absolute start-0 z-10 mt-2 w-full ltr:origin-top-left rtl:origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
                             itemsClassName
                         )}
                     >
@@ -99,7 +99,7 @@ export function Dropdown<T>({
                                             className={cn(
                                                 focus ? "bg-slate-100 text-slate-900" : "text-slate-700",
                                                 item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-                                                "block w-full px-4 py-2 text-right text-sm"
+                                                "block w-full px-4 py-2 text-start text-sm"
                                             )}
                                             onClick={() => onChange(item.value)}
                                             disabled={item.disabled}

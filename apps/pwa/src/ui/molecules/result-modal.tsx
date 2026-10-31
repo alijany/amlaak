@@ -4,6 +4,7 @@ import React from 'react';
 import { Button } from '@/ui/atoms/ui.button';
 import { Modal } from '@/ui/atoms/ui.modal';
 import { IconCheck, IconX } from '@tabler/icons-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/libs/style/style.util.helpers';
 
 export interface ResultModalProps {
@@ -22,15 +23,18 @@ export interface ResultModalProps {
 export function ResultModal({
     isOpen,
     onClose,
-    title = 'نتیجه درخواست',
+    title,
     status,
-    successTitle = 'انجام شد',
-    successMessage = 'درخواست شما با موفقیت ارسال شد',
-    errorTitle = 'خطا',
-    errorMessage = 'متاسفانه در ارسال درخواست شما خطایی رخ داده است',
-    closeButtonText = 'بازگشت',
+    successTitle,
+    successMessage,
+    errorTitle,
+    errorMessage,
+    closeButtonText,
     className,
 }: ResultModalProps): React.ReactElement {
+    const t = useTranslations('common.result');
+    const closeLabel = closeButtonText ?? t('close');
+
     return (
         <Modal
             isOpen={isOpen}
@@ -39,10 +43,10 @@ export function ResultModal({
         >
             <div className='flex justify-between items-center pb-4'>
                 <div className='font-bold text-lg lg:text-xl text-slate-700'>
-                    {title}
+                    {title ?? t('title')}
                 </div>
 
-                <Button variant='outline' className='!px-2' onClick={onClose}>
+                <Button variant='outline' className='!px-2' aria-label={closeLabel} onClick={onClose}>
                     <IconX className='size-5' />
                 </Button>
             </div>
@@ -54,8 +58,8 @@ export function ResultModal({
                     </div>
 
                     <div className="space-y-3 text-center">
-                        <div className="text-2xl font-bold">{successTitle}</div>
-                        <div>{successMessage}</div>
+                        <div className="text-2xl font-bold">{successTitle ?? t('successTitle')}</div>
+                        <div>{successMessage ?? t('successMessage')}</div>
                     </div>
                 </div>
             )}
@@ -67,14 +71,14 @@ export function ResultModal({
                     </div>
 
                     <div className="space-y-3 text-center">
-                        <div className="text-2xl font-bold">{errorTitle}</div>
-                        <div>{errorMessage}</div>
+                        <div className="text-2xl font-bold">{errorTitle ?? t('errorTitle')}</div>
+                        <div>{errorMessage ?? t('errorMessage')}</div>
                     </div>
                 </div>
             )}
 
             <Button variant='ghost' className="bg-slate-100 w-full" onClick={onClose}>
-                {closeButtonText}
+                {closeLabel}
             </Button>
         </Modal>
     );

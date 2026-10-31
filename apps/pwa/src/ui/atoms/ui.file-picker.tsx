@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { cn } from "@/libs/style/style.util.helpers";
 import { IconUpload } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { Button } from "./ui.button";
 
 export interface FilePickerProps {
@@ -21,17 +22,13 @@ export const FilePicker: React.FC<FilePickerProps> = ({
     accept,
     multiple = false,
     className,
-    label = "انتخاب فایل",
-    description = (
-        <>
-            فیلم و یا تصویر آگهی خود را اینجا بکشید و رها کنید
-            <br />
-            و یا برای انتخاب فایل <span className="text-primary cursor-pointer">اینجا کلیک کنید</span>
-        </>
-    ),
+    label,
+    description,
     icon,
     disabled = false,
 }) => {
+    const t = useTranslations('common.filePicker');
+
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -75,7 +72,15 @@ export const FilePicker: React.FC<FilePickerProps> = ({
                         aria-hidden="true"
                     />
                 )}
-                <div className={cn("text-slate-500 font-medium leading-7", disabled && "text-slate-400")}>{description}</div>
+                <div className={cn("text-slate-500 font-medium leading-7", disabled && "text-slate-400")}>
+                    {description ?? (
+                        <>
+                            {t('dropHint')}
+                            <br />
+                            {t('browsePrefix')} <span className="text-primary cursor-pointer">{t('browseAction')}</span>
+                        </>
+                    )}
+                </div>
             </div>
             <Button
                 variant="white"
@@ -85,7 +90,7 @@ export const FilePicker: React.FC<FilePickerProps> = ({
                     if (!disabled) handleClick();
                 }}
             >
-                {label}
+                {label ?? t('label')}
             </Button>
             <input
                 ref={inputRef}

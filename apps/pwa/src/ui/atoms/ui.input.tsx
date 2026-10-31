@@ -35,7 +35,7 @@ export function Input({ className, icon, error, label, labelRight, packageId, te
           )}
         </label>
       )}
-      <div className={cn("flex items-center px-4 space-x-2 space-x-reverse rounded-xl border focus-within:ring-1", isDark ? "border-neutral-50 focus-within:border-neutral-100 focus-within:ring-neutral-100" : "border-slate-200 focus-within:border-slate-500 focus-within:ring-slate-500")}>
+      <div className={cn("flex items-center px-4 gap-2 rounded-xl border focus-within:ring-1", isDark ? "border-neutral-50 focus-within:border-neutral-100 focus-within:ring-neutral-100" : "border-slate-200 focus-within:border-slate-500 focus-within:ring-slate-500")}>
         {icon && (
           <span className="flex items-center justify-center" aria-hidden="true">
             {icon}

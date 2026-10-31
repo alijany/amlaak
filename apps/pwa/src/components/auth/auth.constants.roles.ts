@@ -1,4 +1,4 @@
-import { User } from "@/app/dashboard/users/users.types";
+import { User } from "@/app/[locale]/dashboard/users/users.types";
 
 export enum Role {
   ADMIN = 'admin',
@@ -43,18 +43,6 @@ export type RoleType = {
   organization?: number;
   description?: string;
 };
-
-export function getRoleName(role: Role): string {
-  const roleNames: Record<Role, string> = {
-    [Role.ADMIN]: 'ادمین',
-    [Role.OWNER]: 'مالک',
-    [Role.MANAGER]: 'مدیر',
-    [Role.MEMBER]: 'عضو',
-    [Role.USER]: 'کاربر',
-    [Role.GUEST]: 'مهمان',
-  };
-  return roleNames[role] || role;
-}
 
 export const RoleHierarchy: Record<Role, number> = {
   [Role.ADMIN]: 5,

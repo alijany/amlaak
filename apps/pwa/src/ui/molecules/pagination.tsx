@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { cn } from '@/libs/style/style.util.helpers';
 import { Button } from '@/ui/atoms/ui.button';
+import { useTranslations } from 'next-intl';
 
 export interface PaginationProps {
     itemPerPage: number;
@@ -20,6 +21,7 @@ export function Pagination({
     onNavigate,
     className,
 }: PaginationProps): React.ReactElement {
+    const t = useTranslations('common.pagination');
     const paginateButtons = [];
     const pageCount = Math.max(1, Math.ceil(totalCount / itemPerPage));
 
@@ -92,7 +94,7 @@ export function Pagination({
     return (
         <nav
             className={cn("flex justify-center items-center", className)}
-            aria-label="Pagination"
+            aria-label={t('label')}
         >
             <div dir='ltr' className="flex flex-row space-x-1 lg:space-x-2 justify-center items-center">
                 {paginateButtons}
@@ -108,6 +110,7 @@ interface PageButtonProps {
 }
 
 function PageButton({ page, currentPage, onNavigate }: PageButtonProps) {
+    const t = useTranslations('common.pagination');
     const isActive = page === currentPage;
     
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -120,7 +123,7 @@ function PageButton({ page, currentPage, onNavigate }: PageButtonProps) {
             href="#"
             onClick={handleClick}
             aria-current={isActive ? 'page' : undefined}
-            aria-label={`Page ${page}`}
+            aria-label={t('page', { page })}
             className={cn(
                 "inline-flex items-center justify-center rounded-lg min-w-[2.5rem] h-10",
                 isActive ? "pointer-events-none" : "hover:bg-slate-100"

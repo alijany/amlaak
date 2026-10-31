@@ -2,6 +2,8 @@
 
 import { useSwrHelper, useSwrMutationHelper } from '@/libs/api/api.hook.use-swr-helper';
 import { fetcher, postFetcher, patchFetcher, uploadFileFetcher } from '@/libs/api/api.util.fetcher';
+import { useLocale } from 'next-intl';
+import { useCallback } from 'react';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { RoleType } from './auth.constants.roles';
@@ -13,6 +15,14 @@ export enum UserType {
 
 export interface OtpRequest {
   phoneNumber: string;
+  /**
+   * The locale the edge already negotiated for this visit. The OTP is the one
+   * message the backend writes itself, and it has no request to read a language
+   * from later — so it is reported here, on the call that triggers it. Not sent
+   * as a global header: that would make every response vary by language
+   * (`docs/engine/localization.md`).
+   */
+  locale?: string;
 }
 
 export interface OtpVerify {
@@ -75,14 +85,22 @@ export class AuthError extends Error {
 }
 
 export function useRequestOtpMutation() {
+  const locale = useLocale();
   const { submit, data, error, isLoading, reset } = useSwrMutationHelper<
     OtpSendResponse, 
     Error, 
-    { phoneNumber: string }
+    OtpRequest
   >(useSWRMutation('/auth/otp/send', postFetcher<OtpRequest,OtpSendResponse>));
+
+  // Attached here rather than at each screen: every caller of this hook sends
+  // an SMS, and none of them should have to remember what language it is in.
+  const requestOtp = useCallback(
+    (arg: { phoneNumber: string }) => submit({ ...arg, locale }),
+    [submit, locale],
+  );
   
   return {
-    requestOtp: submit,
+    requestOtp,
     data,
     error,
     isLoading,

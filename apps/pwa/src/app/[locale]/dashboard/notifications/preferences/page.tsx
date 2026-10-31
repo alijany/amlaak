@@ -4,11 +4,22 @@ import ProtectedRoute from '@/components/auth/auth.component.protected-route';
 import { DashbaordLayout } from '@/components/dashboard/dashboard.layout';
 import { DataView } from '@/ui/molecules/dataView/ui.data-view';
 import { useNotificationPreferences, updateNotificationPreference } from '../notifications.api';
-import { NotificationCategory } from '../notifications.types';
+import { NotificationCategory, NotificationType } from '../notifications.types';
+import { useTranslations } from 'next-intl';
 import { mutate } from 'swr';
 import { useState } from 'react';
 
+// Each preference toggle names a delivery channel; its label is that
+// channel's, so the two pages cannot call one channel by two names.
+const CHANNEL_TYPES = {
+    smsEnabled: NotificationType.SMS,
+    emailEnabled: NotificationType.EMAIL,
+    appPushEnabled: NotificationType.APP_PUSH,
+    telegramEnabled: NotificationType.TELEGRAM_BOT,
+} as const;
+
 export default function NotificationPreferencesPage() {
+    const t = useTranslations('dashboard.notifications');
     const { data, error, isLoading } = useNotificationPreferences();
     const [updating, setUpdating] = useState<string | null>(null);
 
@@ -30,52 +41,15 @@ export default function NotificationPreferencesPage() {
         }
     };
 
-    const getCategoryText = (category: NotificationCategory) => {
-        switch (category) {
-            case NotificationCategory.SYSTEM:
-                return 'سیستم';
-            case NotificationCategory.GENERAL:
-                return 'عمومی';
-            default:
-                return category;
-        }
-    };
-
-    const getCategoryDescription = (category: NotificationCategory) => {
-        switch (category) {
-            case NotificationCategory.SYSTEM:
-                return 'اعلان‌های سیستمی و به‌روزرسانی‌ها';
-            case NotificationCategory.GENERAL:
-                return 'اعلان‌های عمومی و اطلاعیه‌ها';
-            default:
-                return '';
-        }
-    };
-
-    const getChannelText = (channel: string) => {
-        switch (channel) {
-            case 'smsEnabled':
-                return 'پیامک';
-            case 'emailEnabled':
-                return 'ایمیل';
-            case 'appPushEnabled':
-                return 'نوتیفیکیشن اپلیکیشن';
-            case 'telegramEnabled':
-                return 'تلگرام';
-            default:
-                return channel;
-        }
-    };
-
     return (
         <ProtectedRoute>
             <DashbaordLayout>
                 <div className='space-y-3 grow flex flex-col overflow-hidden'>
                     <div className='p-4 rounded-2xl bg-white flex items-center gap-4 justify-between'>
                         <div>
-                            <h1 className='font-bold text-lg'>تنظیمات اعلان‌ها</h1>
+                            <h1 className='font-bold text-lg'>{t('preferences.title')}</h1>
                             <p className='text-sm text-gray-500 mt-1'>
-                                مدیریت نحوه دریافت اعلان‌های مختلف
+                                {t('preferences.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -85,7 +59,7 @@ export default function NotificationPreferencesPage() {
                         isLoading={isLoading}
                         className='p-4 rounded-2xl bg-white grow flex flex-col gap-4 overflow-auto'
                         isEmpty={(data) => !data || data.length === 0}
-                        emptyMessage='هیچ تنظیماتی برای اعلان‌ها وجود ندارد.'
+                        emptyMessage={t('preferences.empty')}
                         variant='inline'
                     >
                         <div className="space-y-4">
@@ -97,10 +71,10 @@ export default function NotificationPreferencesPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <h3 className="font-semibold text-lg">
-                                                {getCategoryText(preference.category)}
+                                                {t(`categories.${preference.category}`)}
                                             </h3>
                                             <p className="text-sm text-gray-500 mt-1">
-                                                {getCategoryDescription(preference.category)}
+                                                {t(`categoryDescriptions.${preference.category}`)}
                                             </p>
                                         </div>
                                         <label className="flex items-center cursor-pointer">
@@ -124,7 +98,7 @@ export default function NotificationPreferencesPage() {
                                     {preference.enabled && (
                                         <div className="space-y-3 pt-3 border-t">
                                             <p className="text-sm font-medium text-gray-700">
-                                                کانال‌های دریافت اعلان:
+                                                {t('preferences.channelsHeading')}
                                             </p>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {(['smsEnabled', 'emailEnabled', 'appPushEnabled', 'telegramEnabled'] as const).map(
@@ -134,7 +108,7 @@ export default function NotificationPreferencesPage() {
                                                             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                                                         >
                                                             <span className="text-sm">
-                                                                {getChannelText(channel)}
+                                                                {t(`channels.${CHANNEL_TYPES[channel]}`)}
                                                             </span>
                                                             <input
                                                                 type="checkbox"

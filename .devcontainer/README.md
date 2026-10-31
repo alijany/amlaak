@@ -42,12 +42,26 @@ image and `@playwright/mcp` agree.
 A minimal validation flow is:
 
 1. Use `browser_navigate` for the changed route, for example
-   `http://127.0.0.1/dashboard`.
+   `http://127.0.0.1/dashboard` (Persian, RTL) or `http://127.0.0.1/en/dashboard`
+   (English, LTR).
 2. Use `browser_snapshot` for the accessibility tree and
    `browser_take_screenshot` for visual evidence.
 3. Exercise the changed interaction with `browser_click` or `browser_type`,
    then take another snapshot.
 4. Use `browser_close` when done.
+
+The language is negotiated per request (`docs/engine/localization.md`): an
+explicit `/en` prefix wins, then the `NEXT_LOCALE` cookie, then the browser's
+`Accept-Language`. Playwright's browser sends `en-US`, so an unprefixed URL
+redirects to `/en/…` on a first visit, and visiting any `/en/…` page pins the
+cookie to `en` until it is changed. To check Persian, open an unprefixed URL
+after setting `NEXT_LOCALE=fa` (for example with `browser_evaluate`:
+`document.cookie = 'NEXT_LOCALE=fa; path=/'`). Check both locales when layout
+or copy can differ.
+
+Font downloads differ between `next dev` and a production build. Verify font
+loading only against `pnpm --filter pwa build` output, in a fresh browser
+context per locale.
 
 ## Log in and reach admin-only routes
 
@@ -65,16 +79,21 @@ every boot ensures that user exists with the `admin` role, so use it for
 admin-only routes such as `/dashboard/users`. Never add an auth bypass or relax
 a route's roles to make validation easier.
 
-In the browser, navigate to `/login`, fill the mobile-number field
-(placeholder `شماره موبایل`), submit, read the code from the log, fill the
-one-time-code field, and submit. The app lands on `/dashboard`.
+In the browser, navigate to `/login` (Persian) or `/en/login` (English), fill
+the mobile-number field (placeholder `شماره موبایل` / "Mobile number") with a
+local number such as `0912…`, submit ("ارسال کد تایید" / "Send verification
+code"), read the code from the log, fill the one-time-code field (placeholder
+`کد تایید 4 رقمی` / "4-digit verification code"), and submit ("ورود" / "Sign
+in"). The app lands on `/dashboard` or `/en/dashboard`, matching the login
+page's locale.
 
 The dashboard evaluates access against the *selected* role, which defaults to
 the user's first role. If the user holds several, choose `admin` in the sidebar
 role dropdown, or set `selected-role` in `localStorage` to that role's id.
 
 For later runs, the tokens returned by the real endpoints can be reused: call
-`POST /api/v1/auth/otp/send`, then `/verify` with the logged code, and use
+`POST /api/v1/auth/otp/send` (optionally with `"locale": "en"`, which only
+chooses the SMS language), then `/verify` with the logged code, and use
 `browser_evaluate` to set `auth_token` and `refresh_token` in `localStorage`
 before navigating. Access tokens last 15 minutes by default
 (`ACCESS_TOKEN_TTL`).

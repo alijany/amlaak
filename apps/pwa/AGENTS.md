@@ -1,10 +1,11 @@
 # PWA — Frontend Application
 
-Next.js 15 progressive web application with domain-driven architecture, SSR/RSC support, and built-in auth.
+Next.js 16 progressive web application with domain-driven architecture, SSR/RSC support, built-in auth, and automatic fa/en localization.
 
 ## Architecture Overview
 
-- **Domain-based organization**: Each business domain is self-contained under `src/app/<domain>/`
+- **Domain-based organization**: Each business domain is self-contained under `src/app/[locale]/<domain>/`
+- **Localized**: language is auto-negotiated at the edge; every route is statically rendered per locale
 - **Type-safe API layer**: All HTTP via `src/libs/api/api.util.fetcher.ts` + SWR helpers
 - **Role-based auth**: JWT + OTP with multi-role support and route protection
 
@@ -12,7 +13,10 @@ Next.js 15 progressive web application with domain-driven architecture, SSR/RSC 
 
 ```
 src/
-  app/            Next.js App Router — domain pages and co-located domain code
+  app/[locale]/   Next.js App Router — every route lives under the locale segment
+  i18n/           Localization config, routing, navigation, formatters, calendar utils
+  messages/       Message catalogs (fa.json is the type source, then en.json)
+  proxy.ts        Locale negotiation at the edge (Next.js 16's `middleware`)
   components/     Shared components used across 2+ domains
     auth/         Authentication system (global by design)
     dashboard/    Dashboard shell (navbar, sidebar, layout)
@@ -27,7 +31,7 @@ src/
   assets/         Static assets
 ```
 
-Domain-local code stays inside `src/app/<domain>/`. Only move code to `src/libs/` or `src/components/` when it is used by two or more domains.
+Domain-local code stays inside `src/app/[locale]/<domain>/`. Only move code to `src/libs/` or `src/components/` when it is used by two or more domains.
 
 ### Shared layouts
 
@@ -80,7 +84,7 @@ import { useSwrHelper, useSwrMutationHelper } from '@/libs/api/api.hook.use-swr-
 Co-locate all hooks and fetcher calls for a domain in a single `<domain>.api.ts` file.
 
 ```typescript
-// src/app/items/items.api.ts
+// src/app/[locale]/items/items.api.ts
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { fetcher, postFetcher, patchFetcher, deleteFetcher } from '@/libs/api/api.util.fetcher';
@@ -116,15 +120,18 @@ Always use `DataView` to render async data — it handles loading, error, and em
 import { DataView } from '@/ui/molecules';
 
 // Props: data, error, isLoading, isEmpty?, onRetry?, errorTitle?, errorMessage?,
-//        emptyMessage?, emptyIcon?, variant? ("card" | "inline"), className, ...divProps
+//        retryText?, emptyMessage?, emptyIcon?, variant? ("card" | "inline"), className, ...divProps
+// Omitted copy falls back to `common.dataView.*` in the reader's language.
 ```
 
 ```tsx
 'use client';
+import { useTranslations } from 'next-intl';
 import { DataView } from '@/ui/molecules';
 import { useItems } from './items.api';
 
 export function ItemsPage() {
+  const t = useTranslations('items');
   const { data, error, isLoading, refresh } = useItems();
 
   return (
@@ -133,7 +140,7 @@ export function ItemsPage() {
       error={error}
       isLoading={isLoading}
       isEmpty={(d) => !d?.items.length}
-      emptyMessage="No items found"
+      emptyMessage={t('empty')} // omit to use the shared catalog default
       onRetry={refresh}
     >
       {data?.items.map((item) => (
@@ -165,11 +172,11 @@ const { data, error, isLoading, refresh } = useItems();
 ## Adding a New Domain
 
 ```bash
-mkdir -p src/app/items
-touch src/app/items/page.tsx
-touch src/app/items/items.types.ts
-touch src/app/items/items.api.ts
-touch src/app/items/items.component.list.tsx
+mkdir -p 'src/app/[locale]/items'
+touch 'src/app/[locale]/items/page.tsx'
+touch 'src/app/[locale]/items/items.types.ts'
+touch 'src/app/[locale]/items/items.api.ts'
+touch 'src/app/[locale]/items/items.component.list.tsx'
 ```
 
 Checklist:
@@ -177,6 +184,8 @@ Checklist:
 2. Write SWR hooks in `items.api.ts` using fetcher + SWR helpers
 3. Use `DataView` in components — never write manual loading/error/empty branches
 4. Protect routes with `ProtectedRoute` or `RoleProtectedRoute` (see Auth below)
+5. Add the domain's strings to `fa.json` then `en.json`, and ship its namespace to the
+   client from the nearest layout (see Localization below)
 
 ## Authentication
 
@@ -228,14 +237,85 @@ Roles live in `src/components/auth/auth.constants.roles.ts` and follow a strict 
 | `user` | 1 | |
 | `guest` | 0 | Lowest privilege |
 
-A user may hold multiple roles (one per organization). The active role is chosen in the sidebar dropdown, and route visibility and guards are evaluated against `selectedRole` from `useAuth()`. Use `hasPermission(userRole, requiredRole)` for hierarchy checks, and pass a `roles` array to a `RouteItem` in `dashboard.constants.route-groups.tsx` to restrict a sidebar link.
+A user may hold multiple roles (one per organization). The active role is chosen in the sidebar dropdown, and route visibility and guards are evaluated against `selectedRole` from `useAuth()`. Use `hasPermission(userRole, requiredRole)` for hierarchy checks, and pass a `roles` array to a `RouteItem` in `dashboard.constants.route-groups.tsx` to restrict a sidebar link. Role names render from `dashboard.roles.<role>`; a `RouteItem` carries a `labelKey` under `dashboard.routes`, typed from `fa.json`.
+
+## Localization
+
+The language is detected automatically and **users cannot choose it** — there is
+no switcher and none should be added. `fa` is the default with unprefixed URLs; `en`
+lives under `/en`. See `docs/engine/localization.md` for the design, the
+negotiation precedence and the `LOCALE_OVERRIDE` kill switch.
+
+Five rules matter when writing components:
+
+```tsx
+// 1. Strings come from the catalog — works in both server and client components
+import { useTranslations } from 'next-intl';
+const t = useTranslations('nav');
+<span>{t('home')}</span>
+
+// 2. Navigation comes from the i18n helpers, never next/link or next/navigation.
+//    `usePathname` here returns the path WITHOUT the /en prefix, which is what
+//    active-route checks and `?redirect=` round trips need.
+import { Link, useRouter, usePathname } from '@/i18n/i18n.navigation';
+
+// 3. Numbers and dates go through the formatter — never toLocaleString('fa-IR').
+//    `fa` resolves to Persian digits AND the Jalali calendar automatically.
+import { useFormatter } from 'next-intl';
+const format = useFormatter();
+format.number(total, 'integer');            // ۱۲٬۵۰۰
+format.dateTime(createdAt, 'numeric');      // ۱۴۰۵/۸/۸ — presets in i18n.formats.ts
+
+// 4. Calendars: display via the formatter, arithmetic via calendarFns.
+import { calendarFns, weekdayLabels } from '@/i18n/i18n.util.calendar';
+const { startOfMonth, addMonths } = calendarFns(locale);
+
+// 5. API errors render through the catalog, never from `error.message`.
+import { useApiErrorMessage } from '@/libs/api/api.hook.use-error-message';
+const errorMessage = useApiErrorMessage();
+setError(errorMessage(err, t('saveFailed')));
+```
+
+Server pages need no `setRequestLocale` — the locale comes from
+`next/root-params` in `i18n.request.ts`. Keep `generateStaticParams` in the root
+layout and never read `headers()`/`cookies()` in a page or layout.
+
+Adding a string: put it in `src/messages/fa.json` (its shape is the type source
+of truth), then `en.json`. A missing key fails `pnpm lint`. API error codes go
+under `errors.*`; a new validator needs its constraint key under
+`errors.validation.rules`.
+
+Client bundle: the root layout ships only `common`, `nav`, `footer`, `format`,
+`calendar`. An area adds its own namespaces in a nested `NextIntlClientProvider`
+that re-sends the root ones — `/` adds `landing`, `/login` adds `login` and
+`errors`, `app/[locale]/dashboard/layout.tsx` adds `dashboard` and `errors`.
+Widen there, not at the root.
+
+Metadata: the root layout sets the localized title and description. Put a
+canonical or `hreflang` alternates on the page itself, never in a layout, or
+every child inherits them.
+
+Bidi: `<html dir>` is per-locale, which turns on Tailwind's `rtl:`/`ltr:`
+variants. Use logical utilities (`ms/me`, `ps/pe`, `start/end`, `text-start`,
+`border-s/border-e`) and `gap-*` rather than `space-x-* space-x-reverse`.
+Transforms (drawer slides, directional icons) and JS-laid-out widgets
+(`react-range`, Embla) need the direction passed explicitly.
+
+Fonts: Yekan Bakh for `fa`, Inter for everything else — chosen in
+`app/[locale]/layout.tsx` via one `font-yekan`/`font-inter` class, never both.
+Both loaders use `preload: false`; verify any change with a production-build
+network trace, not by reading CSS or the dev server.
+
+Brand: `src/config/brand.config.ts` keeps language-independent contact values;
+the brand name (`common.brand`), metadata (`meta`) and landing copy (`landing`)
+are catalog keys.
 
 ## Commands
 
 ```bash
 pnpm --filter pwa dev          # dev server on :8000
 pnpm --filter pwa build        # production build
-pnpm --filter pwa lint         # ESLint check
+pnpm --filter pwa lint         # type-check + ESLint (flat config; `next lint` was removed in Next 16)
 pnpm --filter pwa type-check   # TypeScript check
 ```
 
@@ -249,15 +329,17 @@ linting and HTTP status checks are necessary but not sufficient:
 2. Load the changed route through nginx on `http://127.0.0.1/` and verify its
    relevant `/api/v1/` request independently.
 3. Open the route with the Playwright MCP server (`browser_navigate` to
-   `http://127.0.0.1/…`), inspect the accessibility snapshot
-   (`browser_snapshot`), and capture a screenshot (`browser_take_screenshot`)
-   for visual review.
+   `http://127.0.0.1/…` or `http://127.0.0.1/en/…`), inspect the accessibility
+   snapshot (`browser_snapshot`), and capture a screenshot
+   (`browser_take_screenshot`) for visual review.
 4. Exercise the changed interaction and important loading, empty, error, and
    success states when they are part of the change (`browser_click`,
    `browser_type`, then re-snapshot).
 5. Check mobile and desktop widths when layout can differ (the dashboard swaps
-   the sidebar for a bottom bar on mobile), then close the tab
-   (`browser_close`).
+   the sidebar for a bottom bar on mobile), and both `fa` (RTL) and `en` (LTR)
+   when layout or localized copy can differ, then close the tab
+   (`browser_close`). A `NEXT_LOCALE` cookie outranks the browser language, so
+   visiting `/en/…` keeps later unprefixed URLs in English until it is reset.
 
 For dashboard or admin-only routes, sign in with the OTP flow in
 `.devcontainer/README.md`; never add an auth bypass for validation. Playwright
@@ -266,6 +348,20 @@ is the default browser path for frontend QA here.
 ## Troubleshooting
 
 - **Hydration errors**: ensure data passed from Server → Client Components is serializable
+- **Route stopped prerendering**: do not trust the build summary — it still prints `●` while emitting no HTML. Check `find .next/server/app -name '*.html' | wc -l` (expect 16: 7 routes × 2 locales + `_not-found` + `_global-error`; add two per new route). Cause is almost always something reading the locale from a request API instead of `next/root-params`
+- **`MISSING_MESSAGE` in a client component** (or `⟪namespace.key⟫` rendered in dev): its namespace is not in any `NextIntlClientProvider` above it — add it to the nearest area layout or page
+- **Active nav link stops highlighting under `/en`**, or login redirects to `/en/en/...`: `usePathname`/`useRouter` was imported from `next/navigation` instead of `@/i18n/i18n.navigation`
+- **API error shows in English on a Persian page**: the throw site has no code (use a `Coded*Exception`), the code is missing from `errors.*`, or the component renders `error.message` instead of `useApiErrorMessage()`
 - **SWR cache stale**: call `refresh()` from `useSwrHelper` after mutations; pass `onSuccess={refresh}` to forms
 - **Type errors**: import types only from the owning domain — avoid cross-domain type imports
 - **Auth token issues**: clear localStorage and re-login; check JWT expiration settings
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

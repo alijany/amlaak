@@ -1,10 +1,18 @@
 "use client";
 
+import { BUSINESS_TIME_ZONE } from "@/i18n/i18n.config";
+import {
+  calendarFns,
+  formatMonthHeading,
+  weekdayLabels,
+  weekStartsOn,
+} from "@/i18n/i18n.util.calendar";
 import { Button } from "@/ui/atoms";
 import { TZDate } from '@date-fns/tz';
-import { addDays, addMonths, eachDayOfInterval, format, isBefore, startOfDay, startOfMonth } from "date-fns-jalali";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
-import { useState, useEffect, useMemo } from "react";
+import { format as formatGregorian } from "date-fns";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
 
 type CalendarProps = {
   selectedDates: Date[];
@@ -14,8 +22,18 @@ type CalendarProps = {
   onViewMonthChange?: (daysInMonth: Date[]) => void;
 };
 
-const daysInWeek: string[] = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+/** Identity key for a day. Always Gregorian — internal, never displayed. */
+const key = (date: Date) => formatGregorian(date, "yyyy-MM-dd");
 
+/**
+ * Month picker, drawn in the reader's own calendar.
+ *
+ * Under `fa` this is a Jalali grid opening on Saturday; under any other locale
+ * it is a Gregorian grid opening on Sunday. The month arithmetic has to come
+ * from the matching date-fns build — `startOfMonth` genuinely differs between
+ * the two — while the labels come from `Intl`, which picks the calendar from
+ * the locale on its own.
+ */
 export function Calendar({
   selectedDates,
   onSelectDates,
@@ -23,46 +41,52 @@ export function Calendar({
   disabledDates = [],
   onViewMonthChange,
 }: CalendarProps) {
-  const now = TZDate.tz('Asia/Tehran', new Date());
-  const defaultMinDate: Date = startOfDay(now);
+  const locale = useLocale();
+  const t = useTranslations("calendar");
+  const { startOfDay, startOfMonth, addDays, addMonths, eachDayOfInterval, isBefore } =
+    calendarFns(locale);
+
+  const now = TZDate.tz(BUSINESS_TIME_ZONE, new Date());
+  const today: Date = startOfDay(now);
   const minDate: Date = minSelectableDate
     ? startOfDay(minSelectableDate)
-    : defaultMinDate;
-  const today: Date = startOfDay(now);
+    : today;
   const [viewMonth, setViewMonth] = useState<Date>(today);
 
-  // Calculate the first day of the month and its day-of-week (1-7)
-  const daysInMonth: Date[] = useMemo(() => {
-    const firstDayOfMonth: Date = startOfMonth(viewMonth);
-    const dayOfWeek: number = firstDayOfMonth.getDay();
-    const startDay = addDays(firstDayOfMonth, - (dayOfWeek + 1));
-    const endDay = addDays(startDay, 41);
-    const daysInMonth: Date[] = eachDayOfInterval({
-      start: startDay,
-      end: endDay,
-    });
-    return daysInMonth;
-  }, [viewMonth]);
+  const dayNumber = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        timeZone: BUSINESS_TIME_ZONE,
+      }),
+    [locale],
+  );
 
-  // Call onViewMonthChange when viewMonth or daysInMonth changes
+  const daysInMonth: Date[] = useMemo(() => {
+    const first = startOfMonth(viewMonth);
+    // `getDay()` is 0=Sunday, so this is the column `first` falls in for a week
+    // opening on `weekStartsOn`. The `% 7` matters: without it a month whose
+    // first day *is* the opening weekday starts the grid a week early, pushing
+    // the month down and wasting the top row.
+    const start = addDays(first, -((first.getDay() - weekStartsOn(locale) + 7) % 7));
+    return eachDayOfInterval({ start, end: addDays(start, 41) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMonth, locale]);
+
   useEffect(() => {
-    if (onViewMonthChange) {
-      onViewMonthChange(daysInMonth);
-    }
+    onViewMonthChange?.(daysInMonth);
   }, [daysInMonth, onViewMonthChange]);
 
-  // Helper function to check if a date is disabled
-  const isDateDisabled = (date: Date): boolean => {
-    return disabledDates.some((disabledDate) =>
-      format(disabledDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-    );
-  };
+  const disabledKeys = useMemo(
+    () => new Set(disabledDates.map(key)),
+    [disabledDates],
+  );
 
   const toggleDateSelection = (date: Date) => {
-    if (isBefore(date, minDate) || isDateDisabled(date)) return;    // check both conditions
+    if (isBefore(date, minDate) || disabledKeys.has(key(date))) return;
     onSelectDates(
-      selectedDates.some((d) => format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd"))
-        ? selectedDates.filter((d) => format(d, "yyyy-MM-dd") !== format(date, "yyyy-MM-dd"))
+      selectedDates.some((d) => key(d) === key(date))
+        ? selectedDates.filter((d) => key(d) !== key(date))
         : [...selectedDates, date]
     );
   };
@@ -70,41 +94,60 @@ export function Calendar({
   return (
     <div className="bg-white rounded-2xl w-full h-full space-y-2 lg:space-y-3">
       <div className="flex justify-between items-center">
-        <Button variant="outline" className="border-none" size="sm" onClick={() => setViewMonth(addMonths(viewMonth, -1))}>
-          <IconChevronRight />
-          <span>ماه قبل</span>
+        <Button
+          variant="outline"
+          className="border-none"
+          size="sm"
+          onClick={() => setViewMonth(addMonths(viewMonth, -1))}
+        >
+          {/* "Previous" points toward the start of the line, which flips with
+              the writing direction. */}
+          <IconChevronRight className="ltr:hidden" />
+          <IconChevronLeft className="rtl:hidden" />
+          <span>{t("prevMonth")}</span>
         </Button>
-        <h2 className="font-semibold">{format(viewMonth, "MMMM yyyy")}</h2>
-        <Button variant="outline" className="border-none" size="sm" onClick={() => setViewMonth(addMonths(viewMonth, 1))}>
-          <span>ماه بعد</span>
-          <IconChevronLeft />
+
+        <h2 className="font-semibold">{formatMonthHeading(locale, viewMonth)}</h2>
+
+        <Button
+          variant="outline"
+          className="border-none"
+          size="sm"
+          onClick={() => setViewMonth(addMonths(viewMonth, 1))}
+        >
+          <span>{t("nextMonth")}</span>
+          <IconChevronLeft className="ltr:hidden" />
+          <IconChevronRight className="rtl:hidden" />
         </Button>
       </div>
 
       <hr />
 
       <div className="grid grid-cols-7 text-center font-semibold">
-        {daysInWeek.map((day) => (
-          <div key={day} className="py-1">
+        {weekdayLabels(locale).map((day, column) => (
+          <div key={column} className="py-1">
             {day}
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-1 lg:gap-3">
-        {daysInMonth.map((date, index) => {
+        {daysInMonth.map((date) => {
           const isPast: boolean = isBefore(date, minDate);
-          const isDisabled: boolean = isDateDisabled(date);      // check if date is disabled
-          const isSelected: boolean = selectedDates.some((d) => format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd"));
+          const isDisabled: boolean = disabledKeys.has(key(date));
+          const isSelected: boolean = selectedDates.some(
+            (d) => key(d) === key(date),
+          );
+
           return (
             <Button
-              key={index}
+              key={key(date)}
               variant={isSelected ? "secondary" : "ghost"}
               className="rounded-2xl"
-              disabled={isPast || isDisabled}                    // disable if past or explicitly disabled
+              disabled={isPast || isDisabled}
               onClick={() => toggleDateSelection(date)}
             >
-              {format(date, "d")}
+              {dayNumber.format(date)}
             </Button>
           );
         })}

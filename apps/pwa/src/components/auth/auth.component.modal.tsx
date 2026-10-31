@@ -2,32 +2,15 @@
 
 import { useAuth } from '@/components/auth/auth.context.provider';
 import { TermsModal } from '@/components/modals/modals.component.terms';
+import { useRouter } from '@/i18n/i18n.navigation';
+import { useApiErrorMessage } from '@/libs/api/api.hook.use-error-message';
 import { Button, Input, Modal } from '@/ui/atoms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconX } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-// Form validation schema for phone number
-const phoneFormSchema = z.object({
-    phoneNumber: z
-        .string()
-        .min(11, { message: 'شماره تلفن باید حداقل ۱۱ رقم باشد' })
-        .regex(/^۰۹[۰-۹]{9}$|^09\d{9}$/, { message: 'فرمت شماره تلفن صحیح نیست' }),
-});
-
-// Form validation schema for OTP
-const otpFormSchema = z.object({
-    otp: z
-        .string()
-        .min(4, { message: 'کد تایید باید حداقل ۴ رقم باشد' })
-        .regex(/^[۰-۹\d]+$/, { message: 'کد تایید باید عدد باشد' }),
-});
-
-type PhoneFormData = z.infer<typeof phoneFormSchema>;
-type OtpFormData = z.infer<typeof otpFormSchema>;
 
 export default function LoginModal(props: { onClose?: () => void, onLoginSuccess?: () => void, isOpen?: boolean, hasBackdrop?: boolean }) {
     const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -37,6 +20,27 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
     const [termsModalOpen, setTermsModalOpen] = useState(false);
     const router = useRouter();
     const { sendOtp, verifyOtpAndLogin, isLoading: authLoading, isAuthenticated } = useAuth();
+    const t = useTranslations('login');
+    const tCommon = useTranslations('common');
+    const errorMessage = useApiErrorMessage();
+
+    // Built per render language so validation messages follow the locale.
+    const phoneFormSchema = useMemo(() => z.object({
+        phoneNumber: z
+            .string()
+            .min(11, { message: t('validation.phoneMin') })
+            .regex(/^۰۹[۰-۹]{9}$|^09\d{9}$/, { message: t('validation.phoneFormat') }),
+    }), [t]);
+
+    const otpFormSchema = useMemo(() => z.object({
+        otp: z
+            .string()
+            .min(4, { message: t('validation.otpMin') })
+            .regex(/^[۰-۹\d]+$/, { message: t('validation.otpDigits') }),
+    }), [t]);
+
+    type PhoneFormData = z.infer<typeof phoneFormSchema>;
+    type OtpFormData = z.infer<typeof otpFormSchema>;
 
     const {
         register: registerPhone,
@@ -81,12 +85,11 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
         setPhoneNumber(data.phoneNumber);
 
         try {
-            const result = await sendOtp(data.phoneNumber);
-            setSuccess(result?.message || 'کد تایید با موفقیت ارسال شد');
+            await sendOtp(data.phoneNumber);
+            setSuccess(t('otp.sent'));
             setStep('otp');
         } catch (error) {
-            console.error(error);
-            // Error is handled by the useEffect above
+            setError(errorMessage(error));
         }
     };
 
@@ -100,8 +103,8 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                 data.otp,
             );
             // Result handling is done in the useEffect above
-        } catch {
-            // Error is handled by the useEffect above
+        } catch (error) {
+            setError(errorMessage(error));
         }
     };
 
@@ -122,10 +125,10 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
     const handleResendOtp = async () => {
         setError(null);
         try {
-            const result = await sendOtp(phoneNumber);
-            setSuccess(result?.message || 'کد تایید مجدداً ارسال شد');
-        } catch {
-            // Error is handled by the useEffect above
+            await sendOtp(phoneNumber);
+            setSuccess(t('otp.resent'));
+        } catch (error) {
+            setError(errorMessage(error));
         }
     };
 
@@ -139,7 +142,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
             >
                 <div className='flex justify-between items-center'>
                     <div className='font-bold text-lg lg:text-xl text-slate-700'>
-                        ورود به حساب کاربری
+                        {t('title')}
                     </div>
                     <Button onClick={() => {
                         if (props.onClose) {
@@ -147,7 +150,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                         } else {
                             router.push('/');
                         }
-                    }} variant='outline' className='!px-2'>
+                    }} variant='outline' className='!px-2' aria-label={tCommon('close')}>
                         <IconX className='size-5' />
                     </Button>
                 </div>
@@ -155,9 +158,9 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
                     {step === 'phone' ? (
                         <div className='lg:p-6 rounded-2xl lg:bg-white space-y-4'>
-                            <div className='font-semibold text-lg text-slate-700'>شماره موبایل خود را وارد کنید</div>
+                            <div className='font-semibold text-lg text-slate-700'>{t('phone.heading')}</div>
                             <div className='text-sm text-slate-500'>
-                                برای استفاده از امکانات هم‌اوا، لطفاً شمارهٔ موبایل خود را وارد کنید. کد تأیید به این شماره پیامک خواهد شد.
+                                {t('phone.body')}
                             </div>
                             <br />
                             {error && (
@@ -166,7 +169,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                                 </div>
                             )}
                             <Input
-                                placeholder='شماره موبایل'
+                                placeholder={t('phone.placeholder')}
                                 className='text-left'
                                 dir='ltr'
                                 {...registerPhone('phoneNumber')}
@@ -184,7 +187,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                                         }
                                     }}
                                 >
-                                    بازگشت
+                                    {tCommon('back')}
                                 </Button>
                                 <Button
                                     variant='primary'
@@ -193,26 +196,26 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                                     onClick={handlePhoneSubmit(onPhoneSubmit)}
                                     disabled={authLoading}
                                 >
-                                    {authLoading ? 'در حال بررسی...' : 'ارسال کد تایید'}
+                                    {authLoading ? t('checking') : t('phone.submit')}
                                 </Button>
                             </div>
                             <br />
                             <div className='text-xs text-blue-600 flex justify-between'>
-                                <div className='opacity-20'>نیاز به راهنمایی دارید؟</div>
+                                <div className='opacity-20'>{t('phone.help')}</div>
 
                                 <div
                                     className="cursor-pointer"
                                     onClick={openTermsModal}
                                 >
-                                    شرایط و قوانین استفاده
+                                    {t('phone.terms')}
                                 </div>
                             </div>
                         </div>
                     ) : (
                         <div className='lg:p-6 rounded-2xl lg:bg-white space-y-4'>
-                            <div className='font-semibold text-lg text-slate-700'>کد تأیید را وارد کنید</div>
+                            <div className='font-semibold text-lg text-slate-700'>{t('otp.heading')}</div>
                             <div className='text-sm text-slate-500'>
-                                کد پیامک‌شده به شمارۀ «{phoneNumber}» را وارد کنید.
+                                {t('otp.body', { phone: phoneNumber })}
                             </div>
                             <br />
                             {error && (
@@ -226,7 +229,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                                 </div>
                             )}
                             <Input
-                                placeholder='کد تایید 4 رقمی'
+                                placeholder={t('otp.placeholder')}
                                 className='text-left'
                                 dir='ltr'
                                 {...registerOtp('otp')}
@@ -239,7 +242,7 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                                     onClick={handleBackToPhone}
                                     disabled={authLoading}
                                 >
-                                    بازگشت
+                                    {tCommon('back')}
                                 </Button>
                                 <Button
                                     variant='secondary'
@@ -247,24 +250,24 @@ export default function LoginModal(props: { onClose?: () => void, onLoginSuccess
                                     onClick={handleOtpSubmit(onOtpSubmit)}
                                     disabled={authLoading}
                                 >
-                                    {authLoading ? 'در حال بررسی...' : 'ورود'}
+                                    {authLoading ? t('checking') : t('otp.submit')}
                                 </Button>
                             </div>
                             <br />
                             <div className='text-xs text-blue-600 flex justify-between'>
-                                <div onClick={handleBackToPhone} className="cursor-pointer">ویرایش شماره</div>
+                                <div onClick={handleBackToPhone} className="cursor-pointer">{t('otp.editPhone')}</div>
                                 <div
                                     onClick={handleResendOtp}
                                     className={`cursor-pointer ${authLoading ? 'opacity-50' : ''}`}
                                     style={{ pointerEvents: authLoading ? 'none' : 'auto' }}
                                 >
-                                    ارسال مجدد
+                                    {t('otp.resend')}
                                 </div>
                             </div>
                         </div>
                     )}
                     <div className='lg:flex items-center hidden'>
-                        <img src="/images/Login.png" className='w-full h-auto max-h-72 object-contain' alt="Login" />
+                        <img src="/images/Login.png" className='w-full h-auto max-h-72 object-contain' alt={t('imageAlt')} />
                     </div>
                 </div>
             </Modal>

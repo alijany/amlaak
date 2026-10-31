@@ -11,8 +11,9 @@ import {
     IconFilter,
     IconSearch
 } from '@tabler/icons-react';
+import { Link } from '@/i18n/i18n.navigation';
 import { debounce } from 'lodash';
-import Link from 'next/link';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useCallback, useMemo, useState } from 'react';
 import { mutate } from 'swr';
 import {
@@ -29,13 +30,16 @@ import {
     NotificationsFilters,
 } from './notifications.types';
 
-const CATEGORY_FILTERS: { id: 'all' | NotificationCategory; label: string }[] = [
-    { id: 'all', label: 'همه' },
-    { id: NotificationCategory.SYSTEM, label: 'سیستم' },
-    { id: NotificationCategory.GENERAL, label: 'عمومی' }
+// Labels resolve from `dashboard.notifications.categories.<id>`.
+const CATEGORY_FILTERS: ('all' | NotificationCategory)[] = [
+    'all',
+    NotificationCategory.SYSTEM,
+    NotificationCategory.GENERAL,
 ];
 
 export default function NotificationsPage() {
+    const t = useTranslations('dashboard.notifications');
+    const format = useFormatter();
     const [searchText, setSearchText] = useState<string | undefined>();
     const [selectedCategory, setSelectedCategory] = useState<'all' | NotificationCategory>('all');
 
@@ -105,17 +109,6 @@ export default function NotificationsPage() {
         }
     };
 
-    const getCategoryText = (category: NotificationCategory) => {
-        switch (category) {
-            case NotificationCategory.SYSTEM:
-                return 'سیستم';
-            case NotificationCategory.GENERAL:
-                return 'عمومی';
-            default:
-                return category;
-        }
-    };
-
     const categoryFilteredItems = useMemo(() => {
         if (!data?.items) return [];
         if (selectedCategory === 'all') return data.items;
@@ -139,10 +132,10 @@ export default function NotificationsPage() {
                             </div>
 
                             <div className='flex flex-wrap items-center gap-2'>
-                                <h1 className='text-sm font-semibold text-slate-900 lg:text-base'>مرکز اعلان‌ها</h1>
+                                <h1 className='text-sm font-semibold text-slate-900 lg:text-base'>{t('title')}</h1>
                                 {typeof unreadCount === 'number' && unreadCount > 0 && (
                                     <span className='rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-medium text-white/90'>
-                                        {unreadCount.toLocaleString('fa-IR')} جدید
+                                        {t('newCount', { count: unreadCount })}
                                     </span>
                                 )}
                             </div>
@@ -154,13 +147,13 @@ export default function NotificationsPage() {
                                 className='inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 active:bg-slate-100'
                             >
                                 <IconCheck size={14} className='text-emerald-500' />
-                                همه خوانده شده
+                                {t('markAllRead')}
                             </button>
                             <Link
                                 href='/dashboard/notifications/preferences'
                                 className='inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-[11px] font-medium text-slate-50 shadow-sm transition hover:bg-black'
                             >
-                                تنظیمات کانال‌ها و ترجیحات
+                                {t('preferencesLink')}
                             </Link>
                         </div>
                     </div>
@@ -169,7 +162,7 @@ export default function NotificationsPage() {
                     <div className='flex flex-col gap-2.5 rounded-2xl border z-10 border-slate-200/80 bg-white/80 px-3 py-2.5 backdrop-blur-sm lg:flex-row lg:items-center lg:justify-between lg:px-4 lg:py-3'>
                         <div className='w-full lg:max-w-sm'>
                             <Input
-                                placeholder='جستجو در متن، وضعیت یا دسته‌بندی اعلان‌ها'
+                                placeholder={t('searchPlaceholder')}
                                 icon={<IconSearch size={18} />}
                                 value={searchText || ''}
                                 onChange={handleSearchChange}
@@ -178,13 +171,13 @@ export default function NotificationsPage() {
                         <div className='flex items-center justify-between gap-2 lg:justify-end'>
                             <div className='w-40 sm:w-48'>
                                 <Dropdown<'all' | NotificationCategory>
-                                    items={CATEGORY_FILTERS.map(item => ({
-                                        label: item.label,
-                                        value: item.id,
+                                    items={CATEGORY_FILTERS.map(id => ({
+                                        label: t(`categories.${id}`),
+                                        value: id,
                                     }))}
                                     value={selectedCategory}
                                     onChange={value => setSelectedCategory(value ?? 'all')}
-                                    placeholder='همه دسته‌بندی‌ها'
+                                    placeholder={t('allCategories')}
                                     variant='outline'
                                     size='sm'
                                     renderButton={(label, disabled) => (
@@ -205,14 +198,14 @@ export default function NotificationsPage() {
                     {/* Content */}
                     <div className='relative flex min-h-0 grow flex-col rounded-2xl border border-slate-200/80 bg-white/90 p-0.5 shadow-[0_22px_65px_rgba(15,23,42,0.06)]'>
                         <div className='flex items-center justify-between border-b border-slate-100 px-4 py-2.5 text-[11px] text-slate-400'>
-                            <span>لیست اعلان‌ها</span>
+                            <span>{t('listTitle')}</span>
                             <span className='hidden gap-1 sm:inline-flex'>
-                                <span>مرتب‌سازی جدیدترین</span>
+                                <span>{t('sortNewest')}</span>
                                 <span className='h-1 w-1 rounded-full bg-slate-300' />
                                 <span>
                                     {data?.meta?.total
-                                        ? `${data.meta.total.toLocaleString('fa-IR')} رویداد`
-                                        : 'بدون داده'}
+                                        ? t('eventCount', { count: data.meta.total })
+                                        : t('noData')}
                                 </span>
                             </span>
                         </div>
@@ -223,24 +216,21 @@ export default function NotificationsPage() {
                             isLoading={isLoading}
                             className='flex grow flex-col overflow-hidden'
                             isEmpty={items => !items || items.length === 0}
-                            emptyMessage='اعلانی در این بازه وجود ندارد. به‌محض رخ دادن رویدادهای جدید در حساب، اینجا نمایش داده می‌شود.'
+                            emptyMessage={t('empty')}
                             variant='inline'
                         >
                             <div className='flex grow flex-col overflow-hidden'>
                                 <div className='hidden border-b border-slate-100 px-4 py-2 text-[11px] text-slate-400 md:grid md:grid-cols-[minmax(0,1.9fr)_minmax(0,1.1fr)_90px] md:items-center'>
-                                    <span className='pr-9'>اعلان</span>
-                                    <span>کانال و زمان‌بندی</span>
-                                    <span className='text-left'>وضعیت</span>
+                                    <span className='ps-9'>{t('columns.notification')}</span>
+                                    <span>{t('columns.channel')}</span>
+                                    <span className='text-end'>{t('columns.status')}</span>
                                 </div>
 
                                 <div className='flex min-h-0 grow flex-col gap-1.5 overflow-auto px-2 py-2.5 lg:px-3 lg:py-3'>
                                     {categoryFilteredItems.map((notification: NotificationResponse) => {
                                         const created = new Date(notification.created_at);
-                                        const dateLabel = created.toLocaleDateString('fa-IR');
-                                        const timeLabel = created.toLocaleTimeString('fa-IR', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                        });
+                                        const dateLabel = format.dateTime(created, 'numeric');
+                                        const timeLabel = format.dateTime(created, 'time');
 
                                         return (
                                             <article
@@ -251,7 +241,7 @@ export default function NotificationsPage() {
                                                     }`}
                                             >
                                                 {/* Message & meta */}
-                                                <div className='flex items-start gap-3 pr-0.5 md:pr-2'>
+                                                <div className='flex items-start gap-3 ps-0.5 md:ps-2'>
                                                     <button
                                                         onClick={() => handleMarkAsRead(notification.id, notification.isRead)}
                                                         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border text-slate-400 transition ${notification.isRead
@@ -260,8 +250,8 @@ export default function NotificationsPage() {
                                                             }`}
                                                         title={
                                                             notification.isRead
-                                                                ? 'علامت‌گذاری به عنوان خوانده نشده'
-                                                                : 'علامت‌گذاری به عنوان خوانده شده'
+                                                                ? t('markUnread')
+                                                                : t('markRead')
                                                         }
                                                     >
 
@@ -276,14 +266,14 @@ export default function NotificationsPage() {
                                                                     : 'bg-slate-900 text-slate-50'
                                                                     }`}
                                                             >
-                                                                {getCategoryText(notification.category)}
+                                                                {t(`categories.${notification.category}`)}
                                                                 {!notification.isRead && (
                                                                     <span className='h-1 w-1 rounded-full bg-emerald-400' />
                                                                 )}
                                                             </span>
                                                             {!notification.isRead && (
                                                                 <span className='inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700'>
-                                                                    تازه
+                                                                    {t('fresh')}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -317,9 +307,9 @@ export default function NotificationsPage() {
                                                 {/* Channel & time */}
                                                 <div className='mt-2 flex items-baseline justify-between gap-2 text-[11px] text-slate-500 md:mt-0 md:justify-start'>
                                                     <div className='inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5'>
-                                                        <span className='text-xs'>کانال</span>
+                                                        <span className='text-xs'>{t('channelLabel')}</span>
                                                         <span className='h-1 w-1 rounded-full bg-slate-300' />
-                                                        <span className='font-medium'>{notification.type}</span>
+                                                        <span className='font-medium'>{t(`channels.${notification.type}`)}</span>
                                                     </div>
                                                     <div className='flex items-center gap-1.5 text-[11px] text-slate-400'>
                                                         <span>{dateLabel}</span>
@@ -329,7 +319,7 @@ export default function NotificationsPage() {
                                                 </div>
 
                                                 {/* Status */}
-                                                <div className='mt-2 flex items-center justify-end text-left text-[11px] md:mt-0'>
+                                                <div className='mt-2 flex items-center justify-end text-end text-[11px] md:mt-0'>
                                                     <StatusPill status={notification.status} />
                                                 </div>
                                             </article>
@@ -360,7 +350,8 @@ export default function NotificationsPage() {
 }
 
 function StatusPill({ status }: { status: NotificationStatus }) {
-    const label = getStatusText(status);
+    const t = useTranslations('dashboard.notifications.statuses');
+    const label = t(status);
 
     const tone = (() => {
         switch (status) {
@@ -406,22 +397,5 @@ function StatusPill({ status }: { status: NotificationStatus }) {
             {label}
         </span>
     );
-}
-
-function getStatusText(status: NotificationStatus) {
-    switch (status) {
-        case NotificationStatus.PENDING:
-            return 'در انتظار';
-        case NotificationStatus.SENT:
-            return 'ارسال شده';
-        case NotificationStatus.DELIVERED:
-            return 'دریافت شده';
-        case NotificationStatus.FAILED:
-            return 'ناموفق';
-        case NotificationStatus.CANCELED:
-            return 'لغو شده';
-        default:
-            return status;
-    }
 }
 

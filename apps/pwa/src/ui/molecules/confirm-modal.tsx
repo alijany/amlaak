@@ -4,6 +4,7 @@ import React from 'react';
 import { Button } from '@/ui/atoms/ui.button';
 import { Modal } from '@/ui/atoms/ui.modal';
 import { IconX } from '@tabler/icons-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/libs/style/style.util.helpers';
 
 export interface ConfirmModalProps {
@@ -21,12 +22,17 @@ export function ConfirmModal({
     isOpen,
     onClose,
     onConfirm,
-    title = 'تایید عملیات',
-    message = 'آیا از انجام این عملیات اطمینان دارید؟',
-    confirmButtonText = 'تایید',
-    cancelButtonText = 'بازگشت',
+    title,
+    message,
+    confirmButtonText,
+    cancelButtonText,
     className,
 }: ConfirmModalProps): React.ReactElement {
+    // Callers may still pass explicit copy; the catalog supplies the default so
+    // a caller that omits it renders in the reader's language.
+    const t = useTranslations('common.confirm');
+    const cancelLabel = cancelButtonText ?? t('cancel');
+
     return (
         <Modal
             isOpen={isOpen}
@@ -35,9 +41,9 @@ export function ConfirmModal({
         >
             <div className='flex justify-between items-center pb-4'>
                 <div className='font-bold text-lg lg:text-xl text-slate-700'>
-                    {title}
+                    {title ?? t('title')}
                 </div>
-                <Button variant='outline' className='!px-2' onClick={onClose}>
+                <Button variant='outline' className='!px-2' aria-label={cancelLabel} onClick={onClose}>
                     <IconX className='size-5' />
                 </Button>
             </div>
@@ -49,14 +55,14 @@ export function ConfirmModal({
                         <path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.48 21h17.04a2 2 0 0 0 1.66-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                 </div>
-                <div className="text-center text-lg font-medium">{message}</div>
+                <div className="text-center text-lg font-medium">{message ?? t('message')}</div>
             </div>
             <div className="flex gap-4">
                 <Button className="flex-1 bg-red-500 text-white" onClick={onConfirm}>
-                    {confirmButtonText}
+                    {confirmButtonText ?? t('confirm')}
                 </Button>
                 <Button variant='ghost' className="flex-1 bg-slate-100" onClick={onClose}>
-                    {cancelButtonText}
+                    {cancelLabel}
                 </Button>
             </div>
         </Modal>

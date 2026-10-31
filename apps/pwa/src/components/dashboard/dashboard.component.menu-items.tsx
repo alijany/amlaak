@@ -2,10 +2,9 @@
 
 import { Button, Dropdown } from "@/ui/atoms";
 import { IconLogout, IconPhone, IconReplace, IconUserFilled } from "@tabler/icons-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/i18n.navigation";
+import { useTranslations } from "next-intl";
 import React from "react";
-import { getRoleName } from "../auth/auth.constants.roles";
 import { useAuth } from "../auth/auth.context.provider";
 import { routeGroups } from "./dashboard.constants.route-groups";
 
@@ -16,12 +15,15 @@ interface MenuItemsProps {
 }
 
 export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps) {
+  // Locale-aware `usePathname` — it strips the `/en` prefix, so the active-route
+  // comparisons below keep working in every language.
   const pathname = usePathname();
+  const t = useTranslations('dashboard');
   const { logout, hasAnyRole, user, selectedRole, setSelectedRole } = useAuth();
 
   // Get user roles for dropdown
   const userRoles = user?.roles?.map(r => ({
-    label: getRoleName(r.role),
+    label: t(`roles.${r.role}`),
     value: r
   })) || [];
 
@@ -43,7 +45,7 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
             <div className="flex flex-col items-start grow">
               <div dir="ltr">{user?.phone}</div>
               <div className="text-xs text-neutral-400 max-w-28 truncate">
-                {`${getRoleName(selectedRole.role)}`}
+                {t(`roles.${selectedRole.role}`)}
               </div>
             </div>
             <Button variant="white" className="!px-2">
@@ -51,10 +53,10 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
             </Button>
           </div>
         )}
-        placeholder="انتخاب نقش"
+        placeholder={t('shell.selectRole')}
         variant="outline"
         className="w-full"
-        buttonClassName="text-right"
+        buttonClassName="text-start"
       />
 
       <div className="flex flex-col overflow-auto  my-6">
@@ -71,7 +73,7 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
           return (
             <React.Fragment key={index}>
               <div className="mb-4">
-                {/* <div className="text-gray-500 text-sm font-medium mb-2">{group.label}</div> */}
+                {/* <div className="text-gray-500 text-sm font-medium mb-2">{t(`groups.${group.labelKey}`)}</div> */}
                 {filteredRoutes.map((route) => (
                   <Link
                     key={route.href}
@@ -80,7 +82,7 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
                     className={`${itemClassName} flex gap-2 items-center p-2 rounded-lg mb-1 ${pathname === route.href ? "bg-orange-50 text-orange-500 font-semibold" : "text-slate-700 hover:bg-slate-50"}`}
                   >
                     {route.icon && route.icon}
-                    <div>{route.label}</div>
+                    <div>{t(`routes.${route.labelKey}`)}</div>
                   </Link>
                 ))}
               </div>
@@ -94,10 +96,10 @@ export function MenuItems({ className, itemClassName, onClose }: MenuItemsProps)
             logout();
             onClose?.();
           }}
-          className={`${itemClassName} flex gap-2 items-center text-red-500 p-2 rounded-lg w-full text-right hover:bg-slate-50`}
+          className={`${itemClassName} flex gap-2 items-center text-red-500 p-2 rounded-lg w-full text-start hover:bg-slate-50`}
         >
           <IconLogout className="size-5" />
-          <div>خروج</div>
+          <div>{t('shell.logout')}</div>
         </button>
       </div>
 
