@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -18,6 +17,11 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { CodedBadRequestException } from 'src/libs/error/error.exception.coded';
+import {
+  formPipes,
+  validationPipes,
+} from 'src/libs/error/error.pipe.validation';
 import { Role } from 'src/roles/roles.constants';
 import { S3StorageService } from 'src/storage/s3-storage.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,13 +42,13 @@ export class UserController {
 
   @Post()
   @Roles(Role.ADMIN)
-  async inviteUser(@Body() inviteDto: InviteUserDto) {
+  async inviteUser(@Body(...formPipes) inviteDto: InviteUserDto) {
     return this.userService.inviteUserByRole(inviteDto);
   }
 
   @Get()
   @Roles(Role.ADMIN)
-  async getAllUsers(@Query() filters?: UsersGetDto): Promise<{
+  async getAllUsers(@Query(...validationPipes) filters?: UsersGetDto): Promise<{
     items: any[];
     meta: { page: number; limit: number; total: number; pageCount: number };
   }> {
@@ -102,7 +106,7 @@ export class UserController {
   @Patch('profile')
   async updateProfile(
     @CurrentUser() user: UserEntity,
-    @Body() updateProfileDto: UpdateProfileDto,
+    @Body(...formPipes) updateProfileDto: UpdateProfileDto,
   ) {
     const updatedUser = await this.userService.updateProfile(
       user.id,
@@ -118,7 +122,10 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
-      throw new BadRequestException('فایلی آپلود نشده است');
+      throw new CodedBadRequestException(
+        'user.avatar.file_missing',
+        'No file was uploaded',
+      );
     }
 
     // Validate file type
@@ -129,15 +136,20 @@ export class UserController {
       'image/jpg',
     ];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'فرمت فایل نامعتبر است. فقط تصاویر مجاز هستند',
+      throw new CodedBadRequestException(
+        'user.avatar.invalid_type',
+        'Invalid file format. Only images are allowed',
       );
     }
 
     // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      throw new BadRequestException('حجم فایل بیش از 5 مگابایت است');
+    const maxMegabytes = 5;
+    if (file.size > maxMegabytes * 1024 * 1024) {
+      throw new CodedBadRequestException(
+        'user.avatar.too_large',
+        `File size exceeds ${maxMegabytes} MB`,
+        { megabytes: maxMegabytes },
+      );
     }
 
     // Generate unique filename

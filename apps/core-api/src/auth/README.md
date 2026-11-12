@@ -52,7 +52,7 @@ The system uses a passwordless authentication approach with SMS-based OTP verifi
    - Validates phone number format (Iranian format)
    - Generates secure 4-digit OTP using crypto.randomInt
    - Stores OTP in Redis cache with 5-minute TTL
-   - Sends OTP via SMS service
+   - Sends OTP via SMS service, in the `locale` the client reported (`fa` when absent)
 
 2. **Verify OTP** (`/auth/otp/verify`)
    - Validates phone number and OTP
@@ -189,16 +189,26 @@ POST /api/v1/auth/otp/send
 Content-Type: application/json
 
 {
-  "phoneNumber": "+989123456789"
+  "phoneNumber": "+989123456789",
+  "locale": "en"
 }
 ```
 
-**Response:**
+`locale` is optional (`fa` | `en`) and only chooses the SMS language. The PWA
+sends the locale it negotiated; it is not stored.
+
+**Response:** `201` with an empty body.
+
+**Errors** carry a `code` the PWA translates, for example:
 ```json
 {
-  "message": "رمز یکبار مصرف با موفقیت ارسال شد."
+  "statusCode": 400,
+  "code": "validation.failed",
+  "message": "Validation failed.",
+  "issues": [{ "field": "phoneNumber", "rules": ["isPhoneNumber"] }]
 }
 ```
+See `docs/engine/localization.md` §"API errors".
 
 ### Verify OTP
 ```http

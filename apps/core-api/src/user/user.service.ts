@@ -1,14 +1,14 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { AgencyEntity } from 'src/agency/agency.entity';
+import {
+  CodedBadRequestException,
+  CodedConflictException,
+  CodedNotFoundException,
+} from 'src/libs/error/error.exception.coded';
 import { BaseRepositoryService } from 'src/libs/orm/orm.repository.service.base';
 import { Role } from 'src/roles/roles.constants';
 import { InvitationStatus, RolesEntity } from 'src/roles/roles.entity';
@@ -76,7 +76,7 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     });
 
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new CodedNotFoundException('user.role.not_found', 'Role not found');
     }
 
     role.invitationStatus = status;
@@ -109,8 +109,9 @@ export class UserService extends BaseRepositoryService<UserEntity> {
             (role.agency?.id ?? null) === (dto.agencyId ?? null),
         );
       if (existingRole) {
-        throw new ConflictException(
-          `کاربر با این نقش در این سازمان قبلا ایجاد شده`,
+        throw new CodedConflictException(
+          'user.role.already_granted',
+          'This user already has this role',
         );
       }
     }
@@ -143,11 +144,17 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     );
 
     if (!role) {
-      throw new NotFoundException('دعوت‌نامه یافت نشد');
+      throw new CodedNotFoundException(
+        'user.invitation.not_found',
+        'Invitation not found',
+      );
     }
 
     if (role.invitationStatus !== InvitationStatus.PENDING) {
-      throw new ConflictException('این دعوت‌نامه قبلا پردازش شده است');
+      throw new CodedConflictException(
+        'user.invitation.already_processed',
+        'This invitation has already been processed',
+      );
     }
 
     role.invitationStatus = InvitationStatus.ACCEPTED;
@@ -163,11 +170,17 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     );
 
     if (!role) {
-      throw new NotFoundException('دعوت‌نامه یافت نشد');
+      throw new CodedNotFoundException(
+        'user.invitation.not_found',
+        'Invitation not found',
+      );
     }
 
     if (role.invitationStatus !== InvitationStatus.PENDING) {
-      throw new ConflictException('این دعوت‌نامه قبلا پردازش شده است');
+      throw new CodedConflictException(
+        'user.invitation.already_processed',
+        'This invitation has already been processed',
+      );
     }
 
     // Remove the invitation role
@@ -198,7 +211,7 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     const user = await this.findOne({ id: userId });
 
     if (!user) {
-      throw new NotFoundException('کاربر یافت نشد');
+      throw new CodedNotFoundException('user.not_found', 'User not found');
     }
 
     // Update the fields
@@ -246,7 +259,7 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     const user = await this.findOne({ id: userId });
 
     if (!user) {
-      throw new NotFoundException('کاربر یافت نشد');
+      throw new CodedNotFoundException('user.not_found', 'User not found');
     }
 
     user.profilePicture = profilePictureUrl;
@@ -261,7 +274,10 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     const validatedPhone = parsePhoneNumberFromString(newPhone, 'IR');
 
     if (!validatedPhone?.isValid()) {
-      throw new BadRequestException('فرمت شماره تلفن نامعتبر است.');
+      throw new CodedBadRequestException(
+        'auth.phone.invalid_format',
+        'Phone number format is invalid.',
+      );
     }
 
     // Check if phone number is already in use by another user
@@ -270,12 +286,15 @@ export class UserService extends BaseRepositoryService<UserEntity> {
     });
 
     if (existingUser && existingUser.id !== userId) {
-      throw new ConflictException('این شماره تلفن قبلا استفاده شده است');
+      throw new CodedConflictException(
+        'user.phone.already_used',
+        'This phone number is already in use',
+      );
     }
 
     const user = await this.findOne({ id: userId });
     if (!user) {
-      throw new NotFoundException('کاربر یافت نشد');
+      throw new CodedNotFoundException('user.not_found', 'User not found');
     }
 
     user.phone = validatedPhone.number;

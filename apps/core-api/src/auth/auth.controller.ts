@@ -1,13 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Post,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common'; // Added UnauthorizedException
-import { NormalizeNumbersPipe } from 'src/libs/utils/pipe.normalizeNumbers';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import { CodedUnauthorizedException } from 'src/libs/error/error.exception.coded';
+import { formPipes } from 'src/libs/error/error.pipe.validation';
 import { UserEntity } from '../user/user.entity';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -32,12 +25,12 @@ export class AuthController {
   // --- OTP Endpoints ---
 
   @Post('otp/send')
-  async sendOtp(@Body(NormalizeNumbersPipe) sendOtpDto: SendOtpDto) {
-    return this.authService.sendOtp(sendOtpDto.phoneNumber);
+  async sendOtp(@Body(...formPipes) sendOtpDto: SendOtpDto) {
+    return this.authService.sendOtp(sendOtpDto.phoneNumber, sendOtpDto.locale);
   }
 
   @Post('otp/verify')
-  async verifyOtp(@Body(NormalizeNumbersPipe) verifyOtpDto: VerifyOtpDto) {
+  async verifyOtp(@Body(...formPipes) verifyOtpDto: VerifyOtpDto) {
     const result = await this.authService.verifyOtp(
       verifyOtpDto.phoneNumber,
       verifyOtpDto.otp,
@@ -54,11 +47,14 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+  async refreshToken(@Body(...formPipes) refreshTokenDto: RefreshTokenDto) {
     const refreshToken = refreshTokenDto.refresh_token;
 
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new CodedUnauthorizedException(
+        'auth.token.refresh_missing',
+        'Refresh token not found',
+      );
     }
 
     const result = await this.authService.refreshTokens(
@@ -75,9 +71,10 @@ export class AuthController {
   }
 
   @Patch('profile/phone')
+  @UseGuards(JwtAuthGuard)
   async updatePhoneNumber(
     @CurrentUser() user: UserEntity,
-    @Body() updatePhoneDto: UpdatePhoneDto,
+    @Body(...formPipes) updatePhoneDto: UpdatePhoneDto,
   ) {
     // Verify OTP first
     await this.authService.verifyOtpForPhoneChange(

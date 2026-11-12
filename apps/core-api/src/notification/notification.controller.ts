@@ -8,11 +8,13 @@ import {
   Post,
   Query,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  formPipes,
+  validationPipes,
+} from '../libs/error/error.pipe.validation';
 import { UserEntity } from '../user/user.entity';
 import {
   CreateNotificationPreferenceDto,
@@ -31,10 +33,9 @@ export class NotificationController {
   ) {}
 
   @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true }))
   @Get()
   async getNotifications(
-    @Query() filterDto: NotificationGetDto,
+    @Query(...validationPipes) filterDto: NotificationGetDto,
     @CurrentUser() user: UserEntity,
   ) {
     return this.notificationService.getPaginatedNotifications(
@@ -81,9 +82,8 @@ export class NotificationController {
 
   @UseGuards(JwtAuthGuard)
   @Post('preferences')
-  @UsePipes(new ValidationPipe({ transform: true }))
   async createPreference(
-    @Body() dto: CreateNotificationPreferenceDto,
+    @Body(...formPipes) dto: CreateNotificationPreferenceDto,
     @CurrentUser() user: UserEntity,
   ) {
     return this.notificationPreferenceService.createPreference(user.id, dto);
@@ -91,10 +91,9 @@ export class NotificationController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('preferences/:category')
-  @UsePipes(new ValidationPipe({ transform: true }))
   async updatePreference(
     @Param('category') category: NotificationCategory,
-    @Body() dto: UpdateNotificationPreferenceDto,
+    @Body(...formPipes) dto: UpdateNotificationPreferenceDto,
     @CurrentUser() user: UserEntity,
   ) {
     return this.notificationPreferenceService.updatePreference(
